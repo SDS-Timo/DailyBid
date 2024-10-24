@@ -79,6 +79,14 @@ const WalletContent: React.FC = () => {
   const userDepositAddress = formatWalletAddress(userDeposit)
   const { onCopy } = useClipboard(userDeposit)
 
+  const userDepositTooltip = (
+    <>
+      {`Wallet account. Transfer here or set as allowance spender:`}
+      <br />
+      {userDeposit}
+    </>
+  )
+
   const claimTooltipTextStandard = (
     <>
       {`Claim Direct Deposit`}
@@ -474,7 +482,7 @@ const WalletContent: React.FC = () => {
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
           <Icon as={FaWallet} boxSize={4} mr={2} />
-          <Tooltip label={userDeposit} aria-label={userDeposit}>
+          <Tooltip label={userDepositTooltip} aria-label={userDeposit}>
             <Text
               onClick={copyToClipboardDepositAddress}
               cursor="pointer"
