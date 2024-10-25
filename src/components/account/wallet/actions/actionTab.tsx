@@ -18,10 +18,10 @@ import { FiSearch } from 'react-icons/fi'
 import { useSelector } from 'react-redux'
 
 import ActionRow from './actionRow'
-import customStyles from './styles'
 import useDepositHistory from '../../../../hooks/useDepositHistory'
 import { RootState } from '../../../../store'
 import { TokenDataItem, TokenMetadata, Option } from '../../../../types'
+import customStyles from '../styles'
 
 interface ActionTabProps {
   userAgent: HttpAgent
@@ -30,7 +30,6 @@ interface ActionTabProps {
 
 const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
-  const quoteTokenDefault = process.env.ENV_TOKEN_QUOTE_DEFAULT || 'USDT'
 
   const [loading, setLoading] = useState(true)
   const [histories, setHistories] = useState<TokenDataItem[]>([])
@@ -42,9 +41,7 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
   const [endDate, setEndDate] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
-  const selectedQuote = useSelector(
-    (state: RootState) => state.tokens.selectedQuote,
-  )
+  const trades = useSelector((state: RootState) => state.trades.trades)
 
   const token =
     Array.isArray(symbol) && symbol.length > 0
@@ -67,17 +64,9 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
     setSymbol(option)
   }, [])
 
-  const filteredTokens = useMemo(
-    () =>
-      tokens.filter(
-        (token) => token.symbol !== (selectedQuote?.base || quoteTokenDefault),
-      ),
-    [tokens, selectedQuote],
-  )
-
   const options: Option[] = useMemo(
     () =>
-      filteredTokens.map((token) => ({
+      tokens.map((token) => ({
         id: token.symbol,
         value: token.symbol,
         label: token.base,
@@ -87,7 +76,7 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
         decimals: token.decimals,
         principal: token.principal,
       })),
-    [filteredTokens],
+    [tokens],
   )
 
   const isWithinDateRange = useCallback(
@@ -106,16 +95,15 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
       return
     }
 
-    const filtered = histories.filter((history) => {
+    const filteredHistories = histories.filter((history) => {
       const matchSymbol =
         !token?.label || (token as Option).label === history.symbol
       const matchDate = isWithinDateRange(history.datetime, startDate, endDate)
-
       return matchSymbol && matchDate
     })
 
-    setFilteredHistories(filtered)
-  }, [symbol, startDate, endDate, histories])
+    setFilteredHistories(filteredHistories)
+  }, [token?.label, startDate, endDate, histories, trades])
 
   return (
     <>

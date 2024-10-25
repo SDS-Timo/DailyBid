@@ -91,6 +91,24 @@ const TokenRow: React.FC<TokenRowProps> = ({
   const { onCopy } = useClipboard(`${token.principal}`)
   const isMobile = useBreakpointValue({ base: true, md: false })
 
+  const volumeInTotal = Number(token.volumeInTotal).toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: token.decimals,
+  })
+
+  const volumeInLocked = Number(token.volumeInLocked).toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: token.decimals,
+  })
+
+  const volumeInAvailable = Number(token.volumeInAvailable).toLocaleString(
+    'en-US',
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: token.decimals,
+    },
+  )
+
   const toast = useToast({
     duration: 2000,
     position: 'top-right',
@@ -317,9 +335,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
             </Flex>
             <Flex direction="column" align="flex-end" ml={2} overflowX="auto">
               <Flex align="center" overflowX="auto" whiteSpace="nowrap">
-                <Text mr={2}>
-                  {fixDecimal(token.volumeInTotal, token.decimals)}
-                </Text>
+                <Text mr={2}>{volumeInTotal}</Text>
                 <Tooltip label="Deposit by Allowance" aria-label="Allowance">
                   <IconButton
                     aria-label="Allowance"
@@ -375,11 +391,10 @@ const TokenRow: React.FC<TokenRowProps> = ({
                 w="full"
               >
                 <Text fontSize="12px" color="grey.400">
-                  {fixDecimal(token.volumeInLocked, token.decimals)} Locked
+                  {volumeInLocked} Locked
                 </Text>
                 <Text ml={2} fontSize="12px" color="grey.400">
-                  {fixDecimal(token.volumeInAvailable, token.decimals)}{' '}
-                  Available
+                  {volumeInAvailable} Available
                 </Text>
               </Flex>
             </Flex>

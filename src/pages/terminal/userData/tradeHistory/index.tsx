@@ -11,6 +11,7 @@ import PaginationTable, {
 import useTransactionHistory from '../../../../hooks/useTradeHistory'
 import { RootState, AppDispatch } from '../../../../store'
 import { setIsRefreshUserData } from '../../../../store/orders'
+import { setTrades } from '../../../../store/trades'
 import { TokenDataItem } from '../../../../types'
 
 const TradeHistory: React.FC = () => {
@@ -20,7 +21,6 @@ const TradeHistory: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const dispatch = useDispatch<AppDispatch>()
 
-  const [transactions, setTransactions] = useState<TokenDataItem[]>([])
   const [transactionsFiltered, setTransactionsFiltered] = useState<
     TokenDataItem[]
   >([])
@@ -47,6 +47,8 @@ const TradeHistory: React.FC = () => {
   const selectedQuote = useSelector(
     (state: RootState) => state.tokens.selectedQuote,
   )
+  const transactions = useSelector((state: RootState) => state.trades.trades)
+
   const symbol = Array.isArray(selectedSymbol)
     ? selectedSymbol[0]
     : selectedSymbol
@@ -61,7 +63,7 @@ const TradeHistory: React.FC = () => {
         selectedQuote,
         orderSettings.orderPriceDigitsLimit,
       )
-      setTransactions(transactions)
+      dispatch(setTrades(transactions))
       filterTransactions(transactions)
       setLoading(false)
     }
@@ -146,7 +148,7 @@ const TradeHistory: React.FC = () => {
             fontSize="11px"
             bgColor={bgColor}
             fontColor={fontColor}
-            emptyMessage="no transactions found"
+            emptyMessage="no trades found"
             pgSize={isResizeUserData ? 15 : pgSize}
             onClick={(c) => c}
             onClickAllMarkets={handleCheckboxChange}
