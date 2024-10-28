@@ -56,9 +56,15 @@ export interface HttpResponse {
   status_code: number
 }
 export interface IndicativeStats {
-  clearingPrice: number
+  clearing:
+    | { match: { volume: bigint; price: number } }
+    | {
+        noMatch: {
+          minAskPrice: [] | [number]
+          maxBidPrice: [] | [number]
+        }
+      }
   totalAskVolume: bigint
-  clearingVolume: bigint
   totalBidVolume: bigint
 }
 export type InternalPlaceOrderError =
@@ -311,6 +317,10 @@ export interface _SERVICE {
   queryTransactionHistory: ActorMethod<
     [[] | [Principal], bigint, bigint],
     Array<TransactionHistoryItem>
+  >
+  queryTransactionHistoryForward: ActorMethod<
+    [[] | [Principal], bigint, bigint],
+    [Array<TransactionHistoryItem>, bigint, boolean]
   >
   queryUserAsks: ActorMethod<[Principal], Array<[OrderId, Order]>>
   queryUserBids: ActorMethod<[Principal], Array<[OrderId, Order]>>

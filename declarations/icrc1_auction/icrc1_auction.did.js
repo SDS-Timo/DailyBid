@@ -59,9 +59,14 @@ export const idlFactory = ({ IDL }) => {
     }),
   })
   const IndicativeStats = IDL.Record({
-    clearingPrice: IDL.Float64,
+    clearing: IDL.Variant({
+      match: IDL.Record({ volume: IDL.Nat, price: IDL.Float64 }),
+      noMatch: IDL.Record({
+        minAskPrice: IDL.Opt(IDL.Float64),
+        maxBidPrice: IDL.Opt(IDL.Float64),
+      }),
+    }),
     totalAskVolume: IDL.Nat,
-    clearingVolume: IDL.Nat,
     totalBidVolume: IDL.Nat,
   })
   const OrderId__1 = IDL.Nat
@@ -443,6 +448,11 @@ export const idlFactory = ({ IDL }) => {
       [IDL.Vec(TransactionHistoryItem)],
       ['query'],
     ),
+    queryTransactionHistoryForward: IDL.Func(
+      [IDL.Opt(IDL.Principal), IDL.Nat, IDL.Nat],
+      [IDL.Vec(TransactionHistoryItem), IDL.Nat, IDL.Bool],
+      ['query'],
+    ),
     queryUserAsks: IDL.Func(
       [IDL.Principal],
       [IDL.Vec(IDL.Tuple(OrderId, Order))],
@@ -502,7 +512,6 @@ export const idlFactory = ({ IDL }) => {
     wipeUsers: IDL.Func([], [], []),
   })
 }
-
 export const init = ({ IDL }) => {
   return [IDL.Opt(IDL.Principal), IDL.Opt(IDL.Principal)]
 }

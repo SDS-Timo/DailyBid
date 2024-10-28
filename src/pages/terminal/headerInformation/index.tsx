@@ -22,7 +22,6 @@ import { RootState, AppDispatch } from '../../../store'
 import { setIsRefreshUserData } from '../../../store/orders'
 import { setIsRefreshPrices } from '../../../store/prices'
 import { NextSession } from '../../../types'
-import { fixDecimal } from '../../../utils/calculationsUtils'
 
 const HeaderInformation = () => {
   const bgColor = useColorModeValue('grey.100', 'grey.900')
@@ -63,31 +62,74 @@ const HeaderInformation = () => {
       const stats = await getStatistics(userAgent, symbol, selectedQuote)
 
       if (stats) {
-        const clearingVolume = stats?.clearingVolume.toLocaleString('en-US', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: symbol.decimals,
-        })
+        const clearingPrice =
+          stats?.clearingPrice !== undefined && stats.clearingPrice !== null
+            ? stats.clearingPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: symbol.decimals,
+              })
+            : null
 
-        const totalAskVolume = stats?.totalAskVolume.toLocaleString('en-US', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: symbol.decimals,
-        })
+        const clearingVolume =
+          stats?.clearingVolume !== undefined && stats.clearingVolume !== null
+            ? stats.clearingVolume.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: symbol.decimals,
+              })
+            : null
 
-        const totalBidVolume = stats?.totalBidVolume.toLocaleString('en-US', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: symbol.decimals,
-        })
+        const totalAskVolume =
+          stats.totalAskVolume !== null
+            ? stats.totalAskVolume.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: symbol.decimals,
+              })
+            : '-'
+
+        const totalBidVolume =
+          stats.totalBidVolume !== null
+            ? stats.totalBidVolume.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: symbol.decimals,
+              })
+            : '-'
+
+        const minAskPrice =
+          stats?.minAskPrice !== undefined && stats.minAskPrice !== null
+            ? stats.minAskPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: symbol.decimals,
+              })
+            : null
+
+        const maxBidPrice =
+          stats?.maxBidPrice !== undefined && stats.maxBidPrice !== null
+            ? stats.maxBidPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: symbol.decimals,
+              })
+            : null
 
         setTooltipText(
           <>
-            {`Clearing Price: ${fixDecimal(stats?.clearingPrice, symbol?.decimals)} ${symbol?.quote}`}
-            <br />
-            {`Clearing Volume: ${clearingVolume} ${symbol?.base}`}
-            <br />
-            {`Total Ask Volume: ${totalAskVolume} ${symbol?.base}`}
-            <br />
+            {clearingPrice !== null || clearingVolume !== null ? (
+              <>
+                {`Clearing Price: ${clearingPrice || '-'} ${symbol?.quote}`}
+                <br />
+                {`Clearing Volume: ${clearingVolume || '-'} ${symbol?.base}`}
+                <br />
+              </>
+            ) : (
+              <>
+                {`Highest Bid: ${maxBidPrice || '-'} ${symbol?.quote}`}
+                <br />
+                {`Lowest Ask: ${minAskPrice || '-'} ${symbol?.quote}`}
+                <br />
+              </>
+            )}
             {`Total Bid Volume: ${totalBidVolume} ${symbol?.base}`}
             <br />
+            {`Total Ask Volume: ${totalAskVolume} ${symbol?.base}`}
           </>,
         )
       }

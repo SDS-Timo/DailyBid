@@ -136,39 +136,83 @@ const usePriceHistory = () => {
 
       const serviceActor = getActor(userAgent)
 
-      const { clearingPrice, clearingVolume, totalAskVolume, totalBidVolume } =
-        await serviceActor.indicativeStats(Principal.fromText(principal))
-
-      const formattedClearingPrice = convertPriceFromCanister(
-        Number(clearingPrice),
-        getDecimals(selectedSymbol),
-        getDecimals(selectedQuote),
+      const indicativeStats = await serviceActor.indicativeStats(
+        Principal.fromText(principal),
       )
 
-      const { volumeInBase: formattedClearingVolume } =
-        convertVolumeFromCanister(
+      let clearingPrice = null,
+        clearingVolume = null,
+        minAskPrice = null,
+        maxBidPrice = null
+      let formattedClearingPrice = null,
+        formattedClearingVolume = null
+      let formattedMinAskPrice = null,
+        formattedMaxBidPrice = null
+
+      if ('match' in indicativeStats.clearing) {
+        clearingPrice = indicativeStats.clearing.match.price
+        clearingVolume = indicativeStats.clearing.match.volume
+
+        formattedClearingPrice = convertPriceFromCanister(
+          Number(clearingPrice),
+          getDecimals(selectedSymbol),
+          getDecimals(selectedQuote),
+        )
+
+        formattedClearingVolume = convertVolumeFromCanister(
           Number(clearingVolume),
           getDecimals(selectedSymbol),
           0,
-        )
+        ).volumeInBase
+      } else if ('noMatch' in indicativeStats.clearing) {
+        minAskPrice = indicativeStats.clearing.noMatch.minAskPrice
+        maxBidPrice = indicativeStats.clearing.noMatch.maxBidPrice
 
-      const { volumeInBase: formattedTotalAskVolume } =
-        convertVolumeFromCanister(
-          Number(totalAskVolume),
-          getDecimals(selectedSymbol),
-          0,
-        )
+        formattedMinAskPrice =
+          minAskPrice !== null
+            ? convertPriceFromCanister(
+                Number(minAskPrice),
+                getDecimals(selectedSymbol),
+                getDecimals(selectedQuote),
+              )
+            : null
 
-      const { volumeInBase: formattedTotalBidVolume } =
-        convertVolumeFromCanister(
-          Number(totalBidVolume),
-          getDecimals(selectedSymbol),
-          0,
-        )
+        formattedMaxBidPrice =
+          maxBidPrice !== null
+            ? convertPriceFromCanister(
+                Number(maxBidPrice),
+                getDecimals(selectedSymbol),
+                getDecimals(selectedQuote),
+              )
+            : null
+      }
+
+      const totalAskVolume = indicativeStats.totalAskVolume || null
+      const totalBidVolume = indicativeStats.totalBidVolume || null
+
+      const formattedTotalAskVolume =
+        totalAskVolume !== null
+          ? convertVolumeFromCanister(
+              Number(totalAskVolume),
+              getDecimals(selectedSymbol),
+              0,
+            ).volumeInBase
+          : null
+
+      const formattedTotalBidVolume =
+        totalBidVolume !== null
+          ? convertVolumeFromCanister(
+              Number(totalBidVolume),
+              getDecimals(selectedSymbol),
+              0,
+            ).volumeInBase
+          : null
 
       return {
         clearingPrice: formattedClearingPrice,
         clearingVolume: formattedClearingVolume,
+        minAskPrice: formattedMinAskPrice,
+        maxBidPrice: formattedMaxBidPrice,
         totalAskVolume: formattedTotalAskVolume,
         totalBidVolume: formattedTotalBidVolume,
       }
