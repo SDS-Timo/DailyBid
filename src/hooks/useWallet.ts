@@ -91,6 +91,7 @@ const useWallet = () => {
       })
 
       const data = addDecimal(balances, 4)
+      data.sort((a, b) => a.symbol.localeCompare(b.symbol))
 
       return data
     } catch (error) {
