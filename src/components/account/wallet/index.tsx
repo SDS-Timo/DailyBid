@@ -23,6 +23,7 @@ import { FaWallet } from 'react-icons/fa'
 import { useSelector, useDispatch } from 'react-redux'
 
 import ActionTab from './actions/actionTab'
+import LedgerTab from './ledger/ledgerTab'
 import TokenTab from './tokens/tokenTab'
 import WalletIconDark from '../../../assets/img/common/wallet-black.svg'
 import WalletIconLight from '../../../assets/img/common/wallet-white.svg'
@@ -102,10 +103,7 @@ const WalletContent: React.FC = () => {
     setLoading(true)
     const { getBalancesCredits } = useWallet()
     const balancesCredits = await getBalancesCredits(userAgent, tokens)
-    const sortedBalances = balancesCredits.sort(
-      (a, b) => (b.volumeInAvailable ?? 0) - (a.volumeInAvailable ?? 0),
-    )
-    dispatch(setBalances(sortedBalances))
+    dispatch(setBalances(balancesCredits))
     setLoading(false)
   }, [userAgent, tokens, dispatch])
 
@@ -544,7 +542,14 @@ const WalletContent: React.FC = () => {
             _focus={{ boxShadow: 'none' }}
             _active={{ background: 'transparent' }}
           >
-            Action History
+            Transfers
+          </Tab>
+          <Tab
+            _selected={{ borderBottom: '2px solid', borderColor: 'blue.500' }}
+            _focus={{ boxShadow: 'none' }}
+            _active={{ background: 'transparent' }}
+          >
+            Reports
           </Tab>
         </TabList>
         <TabPanels>
@@ -573,6 +578,12 @@ const WalletContent: React.FC = () => {
               showSearch={true}
               loading={loading}
             />
+          </TabPanel>
+          <TabPanel>
+            <ActionTab userAgent={userAgent} tokens={tokens} />
+          </TabPanel>
+          <TabPanel>
+            <LedgerTab tokens={tokens} />
           </TabPanel>
           <TabPanel>
             <ActionTab userAgent={userAgent} tokens={tokens} />

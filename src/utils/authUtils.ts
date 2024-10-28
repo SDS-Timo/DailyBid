@@ -22,6 +22,7 @@ export function getAgent(identity: Identity) {
   const myAgent = HttpAgent.createSync({
     identity,
     host: HTTP_AGENT_HOST,
+    retryTimes: 10,
   })
 
   return myAgent

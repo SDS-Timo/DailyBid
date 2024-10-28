@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { TokenDataItem, TokenDataItemState } from '../../types'
+import { TokenDataItem, OpenOrdersState } from '../../types'
 
-const initialState: TokenDataItemState = {
+const initialState: OpenOrdersState = {
   isRefreshUserData: false,
   orderSettings: {
     orderQuoteVolumeMinimum: 0,

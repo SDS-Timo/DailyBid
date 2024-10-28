@@ -65,10 +65,16 @@ export interface PricesHistoryState {
 export interface TokenDataItem extends DataItem, TokenMetadata {
   [key: string]: any
 }
-export interface TokenDataItemState {
+export interface OpenOrdersState {
   isRefreshUserData: boolean
   orderSettings: SettingsState
   openOrders: TokenDataItem[] | []
+}
+export interface TradesState {
+  trades: TokenDataItem[] | []
+}
+export interface ActionsState {
+  actions: TokenDataItem[] | []
 }
 export interface BalancesState {
   balances: TokenDataItem[] | []
@@ -92,10 +98,12 @@ export interface Order {
   type: string
 }
 export interface Statistics {
-  clearingPrice: number
-  clearingVolume: number
-  totalAskVolume: number
-  totalBidVolume: number
+  clearingPrice?: number | null
+  clearingVolume?: number | null
+  minAskPrice?: number | null
+  maxBidPrice?: number | null
+  totalAskVolume: number | null
+  totalBidVolume: number | null
 }
 export interface NextSession {
   nextSession: string

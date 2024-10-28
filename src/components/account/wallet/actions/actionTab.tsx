@@ -15,11 +15,12 @@ import {
 import { HttpAgent } from '@dfinity/agent'
 import { Select } from 'bymax-react-select'
 import { FiSearch } from 'react-icons/fi'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 import ActionRow from './actionRow'
 import useDepositHistory from '../../../../hooks/useDepositHistory'
-import { RootState } from '../../../../store'
+import { RootState, AppDispatch } from '../../../../store'
+import { setActions } from '../../../../store/actions'
 import { TokenDataItem, TokenMetadata, Option } from '../../../../types'
 import customStyles from '../styles'
 
@@ -30,18 +31,16 @@ interface ActionTabProps {
 
 const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
+  const dispatch = useDispatch<AppDispatch>()
 
   const [loading, setLoading] = useState(true)
-  const [histories, setHistories] = useState<TokenDataItem[]>([])
-  const [filteredHistories, setFilteredHistories] = useState<TokenDataItem[]>(
-    [],
-  )
+  const [filteredActions, setFilteredActions] = useState<TokenDataItem[]>([])
   const [symbol, setSymbol] = useState<Option | Option[] | null>(null)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
-  const trades = useSelector((state: RootState) => state.trades.trades)
+  const actions = useSelector((state: RootState) => state.actions.actions)
 
   const token =
     Array.isArray(symbol) && symbol.length > 0
@@ -52,7 +51,7 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
     setLoading(true)
     const { getDepositHistory } = useDepositHistory()
     const data = await getDepositHistory(userAgent, tokens)
-    setHistories(data)
+    dispatch(setActions(data))
     setLoading(false)
   }, [userAgent, tokens])
 
@@ -91,23 +90,23 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
 
   useEffect(() => {
     if (!token?.label && (!startDate || !endDate)) {
-      setFilteredHistories(histories)
+      setFilteredActions(actions)
       return
     }
 
-    const filteredHistories = histories.filter((history) => {
+    const filteredActions = actions.filter((action) => {
       const matchSymbol =
-        !token?.label || (token as Option).label === history.symbol
-      const matchDate = isWithinDateRange(history.datetime, startDate, endDate)
+        !token?.label || (token as Option).label === action.symbol
+      const matchDate = isWithinDateRange(action.datetime, startDate, endDate)
       return matchSymbol && matchDate
     })
 
-    setFilteredHistories(filteredHistories)
-  }, [token?.label, startDate, endDate, histories, trades])
+    setFilteredActions(filteredActions)
+  }, [token?.label, startDate, endDate, actions])
 
   return (
     <>
-      {loading && histories?.length <= 0 ? (
+      {loading && actions?.length <= 0 ? (
         <Flex justify="center" align="center" h="100px">
           <Progress size="xs" isIndeterminate w="90%" />
         </Flex>
@@ -194,8 +193,8 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
             </>
           )}
 
-          {filteredHistories.length > 0 ? (
-            filteredHistories.map((data) => (
+          {filteredActions.length > 0 ? (
+            filteredActions.map((data) => (
               <ActionRow key={data.id} data={data} />
             ))
           ) : (
