@@ -3,6 +3,7 @@ import React from 'react'
 import { Box, Flex, useDisclosure, useColorMode, Image } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
+import NavbarHelp from './help'
 import NavbarInfo from './info'
 /* import NavbarLanguages from './language' */
 import NavbarSettings from './settings'
@@ -44,6 +45,7 @@ const NavbarComponent: React.FC = () => {
         {/* <NavbarLanguages /> */}
         <NavbarTheme />
         <NavbarInfo />
+        <NavbarHelp />
         <NavbarSettings />
         <NavbarWallet onOpen={onOpen} />
         <AccountComponent isOpen={isOpen} onClose={onClose} />
