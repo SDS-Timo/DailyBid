@@ -307,17 +307,21 @@ export function calculateMinMax(values: number[]): {
   minValue: number
   maxValue: number
 } {
-  const roundToNearest = (value: number, factor: number) => {
-    return Math.round(value / factor) * factor
-  }
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min
 
-  const minRaw = Math.min(...values) * 0.9
-  const maxRaw = Math.max(...values) * 1.1
+  // Calculate the percentage adjustment continuously from 2% to 10%
+  const adjustmentFactor = Math.min(0.02 + range / 10, 0.1)
+  const adjustment = range * adjustmentFactor
 
-  const magnitude = Math.pow(10, Math.floor(Math.log10(maxRaw)))
+  const minRaw = min - adjustment
+  const maxRaw = max + adjustment
 
-  const minValue = roundToNearest(Math.floor(minRaw), magnitude / 10)
-  const maxValue = roundToNearest(Math.ceil(maxRaw), magnitude / 10)
+  const magnitude = Math.pow(10, Math.floor(Math.log10(range)) - 1)
+
+  const minValue = Math.floor(minRaw / magnitude) * magnitude
+  const maxValue = Math.ceil(maxRaw / magnitude) * magnitude
 
   return { minValue, maxValue }
 }

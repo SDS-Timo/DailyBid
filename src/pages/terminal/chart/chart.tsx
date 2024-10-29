@@ -90,7 +90,11 @@ const AuctionsChart: React.FC<Props> = ({ data, volumeAxis }) => {
                       ? theme.colors.grey['200']
                       : theme.colors.grey['900'],
                   callback: function (value) {
-                    return Number(value).toLocaleString('en-US')
+                    const decimals = data.length ? data[0].priceDigitsLimit : 0
+                    return Number(value).toLocaleString('en-US', {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: decimals,
+                    })
                   },
                 },
               },
