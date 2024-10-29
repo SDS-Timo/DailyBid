@@ -192,7 +192,11 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
               </Text>
 
               {filteredData.map((data) => (
-                <LedgerRow key={data.id} data={data} symbol={token?.label} />
+                <LedgerRow
+                  key={`${data.id}-${data.base}`}
+                  data={data}
+                  symbol={token?.label}
+                />
               ))}
 
               <Text mt={2} fontWeight="bold" textAlign="right">
