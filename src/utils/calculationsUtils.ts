@@ -298,8 +298,11 @@ export function getMinimumFractionDigits(number: string, digitsLimit: number) {
 }
 
 /**
- * Calculates the minimum and maximum values, the function adjusts the minimum by reducing it by 10%
- * and the maximum by increasing it by 10%, then rounds them to the nearest value based on the magnitude of the maximum price.
+ * Calculates the minimum and maximum values from an array of values.
+ * The function adjusts the minimum and maximum based on a dynamic range between 2% and 10%,
+ * depending on the difference between the values.
+ * For small ranges, it applies a 2% adjustment, increasing smoothly up to 10% for larger ranges.
+ * The adjusted values are then rounded to the nearest value based on the magnitude of the maximum value.
  * @param values - An array of values to calculate the scale from.
  * @returns - An object containing the rounded minValue and maxValue.
  */
