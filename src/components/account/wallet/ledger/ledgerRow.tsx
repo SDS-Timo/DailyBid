@@ -4,6 +4,7 @@ import { Flex, Text } from '@chakra-ui/react'
 
 import { TokenDataItem } from '../../../../types'
 import { getMinimumFractionDigits } from '../../../../utils/calculationsUtils'
+import { capitalizeFirstLetter } from '../../../../utils/stringsUtils'
 
 interface LedgerRowProps {
   data: TokenDataItem
@@ -84,8 +85,8 @@ const LedgerRow: React.FC<LedgerRowProps> = ({ data, symbol }) => {
   })
 
   return (
-    <Flex key={data.id} justify="space-between" align="center" py={2}>
-      <Flex direction="column" align="center" whiteSpace="nowrap">
+    <Flex key={data.id} justify="space-between" align="center" py={1}>
+      <Flex direction="column" align="center" width="90px" whiteSpace="nowrap">
         <Text>{date}</Text>
         <Text fontSize="12px" color="grey.400">
           {time}
@@ -95,12 +96,12 @@ const LedgerRow: React.FC<LedgerRowProps> = ({ data, symbol }) => {
       <Flex
         direction="row"
         align="center"
-        ml={2}
         justify="space-between"
         width="100%"
+        alignSelf="flex-start"
       >
-        <Flex direction="row" align="flex-start" width="100%">
-          <Text ml={4}>{data.action || data.type}</Text>
+        <Flex direction="row" align="flex-start">
+          <Text ml={3}>{capitalizeFirstLetter(data.action || data.type)}</Text>
           {data.type && (
             <Text ml={1}>
               {symbol && symbol.includes('USD') ? `${data.base} ` : null}@
