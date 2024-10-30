@@ -381,7 +381,7 @@ export const idlFactory = ({ IDL }) => {
       ['query'],
     ),
     queryPriceHistory: IDL.Func(
-      [IDL.Opt(IDL.Principal), IDL.Nat, IDL.Nat],
+      [IDL.Opt(IDL.Principal), IDL.Nat, IDL.Nat, IDL.Bool],
       [IDL.Vec(PriceHistoryItem)],
       ['query'],
     ),
@@ -395,19 +395,11 @@ export const idlFactory = ({ IDL }) => {
       [IDL.Vec(IDL.Tuple(OrderId, Order)), IDL.Nat],
       ['query'],
     ),
-    queryTokenHandlerJournal: IDL.Func(
-      [IDL.Principal, IDL.Nat, IDL.Nat],
-      [IDL.Vec(IDL.Tuple(IDL.Principal, LogEvent))],
-      ['query'],
-    ),
-    queryTokenHandlerNotificationLock: IDL.Func(
-      [IDL.Principal, IDL.Principal],
-      [IDL.Opt(IDL.Record({ value: IDL.Nat, lock: IDL.Bool }))],
-      ['query'],
-    ),
-    queryTokenHandlerNotificationLocks: IDL.Func(
+    queryTokenHandlerDepositRegistry: IDL.Func(
       [IDL.Principal],
       [
+        IDL.Nat,
+        IDL.Nat,
         IDL.Nat,
         IDL.Vec(
           IDL.Tuple(
@@ -416,6 +408,16 @@ export const idlFactory = ({ IDL }) => {
           ),
         ),
       ],
+      ['query'],
+    ),
+    queryTokenHandlerJournal: IDL.Func(
+      [IDL.Principal, IDL.Nat, IDL.Nat],
+      [IDL.Vec(IDL.Tuple(IDL.Principal, LogEvent))],
+      ['query'],
+    ),
+    queryTokenHandlerNotificationLock: IDL.Func(
+      [IDL.Principal, IDL.Principal],
+      [IDL.Opt(IDL.Record({ value: IDL.Nat, lock: IDL.Bool }))],
       ['query'],
     ),
     queryTokenHandlerNotificationsOnPause: IDL.Func(
@@ -438,6 +440,7 @@ export const idlFactory = ({ IDL }) => {
             consolidated: IDL.Nat,
           }),
           credit: IDL.Record({ total: IDL.Int, pool: IDL.Int }),
+          ledger: IDL.Record({ fee: IDL.Nat }),
           users: IDL.Record({ queued: IDL.Nat }),
         }),
       ],
@@ -495,6 +498,7 @@ export const idlFactory = ({ IDL }) => {
       [UpperResult],
       [],
     ),
+    setConsolidationTimerEnabled: IDL.Func([IDL.Bool], [], []),
     settings: IDL.Func(
       [],
       [

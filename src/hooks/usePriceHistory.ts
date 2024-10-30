@@ -45,6 +45,7 @@ const usePriceHistory = () => {
         [Principal.fromText(principal)],
         BigInt(10000),
         BigInt(0),
+        true,
       )
 
       const formattedData: DataItem[] = (prices ?? [])

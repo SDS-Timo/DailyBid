@@ -282,11 +282,20 @@ export interface _SERVICE {
     Array<DepositHistoryItem>
   >
   queryPriceHistory: ActorMethod<
-    [[] | [Principal], bigint, bigint],
+    [[] | [Principal], bigint, bigint, boolean],
     Array<PriceHistoryItem>
   >
   queryTokenAsks: ActorMethod<[Principal], [Array<[OrderId, Order]>, bigint]>
   queryTokenBids: ActorMethod<[Principal], [Array<[OrderId, Order]>, bigint]>
+  queryTokenHandlerDepositRegistry: ActorMethod<
+    [Principal],
+    [
+      bigint,
+      bigint,
+      bigint,
+      Array<[Principal, { value: bigint; lock: boolean }]>,
+    ]
+  >
   queryTokenHandlerJournal: ActorMethod<
     [Principal, bigint, bigint],
     Array<[Principal, LogEvent]>
@@ -294,10 +303,6 @@ export interface _SERVICE {
   queryTokenHandlerNotificationLock: ActorMethod<
     [Principal, Principal],
     [] | [{ value: bigint; lock: boolean }]
-  >
-  queryTokenHandlerNotificationLocks: ActorMethod<
-    [Principal],
-    [bigint, Array<[Principal, { value: bigint; lock: boolean }]>]
   >
   queryTokenHandlerNotificationsOnPause: ActorMethod<[Principal], boolean>
   queryTokenHandlerState: ActorMethod<
@@ -311,6 +316,7 @@ export interface _SERVICE {
       }
       flow: { withdrawn: bigint; consolidated: bigint }
       credit: { total: bigint; pool: bigint }
+      ledger: { fee: bigint }
       users: { queued: bigint }
     }
   >
@@ -338,6 +344,7 @@ export interface _SERVICE {
   removeAdmin: ActorMethod<[Principal], undefined>
   replaceAsk: ActorMethod<[OrderId, bigint, number, [] | [bigint]], UpperResult>
   replaceBid: ActorMethod<[OrderId, bigint, number, [] | [bigint]], UpperResult>
+  setConsolidationTimerEnabled: ActorMethod<[boolean], undefined>
   settings: ActorMethod<
     [],
     {
