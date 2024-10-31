@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 import { SearchIcon } from '@chakra-ui/icons'
 import {
@@ -52,10 +52,6 @@ const TokenTab: React.FC<TokenTabProps> = ({
   const handleAccordionChange = (index: number) => {
     setActiveIndex(index === activeIndex ? undefined : index)
   }
-
-  useEffect(() => {
-    if (loading) setActiveIndex(undefined)
-  }, [loading])
 
   return (
     <>
