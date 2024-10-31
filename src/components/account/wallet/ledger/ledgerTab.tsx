@@ -25,7 +25,8 @@ interface LedgerTabProps {
 const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
   const [filteredData, setFilteredData] = useState<TokenDataItem[]>([])
   const [symbol, setSymbol] = useState<Option | Option[] | null>(null)
-  const [balance, setBalance] = useState(0)
+  const [initialBalance, setInitialBalance] = useState(0)
+  const [finalBalance, setFinalBalance] = useState(0)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
@@ -65,10 +66,35 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
   )
 
   useEffect(() => {
-    if (!token?.label && (!startDate || !endDate)) {
+    if (
+      (!token?.label && (!startDate || !endDate)) ||
+      (!token?.label && (startDate || endDate)) ||
+      (token?.label && !startDate && endDate) ||
+      (token?.label && startDate && !endDate)
+    ) {
       setFilteredData([])
-      setBalance(0)
+      setInitialBalance(0)
+      setFinalBalance(0)
       return
+    }
+
+    const getModifier = (item: any, isUSD: boolean) => {
+      if (
+        item.action === 'deposit' ||
+        item.action === 'withdrawalRollback' ||
+        (item.type === 'buy' && !isUSD) ||
+        (item.type === 'sell' && isUSD)
+      ) {
+        return 1
+      }
+      if (
+        item.action === 'withdrawal' ||
+        (item.type === 'sell' && !isUSD) ||
+        (item.type === 'buy' && isUSD)
+      ) {
+        return -1
+      }
+      return 0
     }
 
     const filterData = (data: any[], quoteCheck: boolean) => {
@@ -83,40 +109,49 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
           matchSymbol = !token?.label || (token as Option).label === item.symbol
         }
 
-        const matchDate = isWithinDateRange(item.datetime, startDate, endDate)
-        return matchSymbol && matchDate
+        return matchSymbol
       })
     }
 
-    const filteredActions = filterData(actions, false)
-    const filteredTrades = filterData(trades, true)
+    const allActions = filterData(actions, false)
+    const allTrades = filterData(trades, true)
 
-    const mergedData = [...filteredActions, ...filteredTrades].sort(
+    const allData = [...allActions, ...allTrades].sort(
       (a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime(),
     )
 
-    const totalBalance = mergedData.reduce((acc, item) => {
+    const calculatedInitialBalance = allData.reduce((acc, item) => {
+      const eventTime = new Date(item.datetime).getTime()
+      const startTime = startDate ? new Date(startDate).getTime() : 0
+
+      if (eventTime < startTime) {
+        const isUSD = token?.label.includes('USD')
+        const volume =
+          item.type && isUSD ? item.volumeInQuote : item.volumeInBase
+        const modifier = getModifier(item, isUSD)
+        return acc + modifier * volume
+      }
+      return acc
+    }, 0)
+
+    const filteredData = allData.filter((item) => {
+      if (!startDate || !endDate) return true
+
+      return isWithinDateRange(item.datetime, startDate, endDate)
+    })
+
+    const calculatedFinalBalance = allData.reduce((acc, item) => {
       const isUSD = token?.label.includes('USD')
       const volume = item.type && isUSD ? item.volumeInQuote : item.volumeInBase
-
-      const modifier =
-        item.action === 'deposit' ||
-        item.action === 'withdrawalRollback' ||
-        (item.type === 'buy' && !isUSD) ||
-        (item.type === 'sell' && isUSD)
-          ? 1
-          : item.action === 'withdrawal' ||
-              (item.type === 'sell' && !isUSD) ||
-              (item.type === 'buy' && isUSD)
-            ? -1
-            : 0
+      const modifier = getModifier(item, isUSD)
 
       return acc + modifier * volume
     }, 0)
 
-    setBalance(totalBalance)
-    setFilteredData(mergedData)
-  }, [token?.label, startDate, endDate, actions, trades])
+    setInitialBalance(calculatedInitialBalance)
+    setFinalBalance(calculatedFinalBalance)
+    setFilteredData(filteredData)
+  }, [token?.label, startDate, endDate, actions, trades, isWithinDateRange])
 
   return (
     <>
@@ -145,7 +180,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
           </Box>
 
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={4}>
-            <FormControl variant="floating" hidden>
+            <FormControl variant="floating">
               <Input
                 h="58px"
                 placeholder=" "
@@ -165,7 +200,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
               </FormLabel>
             </FormControl>
 
-            <FormControl variant="floating" hidden>
+            <FormControl variant="floating">
               <Input
                 h="58px"
                 placeholder=" "
@@ -188,7 +223,11 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
           {filteredData.length > 0 ? (
             <>
               <Text mb={2} fontWeight="bold" textAlign="right">
-                Starting balance: 0
+                Starting balance:{' '}
+                {initialBalance.toLocaleString('en-US', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: token?.decimals,
+                })}
               </Text>
 
               {filteredData.map((data) => (
@@ -201,7 +240,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
 
               <Text mt={2} fontWeight="bold" textAlign="right">
                 Ending balance:{' '}
-                {balance.toLocaleString('en-US', {
+                {finalBalance.toLocaleString('en-US', {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: token?.decimals,
                 })}

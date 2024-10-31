@@ -67,6 +67,7 @@
     "bignumber.js": "^9.1.2",
     "bymax-react-select": "^2.1.0",
     "chart.js": "^4.4.3",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "classnames": "^2.5.1",
     "formik": "^2.4.6",
     "i18next": "^23.11.5",
