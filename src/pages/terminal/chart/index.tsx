@@ -42,7 +42,7 @@ const ChartPlot = () => {
     : selectedSymbol
 
   const [chartData, setChartData] = useState<DataItem[]>([])
-  const [volumeAxis, setVolumeAxis] = useState('quote')
+  const [volumeAxis, setVolumeAxis] = useState('base')
   const [loading, setLoading] = useState(true)
   const [timeframe, setTimeframe] = useState('1W')
 
@@ -63,7 +63,7 @@ const ChartPlot = () => {
       dispatch(setHeaderInformation(headerInformation))
 
       dispatch(setPricesHistory(prices))
-      setVolumeAxis('quote')
+      setVolumeAxis('base')
       setLoading(false)
     }
   }, [dispatch, symbol, selectedQuote, orderSettings])
