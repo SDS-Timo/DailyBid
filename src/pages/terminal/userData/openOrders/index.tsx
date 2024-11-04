@@ -144,7 +144,7 @@ const OpenOrders: React.FC = () => {
           if (response.length > 0 && Object.keys(response[0]).includes('Ok')) {
             if (toastId) {
               toast.update(toastId, {
-                title: 'Sucess',
+                title: 'Success',
                 description: 'Order cancelled',
                 status: 'success',
                 isClosable: true,
