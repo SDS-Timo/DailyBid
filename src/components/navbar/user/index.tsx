@@ -2,12 +2,13 @@ import React from 'react'
 
 import {
   Flex,
-  Icon,
-  Tooltip,
+  Box,
   Text,
-  useToast,
+  Menu,
+  MenuButton,
+  MenuList,
+  IconButton,
   useColorModeValue,
-  useClipboard,
 } from '@chakra-ui/react'
 import { FaUserLarge } from 'react-icons/fa6'
 import { useSelector } from 'react-redux'
@@ -15,53 +16,38 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 
 const NavbarUser: React.FC = () => {
-  const bgColorHover = useColorModeValue('grey.300', 'grey.500')
-  const toast = useToast({
-    duration: 10000,
-    position: 'top-right',
-    isClosable: true,
-  })
+  const bgColor = useColorModeValue('grey.100', 'grey.900')
   const userPrincipal = useSelector(
     (state: RootState) => state.auth.userPrincipal,
   )
-  const { onCopy } = useClipboard(userPrincipal)
-
-  const userPrincipalTooltip = (
-    <>
-      {`Do not send funds here!`}
-      <br />
-      {`User principal: ${userPrincipal}`}
-    </>
-  )
-
-  const copyToClipboardWalletAddress = () => {
-    onCopy()
-    toast({
-      title: 'Copied',
-      description: 'User principal copied to clipboard',
-      status: 'success',
-      duration: 2000,
-    })
-  }
 
   return (
-    <Flex align="center">
-      <Icon as={FaUserLarge} boxSize={4} mr={2} />
-      <Tooltip label={userPrincipalTooltip} aria-label={userPrincipal}>
-        <Text
-          onClick={copyToClipboardWalletAddress}
-          cursor="pointer"
-          p={1}
-          border="1px solid transparent"
-          borderRadius="md"
-          _hover={{
-            borderColor: bgColorHover,
-            borderRadius: 'md',
-          }}
-        >
-          {userPrincipal.slice(0, 4)}
-        </Text>
-      </Tooltip>
+    <Flex alignItems="center" mr={2} zIndex="10">
+      <Menu>
+        <MenuButton
+          as={IconButton}
+          aria-label="Info"
+          icon={
+            <Flex alignItems="center">
+              <FaUserLarge />
+              <Text fontSize="14px" ml={2}>
+                {userPrincipal.slice(0, 4)}
+              </Text>
+            </Flex>
+          }
+          variant="unstyled"
+          _hover={{ bg: 'transparent' }}
+          _focus={{ outline: 'none' }}
+        />
+        <MenuList bg={bgColor} p={4}>
+          <Box>
+            <Text as="strong" fontSize="14px">
+              Do not send funds here!
+            </Text>
+            <Text fontSize="13px">{`User principal: ${userPrincipal}`}</Text>
+          </Box>
+        </MenuList>
+      </Menu>
     </Flex>
   )
 }
