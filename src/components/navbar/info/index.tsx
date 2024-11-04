@@ -88,7 +88,7 @@ const NavbarInfo: React.FC = () => {
         <MenuList bg={bgColor} p={4}>
           <Box>
             <Text as="strong" fontSize="14px">
-              Auction backend:
+              Backend:
             </Text>
             <Flex alignItems="center">
               <Text
@@ -97,7 +97,7 @@ const NavbarInfo: React.FC = () => {
                 onClick={() =>
                   copyToClipboard(
                     'auctionPrincipal',
-                    'Auction principal copied to clipboard',
+                    'Backend principal copied to clipboard',
                   )
                 }
                 cursor="pointer"

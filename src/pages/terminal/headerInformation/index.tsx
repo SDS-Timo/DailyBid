@@ -213,7 +213,7 @@ const HeaderInformation = () => {
       >
         <Flex direction="column">
           <Stat size="sm">
-            <StatLabel>Last Auction</StatLabel>
+            <StatLabel>Last Clearing</StatLabel>
             <StatNumber>
               {typeof headerInformation?.lastAuction === 'number'
                 ? `$${headerInformation?.lastAuction.toLocaleString('en-US', {
@@ -318,7 +318,7 @@ const HeaderInformation = () => {
             onClick={() => fetchStatistics()}
           >
             <Stat size="sm">
-              <StatLabel>Next Auction</StatLabel>
+              <StatLabel>Next Clearing</StatLabel>
               <StatNumber>
                 {nextSession ? nextSession.nextSession : '--'}
               </StatNumber>
@@ -341,7 +341,7 @@ const HeaderInformation = () => {
         <Flex direction="column">
           <Tooltip label={tooltipText} aria-label="Statistics">
             <Stat size="sm" onMouseEnter={() => fetchStatistics()}>
-              <StatLabel>Next Auction</StatLabel>
+              <StatLabel>Next Clearing</StatLabel>
               <StatNumber>
                 {nextSession ? nextSession.nextSession : '--'}
               </StatNumber>
