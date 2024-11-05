@@ -101,7 +101,7 @@ const usePriceHistory = () => {
             date: formattedDate,
             time: formattedTime,
             price: formattedPrice,
-            volume: volumeInQuote,
+            volume: volumeInBase,
             volumeInQuote,
             volumeInBase,
             quoteDecimals: selectedQuote.decimals,

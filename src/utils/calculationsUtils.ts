@@ -249,7 +249,7 @@ export function addDecimal<T extends DataItem | TokenDataItem>(
 
   objects.forEach((obj) => {
     obj.priceDecimals = maxPriceDecimals
-    obj.volumeDecimals = maxVolumeInQuoteDecimals
+    obj.volumeDecimals = maxVolumeInBaseDecimals
     obj.volumeInBaseDecimals = maxVolumeInBaseDecimals
     obj.volumeInQuoteDecimals = maxVolumeInQuoteDecimals
   })
