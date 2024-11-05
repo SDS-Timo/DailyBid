@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux'
 import LedgerRow from './ledgerRow'
 import { RootState } from '../../../../store'
 import { TokenDataItem, TokenMetadata, Option } from '../../../../types'
+import { getAllTimezones } from '../../../../utils/dateUtils'
 import customStyles from '../styles'
 
 interface LedgerTabProps {
@@ -23,6 +24,13 @@ interface LedgerTabProps {
 }
 
 const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
+  const [timezoneOptions, setTimezoneOptions] = useState<Option[]>([])
+  const [selectedTimezoneOption, setSelectedTimezoneOption] = useState<
+    Option | Option[] | null
+  >(null)
+  const [timezone, setTimezone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  )
   const [filteredData, setFilteredData] = useState<TokenDataItem[]>([])
   const [symbol, setSymbol] = useState<Option | Option[] | null>(null)
   const [initialBalance, setInitialBalance] = useState(0)
@@ -36,9 +44,21 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
   const token =
     Array.isArray(symbol) && symbol.length > 0 ? symbol[0] : (symbol as Option)
 
+  const selectedTimezone =
+    Array.isArray(selectedTimezoneOption) && selectedTimezoneOption.length > 0
+      ? selectedTimezoneOption[0]
+      : (selectedTimezoneOption as Option)
+
   const handleChange = useCallback((option: Option | Option[] | null) => {
     setSymbol(option)
   }, [])
+
+  const handleTimezoneChange = useCallback(
+    (option: Option | Option[] | null) => {
+      setSelectedTimezoneOption(option)
+    },
+    [],
+  )
 
   const options: Option[] = useMemo(
     () =>
@@ -55,23 +75,27 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
     [tokens],
   )
 
+  const convertToTimestamp = (dateString: string, timezone: string) => {
+    const validTimezone =
+      timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+    const date = new Date(dateString)
+    return new Date(
+      date.toLocaleString('en-US', { timeZone: validTimezone }),
+    ).getTime()
+  }
+
   const isWithinDateRange = useCallback(
     (date: string, start: string, end: string) => {
-      const timestamp = new Date(date).getTime()
+      const timestamp = convertToTimestamp(date, timezone)
       const startTime = start ? new Date(start).getTime() : 0
       const endTime = end ? new Date(end).getTime() : Infinity
       return timestamp >= startTime && timestamp <= endTime
     },
-    [],
+    [selectedTimezone, timezone],
   )
 
   useEffect(() => {
-    if (
-      (!token?.label && (!startDate || !endDate)) ||
-      (!token?.label && (startDate || endDate)) ||
-      (token?.label && !startDate && endDate) ||
-      (token?.label && startDate && !endDate)
-    ) {
+    if ((!token?.label && (!startDate || !endDate)) || !selectedTimezone) {
       setFilteredData([])
       setInitialBalance(0)
       setFinalBalance(0)
@@ -121,7 +145,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
     )
 
     const calculatedInitialBalance = allData.reduce((acc, item) => {
-      const eventTime = new Date(item.datetime).getTime()
+      const eventTime = convertToTimestamp(item.datetime, timezone)
       const startTime = startDate ? new Date(startDate).getTime() : 0
 
       if (eventTime < startTime) {
@@ -135,7 +159,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
     }, 0)
 
     const filteredData = allData.filter((item) => {
-      if (!startDate || !endDate) return true
+      if (!startDate && !endDate) return true
 
       return isWithinDateRange(item.datetime, startDate, endDate)
     })
@@ -151,7 +175,33 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
     setInitialBalance(calculatedInitialBalance)
     setFinalBalance(calculatedFinalBalance)
     setFilteredData(filteredData)
-  }, [token?.label, startDate, endDate, actions, trades, isWithinDateRange])
+  }, [
+    token?.label,
+    startDate,
+    endDate,
+    actions,
+    trades,
+    selectedTimezone,
+    timezone,
+    isWithinDateRange,
+  ])
+
+  useEffect(() => {
+    const newTimezone = selectedTimezone
+      ? selectedTimezone.value
+      : Intl.DateTimeFormat().resolvedOptions().timeZone
+    setTimezone(newTimezone)
+  }, [selectedTimezone])
+
+  useEffect(() => {
+    const timezones = getAllTimezones()
+    setTimezoneOptions(timezones)
+
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const defaultOption =
+      timezones.find((tz) => tz.value === userTimezone) || null
+    setSelectedTimezoneOption(defaultOption)
+  }, [])
 
   return (
     <>
@@ -220,6 +270,23 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
               </FormLabel>
             </FormControl>
           </SimpleGrid>
+
+          <Box w="100%" zIndex="9" mb={4}>
+            <Select
+              id="timezones"
+              value={selectedTimezone?.label ? selectedTimezone : null}
+              isMulti={false}
+              isClearable={false}
+              options={timezoneOptions}
+              placeholder="Select a timezone"
+              noOptionsMessage="No timezones found"
+              isLoading={timezoneOptions.length === 0}
+              loadingMessage="Loading timezones..."
+              onChange={handleTimezoneChange}
+              styles={customStyles as any}
+            />
+          </Box>
+
           {filteredData.length > 0 ? (
             <>
               <Text mb={2} fontWeight="bold" textAlign="right">
