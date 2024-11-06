@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { SettingsIcon } from '@chakra-ui/icons'
 import {
   IconButton,
   Flex,
+  Box,
   InputGroup,
   FormControl,
   Input,
@@ -16,12 +17,19 @@ import {
   MenuList,
   Spinner,
   useColorModeValue,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from '@chakra-ui/react'
 import { Principal } from '@dfinity/principal'
+import { Select } from 'bymax-react-select'
 import { useFormik } from 'formik'
 import { useSelector, useDispatch } from 'react-redux'
 import * as Yup from 'yup'
 
+import customStyles from '../../../common/styles'
 import useTokens from '../../../hooks/useTokens'
 import { RootState, AppDispatch } from '../../../store'
 import { setUserDeposit } from '../../../store/auth'
@@ -45,6 +53,8 @@ const NavbarSettings: React.FC = () => {
   const tokenDefault = process.env.ENV_TOKEN_SELECTED_DEFAULT
 
   const dispatch = useDispatch<AppDispatch>()
+  const [isSelectOpen, setIsSelectOpen] = useState(false)
+  const [selectedTime, setSelectedTime] = useState<Option | null>(null)
 
   const { userAgent } = useSelector((state: RootState) => state.auth)
 
@@ -131,6 +141,45 @@ const NavbarSettings: React.FC = () => {
     },
   })
 
+  const selectOptions = [
+    { id: '1', value: '1', label: '1h' },
+    { id: '3', value: '3', label: '3h' },
+    { id: '12', value: '12', label: '12h' },
+    { id: '24', value: '24', label: '1d' },
+    { id: '168', value: '168', label: '7d' },
+    { id: '720', value: '720', label: '30d' },
+  ]
+
+  const handleLoginDurationOptionChange = (
+    option: Option | Option[] | null,
+  ) => {
+    const optionValue =
+      Array.isArray(option) && option.length > 0
+        ? option[0]
+        : (option as Option | null)
+
+    if (optionValue && optionValue !== undefined && optionValue.value) {
+      localStorage.setItem(
+        'selectedTimeLoginDurationInterval',
+        optionValue.value,
+      )
+    }
+  }
+
+  useEffect(() => {
+    const storedTime = localStorage.getItem('selectedTimeLoginDurationInterval')
+
+    if (storedTime) {
+      setSelectedTime({
+        id: storedTime,
+        value: storedTime,
+        label: `${storedTime}h`,
+      })
+    } else {
+      setSelectedTime(null)
+    }
+  }, [])
+
   return (
     <Flex alignItems="center" zIndex="10">
       <Menu>
@@ -146,80 +195,121 @@ const NavbarSettings: React.FC = () => {
           }
         />
         <MenuList bg={bgColor} p={4} w="350px">
-          <Flex direction="column">
-            <InputGroup>
-              <FormControl variant="floating">
-                <Input
-                  h="58px"
-                  placeholder=" "
-                  name="canisterId"
-                  sx={{ borderRadius: '5px' }}
-                  isInvalid={
-                    !!formik.errors.canisterId && formik.touched.canisterId
-                  }
-                  isDisabled={false}
-                  value={formik.values.canisterId}
-                  onChange={(e) => {
-                    formik.handleChange(e)
-                  }}
-                />
-                <FormLabel color="grey.500" fontSize="15px">
-                  Backend Canister Id
-                </FormLabel>
-              </FormControl>
-              <InputRightElement h="100%" w="45px" p="0">
-                <Flex direction="column" h="100%" w="100%">
+          <Accordion allowToggle>
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Flex flex="1" textAlign="left">
+                    Backend Canister ID
+                  </Flex>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                <InputGroup>
+                  <FormControl variant="floating">
+                    <Input
+                      h="58px"
+                      placeholder=" "
+                      name="canisterId"
+                      sx={{ borderRadius: '5px' }}
+                      isInvalid={
+                        !!formik.errors.canisterId && formik.touched.canisterId
+                      }
+                      isDisabled={false}
+                      value={formik.values.canisterId}
+                      onChange={(e) => formik.handleChange(e)}
+                    />
+                    <FormLabel color="grey.500" fontSize="15px">
+                      Backend Canister Id
+                    </FormLabel>
+                  </FormControl>
+                  <InputRightElement h="100%" w="45px" p="0">
+                    <Flex direction="column" h="100%" w="100%">
+                      <Button
+                        h="100%"
+                        fontSize="11px"
+                        borderRadius="0 5px 5px 0"
+                        bgColor="grey.500"
+                        color="grey.25"
+                        _hover={{ bg: 'grey.400', color: 'grey.25' }}
+                        onClick={() =>
+                          formik.setFieldValue(
+                            'canisterId',
+                            process.env.CANISTER_ID_ICRC_AUCTION,
+                          )
+                        }
+                      >
+                        Default
+                      </Button>
+                    </Flex>
+                  </InputRightElement>
+                </InputGroup>
+                {!!formik.errors.canisterId && formik.touched.canisterId && (
+                  <Text color="red.500" fontSize="12px">
+                    {formik.errors.canisterId}
+                  </Text>
+                )}
+
+                <Flex direction="column" mt={4}>
                   <Button
-                    h="100%"
-                    fontSize="11px"
-                    borderRadius="0 5px 5px 0"
-                    bgColor="grey.500"
-                    color="grey.25"
+                    background={buttonBgColor}
+                    variant="solid"
+                    h="58px"
+                    color={fontColor}
                     _hover={{
-                      bg: 'grey.400',
-                      color: 'grey.25',
+                      bg: bgColorHover,
+                      color: fontColor,
                     }}
-                    onClick={() => {
-                      formik.setFieldValue(
-                        'canisterId',
-                        process.env.CANISTER_ID_ICRC_AUCTION,
-                      )
-                    }}
+                    isDisabled={formik.isSubmitting}
+                    onClick={() => formik.handleSubmit()}
                   >
-                    Default
+                    {formik.isSubmitting ? (
+                      <>
+                        Save <Spinner ml={2} size="sm" color={fontColor} />
+                      </>
+                    ) : (
+                      'Save'
+                    )}
                   </Button>
                 </Flex>
-              </InputRightElement>
-            </InputGroup>
-            {!!formik.errors.canisterId && formik.touched.canisterId && (
-              <Text color="red.500" fontSize="12px">
-                {formik.errors.canisterId}
-              </Text>
-            )}
+              </AccordionPanel>
+            </AccordionItem>
 
-            <Flex direction="column" mt={2}>
-              <Button
-                background={buttonBgColor}
-                variant="solid"
-                h="58px"
-                color={fontColor}
-                _hover={{
-                  bg: bgColorHover,
-                  color: fontColor,
-                }}
-                isDisabled={formik.isSubmitting}
-                onClick={() => formik.handleSubmit()}
-              >
-                {formik.isSubmitting ? (
-                  <>
-                    Save <Spinner ml={2} size="sm" color={fontColor} />
-                  </>
-                ) : (
-                  'Save'
-                )}
-              </Button>
-            </Flex>
-          </Flex>
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Flex flex="1" textAlign="left">
+                    Internet Identify Login Duration
+                  </Flex>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4} h={isSelectOpen ? '320px' : ''}>
+                <Box
+                  w="100%"
+                  onClick={() => {
+                    setIsSelectOpen(true)
+                  }}
+                >
+                  <Select
+                    id="loginDuration"
+                    value={selectedTime}
+                    isMulti={false}
+                    isClearable={false}
+                    options={selectOptions}
+                    placeholder="Select the login duration"
+                    noOptionsMessage="No data"
+                    onChange={handleLoginDurationOptionChange}
+                    onFormikBlur={() => {
+                      setIsSelectOpen(false)
+                    }}
+                    styles={customStyles as any}
+                  />
+                </Box>
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
         </MenuList>
       </Menu>
     </Flex>

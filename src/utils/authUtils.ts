@@ -74,8 +74,14 @@ export async function IdentityAuthenticate(
   try {
     const authClient = await AuthClient.create()
     const HTTP_AGENT_HOST = `${process.env.HTTP_AGENT_HOST}`
+
+    const selectedTime = localStorage.getItem(
+      'selectedTimeLoginDurationInterval',
+    )
+    const expirationHours = selectedTime ? parseFloat(selectedTime) : 0.5
+
     const AUTH_EXPIRATION_INTERNET_IDENTITY = BigInt(
-      30 * 24 * 60 * 60 * 1000 * 1000 * 1000, // 30 days
+      expirationHours * 60 * 60 * 1000 * 1000 * 1000,
     )
 
     let windowFeatures = undefined

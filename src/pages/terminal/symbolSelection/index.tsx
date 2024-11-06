@@ -4,7 +4,7 @@ import { Box } from '@chakra-ui/react'
 import { Select } from 'bymax-react-select'
 import { useSelector, useDispatch } from 'react-redux'
 
-import customStyles from './styles'
+import customStyles from '../../../common/styles'
 import useTokens from '../../../hooks/useTokens'
 import { RootState, AppDispatch } from '../../../store'
 import {

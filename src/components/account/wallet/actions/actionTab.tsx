@@ -18,11 +18,11 @@ import { FiSearch } from 'react-icons/fi'
 import { useSelector, useDispatch } from 'react-redux'
 
 import ActionRow from './actionRow'
+import customStyles from '../../../../common/styles'
 import useDepositHistory from '../../../../hooks/useDepositHistory'
 import { RootState, AppDispatch } from '../../../../store'
 import { setActions } from '../../../../store/actions'
 import { TokenDataItem, TokenMetadata, Option } from '../../../../types'
-import customStyles from '../styles'
 
 interface ActionTabProps {
   userAgent: HttpAgent

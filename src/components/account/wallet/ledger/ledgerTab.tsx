@@ -14,10 +14,10 @@ import { Select } from 'bymax-react-select'
 import { useSelector } from 'react-redux'
 
 import LedgerRow from './ledgerRow'
+import customStyles from '../../../../common/styles'
 import { RootState } from '../../../../store'
 import { TokenDataItem, TokenMetadata, Option } from '../../../../types'
 import { getAllTimezones } from '../../../../utils/dateUtils'
-import customStyles from '../styles'
 
 interface LedgerTabProps {
   tokens: TokenMetadata[]
@@ -85,10 +85,12 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
   }
 
   const isWithinDateRange = useCallback(
-    (date: string, start: string, end: string) => {
+    (date: string, start?: string, end?: string) => {
       const timestamp = convertToTimestamp(date, timezone)
-      const startTime = start ? new Date(start).getTime() : 0
-      const endTime = end ? new Date(end).getTime() : Infinity
+      const startTime = start
+        ? new Date(start).getTime()
+        : Number.NEGATIVE_INFINITY
+      const endTime = end ? new Date(end).getTime() : Number.POSITIVE_INFINITY
       return timestamp >= startTime && timestamp <= endTime
     },
     [selectedTimezone, timezone],
