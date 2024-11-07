@@ -2,6 +2,8 @@ import { useTheme, useColorMode } from '@chakra-ui/react'
 import { mode } from '@chakra-ui/theme-tools'
 import { CSSObject } from '@emotion/react'
 
+// bymax-react-select component styles
+
 interface OptionState {
   isFocused: boolean
   isSelected: boolean
@@ -152,6 +154,7 @@ const customStyles: CustomStyles = {
         colorMode === 'dark'
           ? theme.colors.grey['900']
           : theme.colors.grey['50'],
+      zIndex: '10',
     }
   },
   placeholder: () => {

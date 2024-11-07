@@ -75,13 +75,10 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
     [tokens],
   )
 
-  const convertToTimestamp = (dateString: string, timezone: string) => {
-    const validTimezone =
-      timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+  const convertToTimestamp = (dateString: string, offsetString: string) => {
     const date = new Date(dateString)
-    return new Date(
-      date.toLocaleString('en-US', { timeZone: validTimezone }),
-    ).getTime()
+    const offset = parseInt(offsetString.replace('UTC', ''), 10) || 0
+    return date.getTime() + offset * 60 * 60 * 1000
   }
 
   const isWithinDateRange = useCallback(
@@ -93,7 +90,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
       const endTime = end ? new Date(end).getTime() : Number.POSITIVE_INFINITY
       return timestamp >= startTime && timestamp <= endTime
     },
-    [selectedTimezone, timezone],
+    [timezone],
   )
 
   useEffect(() => {
@@ -199,9 +196,12 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
     const timezones = getAllTimezones()
     setTimezoneOptions(timezones)
 
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const userTimezoneOffset = -new Date().getTimezoneOffset() / 60
+    const sign = userTimezoneOffset >= 0 ? '+' : ''
+    const userTimezoneLabel = `UTC${sign}${userTimezoneOffset}`
+
     const defaultOption =
-      timezones.find((tz) => tz.value === userTimezone) || null
+      timezones.find((tz) => tz.value === userTimezoneLabel) || null
     setSelectedTimezoneOption(defaultOption)
   }, [])
 
@@ -304,6 +304,7 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
                   key={`${data.id}-${data.base}`}
                   data={data}
                   symbol={token?.label}
+                  timezone={timezone}
                 />
               ))}
 

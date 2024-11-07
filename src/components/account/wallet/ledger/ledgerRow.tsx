@@ -9,17 +9,23 @@ import { capitalizeFirstLetter } from '../../../../utils/stringsUtils'
 interface LedgerRowProps {
   data: TokenDataItem
   symbol: string
+  timezone: string // Adiciona o timezone selecionado como prop
 }
 
-const formatDateTime = (datetime: string) => {
+const formatDateTime = (datetime: string, timezone: string) => {
   const date = new Date(datetime)
+  const offset = parseInt(timezone.replace('UTC', ''), 10) || 0
+
+  // Calcula o horário ajustado para o deslocamento UTC em milissegundos
+  const adjustedDate = new Date(date.getTime() + offset * 60 * 60 * 1000)
+
   return {
-    date: date.toLocaleDateString('en-US', {
+    date: adjustedDate.toLocaleDateString('en-US', {
       month: 'short',
       day: '2-digit',
       year: 'numeric',
     }),
-    time: date.toLocaleTimeString('en-US', {
+    time: adjustedDate.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
@@ -69,11 +75,8 @@ const determineVolume = (data: TokenDataItem, symbol: string) => {
   return `${prefix}${volume}`
 }
 
-const LedgerRow: React.FC<LedgerRowProps> = ({ data, symbol }) => {
-  const { date, time } =
-    data.date && data.time
-      ? { date: data.date, time: data.time }
-      : formatDateTime(data.datetime)
+const LedgerRow: React.FC<LedgerRowProps> = ({ data, symbol, timezone }) => {
+  const { date, time } = formatDateTime(data.datetime, timezone) // Usa o timezone para formatação
   const color = determineColor(data, symbol)
   const volumeText = determineVolume(data, symbol)
   const priceText = data.price.toLocaleString('en-US', {
