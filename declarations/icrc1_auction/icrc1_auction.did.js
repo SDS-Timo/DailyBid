@@ -380,6 +380,7 @@ export const idlFactory = ({ IDL }) => {
       [IDL.Vec(DepositHistoryItem)],
       ['query'],
     ),
+    queryPoints: IDL.Func([], [IDL.Nat], ['query']),
     queryPriceHistory: IDL.Func(
       [IDL.Opt(IDL.Principal), IDL.Nat, IDL.Nat, IDL.Bool],
       [IDL.Vec(PriceHistoryItem)],

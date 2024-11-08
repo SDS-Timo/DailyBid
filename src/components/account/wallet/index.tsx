@@ -29,7 +29,7 @@ import WalletIconDark from '../../../assets/img/common/wallet-black.svg'
 import WalletIconLight from '../../../assets/img/common/wallet-white.svg'
 import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
-import { setBalances } from '../../../store/balances'
+import { setBalances, setUserPoints } from '../../../store/balances'
 import { Result, TokenDataItem, TokenMetadata } from '../../../types'
 import {
   convertVolumeFromCanister,
@@ -101,9 +101,13 @@ const WalletContent: React.FC = () => {
 
   const fetchBalances = useCallback(async () => {
     setLoading(true)
-    const { getBalancesCredits } = useWallet()
+    const { getBalancesCredits, getUserPoints } = useWallet()
     const balancesCredits = await getBalancesCredits(userAgent, tokens)
     dispatch(setBalances(balancesCredits))
+
+    const points = await getUserPoints(userAgent)
+    dispatch(setUserPoints(Number(points)))
+
     setLoading(false)
   }, [userAgent, tokens, dispatch])
 
@@ -476,7 +480,7 @@ const WalletContent: React.FC = () => {
   }, [balances])
 
   return (
-    <VStack spacing={4} align="stretch">
+    <VStack spacing={1} align="stretch">
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
           <Icon as={FaWallet} boxSize={4} mr={2} />

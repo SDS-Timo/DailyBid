@@ -139,6 +139,11 @@ const TokenRow: React.FC<TokenRowProps> = ({
         is: 'withdraw',
         then: (schema) =>
           schema.max(token.volumeInAvailable || 0, 'Not enough funds'),
+      })
+      .when('action', {
+        is: 'deposit',
+        then: (schema) =>
+          schema.max(token.maxDepositAllowance || 0, 'Not enough funds'),
       }),
     account: Yup.string().required('Account is a required field').typeError(''),
   })

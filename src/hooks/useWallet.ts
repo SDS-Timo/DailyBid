@@ -355,6 +355,24 @@ const useWallet = () => {
     }
   }
 
+  /**
+   * Retrieves the user's points by querying the service actor.
+   *
+   * @param userAgent - An instance of HttpAgent used for making authenticated requests.
+   * @returns - A promise that resolves to the user's points if the query is successful, or `null` in case of an error.
+   */
+  const getUserPoints = async (userAgent: HttpAgent) => {
+    try {
+      const serviceActor = getActor(userAgent)
+      const result = await serviceActor.queryPoints()
+
+      return result
+    } catch (error) {
+      console.error('Error query user points:', error)
+      return null
+    }
+  }
+
   return {
     getBalancesCredits,
     getBalance,
@@ -363,6 +381,7 @@ const useWallet = () => {
     withdrawCredit,
     getDepositAllowanceInfo,
     deposit,
+    getUserPoints,
   }
 }
 

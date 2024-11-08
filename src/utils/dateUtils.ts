@@ -11,7 +11,6 @@ export const getAllTimezones = () => {
       id: `UTC${sign}${offset}`,
       value: `UTC${sign}${offset}`,
       label,
-      offset,
     }
   })
 }

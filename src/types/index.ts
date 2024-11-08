@@ -78,6 +78,7 @@ export interface ActionsState {
 }
 export interface BalancesState {
   balances: TokenDataItem[] | []
+  userPoints: number | null
 }
 export interface SettingsState {
   orderQuoteVolumeMinimum: number

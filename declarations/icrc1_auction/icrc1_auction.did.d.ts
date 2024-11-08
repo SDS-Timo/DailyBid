@@ -281,6 +281,7 @@ export interface _SERVICE {
     [[] | [Principal], bigint, bigint],
     Array<DepositHistoryItem>
   >
+  queryPoints: ActorMethod<[], bigint>
   queryPriceHistory: ActorMethod<
     [[] | [Principal], bigint, bigint, boolean],
     Array<PriceHistoryItem>

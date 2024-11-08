@@ -280,7 +280,7 @@ const NavbarSettings: React.FC = () => {
               <h2>
                 <AccordionButton>
                   <Flex flex="1" textAlign="left">
-                    Internet Identify Login Duration
+                    Internet Identity Login Duration
                   </Flex>
                   <AccordionIcon />
                 </AccordionButton>
