@@ -102,10 +102,13 @@ const WalletContent: React.FC = () => {
   const fetchBalances = useCallback(async () => {
     setLoading(true)
     const { getBalancesCredits, getUserPoints } = useWallet()
-    const balancesCredits = await getBalancesCredits(userAgent, tokens)
-    dispatch(setBalances(balancesCredits))
 
-    const points = await getUserPoints(userAgent)
+    const [balancesCredits, points] = await Promise.all([
+      getBalancesCredits(userAgent, tokens),
+      getUserPoints(userAgent),
+    ])
+
+    dispatch(setBalances(balancesCredits))
     dispatch(setUserPoints(Number(points)))
 
     setLoading(false)
