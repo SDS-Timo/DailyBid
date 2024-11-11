@@ -23,9 +23,9 @@ import * as Yup from 'yup'
 import TradeTypeSelector from './tradeTypeSelector'
 import LoginButtonComponent from '../../../components/loginButton'
 import useOrders from '../../../hooks/useOrders'
-import useBalances from '../../../hooks/useWallet'
+import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
-import { setBalances } from '../../../store/balances'
+import { setBalances, setUserPoints } from '../../../store/balances'
 import { setIsRefreshUserData } from '../../../store/orders'
 import { Result, TokenDataItem } from '../../../types'
 import { convertExponentialToDecimal } from '../../../utils/calculationsUtils'
@@ -70,6 +70,9 @@ const Trading = () => {
   const openOrders = useSelector((state: RootState) => state.orders.openOrders)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
   const balances = useSelector((state: RootState) => state.balances.balances)
+  const isRefreshUserData = useSelector(
+    (state: RootState) => state.orders.isRefreshUserData,
+  )
   const selectedSymbol = useSelector(
     (state: RootState) => state.tokens.selectedSymbol,
   )
@@ -149,6 +152,9 @@ const Trading = () => {
             Number(value),
             formik.values.price,
           )
+
+          if (!calculatedBaseVolume) return true
+
           return (
             value === Number(calculatedBaseVolume) ||
             this.createError({
@@ -157,6 +163,7 @@ const Trading = () => {
             })
           )
         })
+
         .when('amountType', {
           is: 'base',
           then: (schema) => {
@@ -297,11 +304,18 @@ const Trading = () => {
 
   const fetchBalances = useCallback(async () => {
     setLoading(true)
-    const { getBalancesCredits } = useBalances()
+    const { getBalancesCredits } = useWallet()
     const balancesCredits = await getBalancesCredits(userAgent, tokens)
     dispatch(setBalances(balancesCredits))
     setLoading(false)
   }, [userAgent, tokens, dispatch])
+
+  const fetchUserPoints = useCallback(async () => {
+    const { getUserPoints } = useWallet()
+
+    const points = await getUserPoints(userAgent)
+    dispatch(setUserPoints(Number(points)))
+  }, [userAgent, dispatch])
 
   const updateAvailable = useCallback(
     (type: string) => {
@@ -497,6 +511,10 @@ const Trading = () => {
   }, [userAgent, selectedSymbol])
 
   useEffect(() => {
+    if (isAuthenticated) fetchUserPoints()
+  }, [isRefreshUserData])
+
+  useEffect(() => {
     if (tradeType === 'sell') {
       setAmountType('base')
       formik.setFieldValue('amountType', 'base')
@@ -642,10 +660,15 @@ const Trading = () => {
           </FormControl>
           <InputRightElement
             h="58px"
-            w={`${symbol?.base && symbol.base.length * 9}px`}
+            w="auto"
+            position="absolute"
+            right="0"
+            display="flex"
+            justifyContent="flex-end"
           >
             <Button
               h="58px"
+              w={`${symbol?.base && symbol.base.length * 9}px`}
               fontSize="11px"
               borderRadius="0 5px 5px 0"
               bgColor={
@@ -721,10 +744,15 @@ const Trading = () => {
           </FormControl>
           <InputRightElement
             h="58px"
-            w={`${symbol?.base && symbol.base.length * 9}px`}
+            w="auto"
+            position="absolute"
+            right="0"
+            display="flex"
+            justifyContent="flex-end"
           >
             <Button
               h="58px"
+              w={`${symbol?.base && symbol.base.length * 9}px`}
               fontSize="11px"
               borderRadius="0 5px 5px 0"
               bgColor={
