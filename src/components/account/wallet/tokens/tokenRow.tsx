@@ -143,7 +143,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
       .when('action', {
         is: 'deposit',
         then: (schema) =>
-          schema.max(token.maxDepositAllowance || 0, 'Not enough funds'),
+          schema.max(Number(maxDepositAllowance) || 0, 'Not enough funds'),
       }),
     account: Yup.string().required('Account is a required field').typeError(''),
   })
