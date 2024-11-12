@@ -45,3 +45,19 @@ export function getAuctionCanisterId() {
 
   return auctionCanisterId
 }
+
+/**
+ * Retrieves the Internet Identity Derivation Origin from localStorage, or falls back to a default value from environment variables.
+ * @returns The Internet Identity Derivation Origin, either retrieved from localStorage or the environment variable.
+ */
+export function getInternetIdentityDerivationOrigin() {
+  const storageAuctionDerivationOrigin = localStorage.getItem(
+    'auctionDerivationOrigin',
+  )
+
+  const auctionDerivationOrigin = storageAuctionDerivationOrigin
+    ? storageAuctionDerivationOrigin
+    : `${process.env.ENV_AUTH_DERIVATION_ORIGIN}`
+
+  return auctionDerivationOrigin
+}

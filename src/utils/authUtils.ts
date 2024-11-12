@@ -4,6 +4,7 @@ import { Ed25519KeyIdentity } from '@dfinity/identity'
 
 import { getUserDepositAddress } from './convertionsUtils'
 import { AppDispatch } from '../store'
+import { getInternetIdentityDerivationOrigin } from './canisterUtils'
 import {
   setUserAgent,
   setIsAuthenticated,
@@ -97,7 +98,7 @@ export async function IdentityAuthenticate(
     await authClient.login({
       maxTimeToLive: AUTH_EXPIRATION_INTERNET_IDENTITY,
       identityProvider: HTTP_AGENT_HOST,
-      derivationOrigin: `${process.env.ENV_AUTH_DERIVATION_ORIGIN}`,
+      derivationOrigin: getInternetIdentityDerivationOrigin(),
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
         const identity = authClient.getIdentity()
