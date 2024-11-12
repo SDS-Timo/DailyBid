@@ -138,7 +138,10 @@ const CanisterIdSettings: React.FC = () => {
             h="58px"
             placeholder=" "
             name="canisterId"
-            sx={{ borderRadius: '5px' }}
+            sx={{
+              borderRadius: '5px',
+              paddingRight: '60px',
+            }}
             isInvalid={!!formik.errors.canisterId && formik.touched.canisterId}
             isDisabled={false}
             value={formik.values.canisterId}

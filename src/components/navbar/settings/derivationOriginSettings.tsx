@@ -10,6 +10,7 @@ import {
   Button,
   Spinner,
   Text,
+  useToast,
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useFormik } from 'formik'
@@ -23,6 +24,11 @@ const DerivationOriginSettings: React.FC = () => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
   const buttonBgColor = useColorModeValue('grey.500', 'grey.600')
   const fontColor = useColorModeValue('grey.25', 'grey.25')
+  const toast = useToast({
+    duration: 10000,
+    position: 'top-right',
+    isClosable: true,
+  })
 
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
@@ -32,12 +38,16 @@ const DerivationOriginSettings: React.FC = () => {
     const canisterIdRegex =
       /^[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}$/
     const fullUrlRegex =
-      /^https:\/\/[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.icp0\.io(\/.*)?$/
+      /^https:\/\/([a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3})\.icp0\.io(?:\/.*)?$/
 
     if (canisterIdRegex.test(input)) {
-      return `https://${input}.icp0.io`
+      return { url: `https://${input}.icp0.io`, canisterId: input }
     } else if (fullUrlRegex.test(input)) {
-      return input
+      const match = input.match(fullUrlRegex)
+      return {
+        url: input,
+        canisterId: match && match[1] ? match[1] : '',
+      }
     } else {
       throw new Error(
         'Invalid input. Please provide a valid canister ID or a full URL.',
@@ -70,10 +80,16 @@ const DerivationOriginSettings: React.FC = () => {
     validationSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
-        localStorage.setItem(
-          'auctionDerivationOrigin',
-          validateAndFormatInput(values.canisterId),
-        )
+        const { url } = validateAndFormatInput(values.canisterId)
+        localStorage.setItem('auctionDerivationOrigin', url)
+
+        toast({
+          title: 'Internet Identity Derivation Origin',
+          description: 'Saved successfully',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        })
 
         setStatus({ success: true })
         setSubmitting(false)
@@ -87,7 +103,9 @@ const DerivationOriginSettings: React.FC = () => {
   })
 
   useEffect(() => {
-    formik.setFieldValue('canisterId', getInternetIdentityDerivationOrigin())
+    const localStorageCanisterId = getInternetIdentityDerivationOrigin()
+    const { canisterId } = validateAndFormatInput(localStorageCanisterId)
+    formik.setFieldValue('canisterId', canisterId)
   }, [])
 
   return (
@@ -98,7 +116,10 @@ const DerivationOriginSettings: React.FC = () => {
             h="58px"
             placeholder=" "
             name="canisterId"
-            sx={{ borderRadius: '5px' }}
+            sx={{
+              borderRadius: '5px',
+              paddingRight: '60px',
+            }}
             isInvalid={!!formik.errors.canisterId && formik.touched.canisterId}
             isDisabled={false}
             value={formik.values.canisterId}
@@ -117,12 +138,12 @@ const DerivationOriginSettings: React.FC = () => {
               bgColor="grey.500"
               color="grey.25"
               _hover={{ bg: 'grey.400', color: 'grey.25' }}
-              onClick={() =>
-                formik.setFieldValue(
-                  'canisterId',
-                  process.env.ENV_AUTH_DERIVATION_ORIGIN,
+              onClick={() => {
+                const { canisterId } = validateAndFormatInput(
+                  `${process.env.ENV_AUTH_DERIVATION_ORIGIN}`,
                 )
-              }
+                formik.setFieldValue('canisterId', canisterId)
+              }}
             >
               Default
             </Button>
