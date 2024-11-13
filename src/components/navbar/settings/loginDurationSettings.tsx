@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
 
+import { Box, Tooltip } from '@chakra-ui/react'
 import { Select } from 'bymax-react-select'
+import { useSelector } from 'react-redux'
 
 import customStyles from '../../../common/styles'
+import { RootState } from '../../../store'
 import { Option } from '../../../types'
 
 interface LoginDurationSettingsProps {
@@ -13,6 +16,10 @@ const LoginDurationSettings: React.FC<LoginDurationSettingsProps> = ({
   onSelectBlur,
 }) => {
   const [selectedTime, setSelectedTime] = useState<Option | null>(null)
+
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  )
 
   const selectOptions = [
     { id: '1', value: '1', label: '1h' },
@@ -56,22 +63,31 @@ const LoginDurationSettings: React.FC<LoginDurationSettingsProps> = ({
 
   return (
     <>
-      <Select
-        id="loginDuration"
-        value={selectedTime}
-        isMulti={false}
-        isClearable={false}
-        options={selectOptions}
-        placeholder="Select the login duration"
-        noOptionsMessage="No data"
-        onChange={handleLoginDurationOptionChange}
-        onFormikBlur={() => {
-          if (onSelectBlur) {
-            onSelectBlur()
-          }
-        }}
-        styles={customStyles as any}
-      />
+      <Tooltip
+        label="Log out to change"
+        isDisabled={!isAuthenticated}
+        aria-label="Log out to change"
+      >
+        <Box>
+          <Select
+            id="loginDuration"
+            value={selectedTime}
+            isMulti={false}
+            isClearable={false}
+            options={selectOptions}
+            isLocked={isAuthenticated}
+            placeholder="Select the login duration"
+            noOptionsMessage="No data"
+            onChange={handleLoginDurationOptionChange}
+            onFormikBlur={() => {
+              if (onSelectBlur) {
+                onSelectBlur()
+              }
+            }}
+            styles={customStyles as any}
+          />
+        </Box>
+      </Tooltip>
     </>
   )
 }

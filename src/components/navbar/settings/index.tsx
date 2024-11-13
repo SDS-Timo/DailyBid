@@ -15,15 +15,21 @@ import {
   AccordionPanel,
   AccordionIcon,
 } from '@chakra-ui/react'
+import { useSelector } from 'react-redux'
 
 import CanisterIdSettings from './canisterIdSettings'
 import DerivationOriginSettings from './derivationOriginSettings'
 import LoginDurationSettings from './loginDurationSettings'
+import { RootState } from '../../../store'
 
 const NavbarSettings: React.FC = () => {
   const bgColor = useColorModeValue('grey.100', 'grey.900')
 
   const [isSelectOpen, setIsSelectOpen] = useState(false)
+
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  )
 
   return (
     <Flex alignItems="center" zIndex="10">
@@ -56,20 +62,6 @@ const NavbarSettings: React.FC = () => {
               <h2>
                 <AccordionButton>
                   <Flex flex="1" textAlign="left">
-                    Internet Identity Derivation Origin
-                  </Flex>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel pb={4}>
-                <DerivationOriginSettings />
-              </AccordionPanel>
-            </AccordionItem>
-
-            <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Flex flex="1" textAlign="left">
                     Internet Identity Login Duration
                   </Flex>
                   <AccordionIcon />
@@ -79,13 +71,27 @@ const NavbarSettings: React.FC = () => {
                 <Box
                   w="100%"
                   onClick={() => {
-                    setIsSelectOpen(true)
+                    setIsSelectOpen(!isAuthenticated)
                   }}
                 >
                   <LoginDurationSettings
                     onSelectBlur={() => setIsSelectOpen(false)}
                   />
                 </Box>
+              </AccordionPanel>
+            </AccordionItem>
+
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Flex flex="1" textAlign="left">
+                    Internet Identity Derivation Origin
+                  </Flex>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                <DerivationOriginSettings />
               </AccordionPanel>
             </AccordionItem>
           </Accordion>

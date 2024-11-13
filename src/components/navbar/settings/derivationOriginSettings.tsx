@@ -11,6 +11,7 @@ import {
   Spinner,
   Text,
   useToast,
+  Tooltip,
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useFormik } from 'formik'
@@ -110,73 +111,84 @@ const DerivationOriginSettings: React.FC = () => {
 
   return (
     <>
-      <InputGroup>
-        <FormControl variant="floating">
-          <Input
-            h="58px"
-            placeholder=" "
-            name="canisterId"
-            sx={{
-              borderRadius: '5px',
-              paddingRight: '60px',
-            }}
-            isInvalid={!!formik.errors.canisterId && formik.touched.canisterId}
-            isDisabled={false}
-            value={formik.values.canisterId}
-            onChange={(e) => formik.handleChange(e)}
-          />
-          <FormLabel color="grey.500" fontSize="15px">
-            Canister ID or full URL
-          </FormLabel>
-        </FormControl>
-        <InputRightElement h="100%" w="45px" p="0">
-          <Flex direction="column" h="100%" w="100%">
-            <Button
-              h="100%"
-              fontSize="11px"
-              borderRadius="0 5px 5px 0"
-              bgColor="grey.500"
-              color="grey.25"
-              _hover={{ bg: 'grey.400', color: 'grey.25' }}
-              onClick={() => {
-                const { canisterId } = validateAndFormatInput(
-                  `${process.env.ENV_AUTH_DERIVATION_ORIGIN}`,
-                )
-                formik.setFieldValue('canisterId', canisterId)
+      <Tooltip
+        label="Log out to change"
+        isDisabled={!isAuthenticated}
+        aria-label="Log out to change"
+      >
+        <InputGroup>
+          <FormControl variant="floating">
+            <Input
+              h="58px"
+              placeholder=" "
+              name="canisterId"
+              sx={{
+                borderRadius: '5px',
+                paddingRight: '60px',
               }}
-            >
-              Default
-            </Button>
-          </Flex>
-        </InputRightElement>
-      </InputGroup>
+              isInvalid={
+                !!formik.errors.canisterId && formik.touched.canisterId
+              }
+              isReadOnly={isAuthenticated}
+              value={formik.values.canisterId}
+              onChange={(e) => formik.handleChange(e)}
+            />
+            <FormLabel color="grey.500" fontSize="15px">
+              Canister ID or full URL
+            </FormLabel>
+          </FormControl>
+          <InputRightElement h="100%" w="45px" p="0">
+            <Flex direction="column" h="100%" w="100%">
+              <Button
+                h="100%"
+                fontSize="11px"
+                borderRadius="0 5px 5px 0"
+                bgColor="grey.500"
+                color="grey.25"
+                _hover={{ bg: 'grey.400', color: 'grey.25' }}
+                isDisabled={isAuthenticated}
+                onClick={() => {
+                  const { canisterId } = validateAndFormatInput(
+                    `${process.env.ENV_AUTH_DERIVATION_ORIGIN}`,
+                  )
+                  formik.setFieldValue('canisterId', canisterId)
+                }}
+              >
+                Default
+              </Button>
+            </Flex>
+          </InputRightElement>
+        </InputGroup>
+      </Tooltip>
       {!!formik.errors.canisterId && formik.touched.canisterId && (
         <Text color="red.500" fontSize="12px">
           {formik.errors.canisterId}
         </Text>
       )}
-      <Flex direction="column" mt={4}>
-        <Button
-          background={buttonBgColor}
-          variant="solid"
-          h="58px"
-          color={fontColor}
-          _hover={{
-            bg: bgColorHover,
-            color: fontColor,
-          }}
-          isDisabled={formik.isSubmitting || isAuthenticated}
-          onClick={() => formik.handleSubmit()}
-        >
-          {formik.isSubmitting ? (
-            <>
-              Save <Spinner ml={2} size="sm" color={fontColor} />
-            </>
-          ) : (
-            'Save'
-          )}
-        </Button>
-      </Flex>
+      {!isAuthenticated && (
+        <Flex direction="column" mt={4}>
+          <Button
+            background={buttonBgColor}
+            variant="solid"
+            h="58px"
+            color={fontColor}
+            _hover={{
+              bg: bgColorHover,
+              color: fontColor,
+            }}
+            isDisabled={formik.isSubmitting || isAuthenticated}
+            onClick={() => formik.handleSubmit()}
+          >
+            {formik.isSubmitting ? (
+              <>
+                Save <Spinner ml={2} size="sm" color={fontColor} />
+              </>
+            ) : (
+              'Save'
+            )}
+          </Button>
+        </Flex>
+      )}
     </>
   )
 }
