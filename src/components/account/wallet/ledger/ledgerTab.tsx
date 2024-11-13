@@ -5,7 +5,6 @@ import {
   Flex,
   SimpleGrid,
   Input,
-  Progress,
   FormControl,
   FormLabel,
   Text,
@@ -207,121 +206,111 @@ const LedgerTab: React.FC<LedgerTabProps> = ({ tokens }) => {
 
   return (
     <>
-      {actions?.length <= 0 && trades?.length <= 0 ? (
-        <Flex justify="center" align="center" h="100px">
-          <Progress size="xs" isIndeterminate w="90%" />
-        </Flex>
-      ) : (
-        <>
-          <Box w="100%" zIndex="9" mb={4}>
-            <Select
-              id="symbols"
-              value={token?.label ? token : null}
-              isMulti={false}
-              isClearable={true}
-              options={options}
-              placeholder={
-                tokens?.length <= 0 ? 'Loading...' : 'Select a token'
+      <Box w="100%" zIndex="9" mb={4}>
+        <Select
+          id="symbols"
+          value={token?.label ? token : null}
+          isMulti={false}
+          isClearable={true}
+          options={options}
+          placeholder={tokens?.length <= 0 ? 'Loading...' : 'Select a token'}
+          noOptionsMessage="No tokens found"
+          isLoading={tokens?.length <= 0}
+          loadingMessage="Loading..."
+          onChange={handleChange}
+          styles={customStyles as any}
+        />
+      </Box>
+
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={4}>
+        <FormControl variant="floating">
+          <Input
+            h="58px"
+            placeholder=" "
+            type="date"
+            value={startDate.split('T')[0]}
+            onChange={(e) => {
+              const selectedDate = e.target.value
+              if (!selectedDate) {
+                setStartDate('')
+              } else {
+                setStartDate(`${selectedDate}T00:00`)
               }
-              noOptionsMessage="No tokens found"
-              isLoading={tokens?.length <= 0}
-              loadingMessage="Loading..."
-              onChange={handleChange}
-              styles={customStyles as any}
+            }}
+          />
+          <FormLabel color="grey.500" fontSize="15px">
+            Start Date
+          </FormLabel>
+        </FormControl>
+
+        <FormControl variant="floating">
+          <Input
+            h="58px"
+            placeholder=" "
+            type="date"
+            value={endDate.split('T')[0]}
+            onChange={(e) => {
+              const selectedDate = e.target.value
+              if (!selectedDate) {
+                setEndDate('')
+              } else {
+                setEndDate(`${selectedDate}T23:59`)
+              }
+            }}
+          />
+          <FormLabel color="grey.500" fontSize="15px">
+            End Date
+          </FormLabel>
+        </FormControl>
+      </SimpleGrid>
+
+      <Box w="100%" zIndex="9" mb={4}>
+        <Select
+          id="timezones"
+          value={selectedTimezone?.label ? selectedTimezone : null}
+          isMulti={false}
+          isClearable={false}
+          options={timezoneOptions}
+          placeholder="Select a timezone"
+          noOptionsMessage="No timezones found"
+          isLoading={timezoneOptions.length === 0}
+          loadingMessage="Loading timezones..."
+          onChange={handleTimezoneChange}
+          styles={customStyles as any}
+        />
+      </Box>
+
+      {filteredData.length > 0 ? (
+        <>
+          <Text mb={2} fontWeight="bold" textAlign="right">
+            Starting balance:{' '}
+            {initialBalance.toLocaleString('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: token?.decimals,
+            })}
+          </Text>
+
+          {filteredData.map((data) => (
+            <LedgerRow
+              key={`${data.id}-${data.base}`}
+              data={data}
+              symbol={token?.label}
+              timezone={timezone}
             />
-          </Box>
+          ))}
 
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={4}>
-            <FormControl variant="floating">
-              <Input
-                h="58px"
-                placeholder=" "
-                type="date"
-                value={startDate.split('T')[0]}
-                onChange={(e) => {
-                  const selectedDate = e.target.value
-                  if (!selectedDate) {
-                    setStartDate('')
-                  } else {
-                    setStartDate(`${selectedDate}T00:00`)
-                  }
-                }}
-              />
-              <FormLabel color="grey.500" fontSize="15px">
-                Start Date
-              </FormLabel>
-            </FormControl>
-
-            <FormControl variant="floating">
-              <Input
-                h="58px"
-                placeholder=" "
-                type="date"
-                value={endDate.split('T')[0]}
-                onChange={(e) => {
-                  const selectedDate = e.target.value
-                  if (!selectedDate) {
-                    setEndDate('')
-                  } else {
-                    setEndDate(`${selectedDate}T23:59`)
-                  }
-                }}
-              />
-              <FormLabel color="grey.500" fontSize="15px">
-                End Date
-              </FormLabel>
-            </FormControl>
-          </SimpleGrid>
-
-          <Box w="100%" zIndex="9" mb={4}>
-            <Select
-              id="timezones"
-              value={selectedTimezone?.label ? selectedTimezone : null}
-              isMulti={false}
-              isClearable={false}
-              options={timezoneOptions}
-              placeholder="Select a timezone"
-              noOptionsMessage="No timezones found"
-              isLoading={timezoneOptions.length === 0}
-              loadingMessage="Loading timezones..."
-              onChange={handleTimezoneChange}
-              styles={customStyles as any}
-            />
-          </Box>
-
-          {filteredData.length > 0 ? (
-            <>
-              <Text mb={2} fontWeight="bold" textAlign="right">
-                Starting balance:{' '}
-                {initialBalance.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: token?.decimals,
-                })}
-              </Text>
-
-              {filteredData.map((data) => (
-                <LedgerRow
-                  key={`${data.id}-${data.base}`}
-                  data={data}
-                  symbol={token?.label}
-                  timezone={timezone}
-                />
-              ))}
-
-              <Text mt={2} fontWeight="bold" textAlign="right">
-                Ending balance:{' '}
-                {finalBalance.toLocaleString('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: token?.decimals,
-                })}
-              </Text>
-            </>
-          ) : (
-            <Flex justify="center" mt={8}>
-              No data
-            </Flex>
-          )}
+          <Text mt={2} fontWeight="bold" textAlign="right">
+            Ending balance:{' '}
+            {finalBalance.toLocaleString('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: token?.decimals,
+            })}
+          </Text>
         </>
+      ) : (
+        <Flex justify="center" mt={8}>
+          No data
+        </Flex>
       )}
     </>
   )

@@ -14,7 +14,7 @@ import {
 import { useDispatch } from 'react-redux'
 
 import { AppDispatch } from '../../../../store'
-import { IdentityAuthenticate } from '../../../../utils/authUtils'
+import { identityAuthenticate } from '../../../../utils/authUtils'
 
 interface IdentityComponentProps {
   onClose: () => void
@@ -35,7 +35,7 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
   const dispatch = useDispatch<AppDispatch>()
 
   const handleClick = async () => {
-    await IdentityAuthenticate(dispatch)
+    await identityAuthenticate(dispatch)
     onClose()
   }
 

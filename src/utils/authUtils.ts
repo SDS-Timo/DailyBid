@@ -1,6 +1,7 @@
 import { HttpAgent, Identity } from '@dfinity/agent'
 import { AuthClient } from '@dfinity/auth-client'
 import { Ed25519KeyIdentity } from '@dfinity/identity'
+import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 
 import { getUserDepositAddress } from './convertionsUtils'
 import { AppDispatch } from '../store'
@@ -49,19 +50,23 @@ async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
  * @param dispatch - The dispatch function to trigger actions in the Redux store.
  */
 export async function seedAuthenticate(seed: string, dispatch: AppDispatch) {
-  if (seed.length === 0 || seed.length > 32) return
+  try {
+    if (seed.length === 0 || seed.length > 32) return
 
-  const seedToIdentity: (seed: string) => Identity | null = (seed) => {
-    const seedBuf = new Uint8Array(new ArrayBuffer(32))
-    seedBuf.set(new TextEncoder().encode(seed))
-    return Ed25519KeyIdentity.generate(seedBuf)
-  }
+    const seedToIdentity: (seed: string) => Identity | null = (seed) => {
+      const seedBuf = new Uint8Array(new ArrayBuffer(32))
+      seedBuf.set(new TextEncoder().encode(seed))
+      return Ed25519KeyIdentity.generate(seedBuf)
+    }
 
-  const newIdentity = seedToIdentity(seed)
+    const newIdentity = seedToIdentity(seed)
 
-  if (newIdentity) {
-    const myAgent = getAgent(newIdentity)
-    doLogin(myAgent, dispatch)
+    if (newIdentity) {
+      const myAgent = getAgent(newIdentity)
+      await doLogin(myAgent, dispatch)
+    }
+  } catch (error) {
+    console.error('Error during seed authentication:', error)
   }
 }
 
@@ -69,7 +74,7 @@ export async function seedAuthenticate(seed: string, dispatch: AppDispatch) {
  * Authenticates the user using a internet identity and dispatches actions to set the user agent and authentication status.
  * @param dispatch - The dispatch function to trigger actions in the Redux store.
  */
-export async function IdentityAuthenticate(
+export async function identityAuthenticate(
   dispatch: AppDispatch,
 ): Promise<void> {
   try {
@@ -100,10 +105,10 @@ export async function IdentityAuthenticate(
       identityProvider: HTTP_AGENT_HOST,
       derivationOrigin: getInternetIdentityDerivationOrigin(),
       windowOpenerFeatures: windowFeatures,
-      onSuccess: () => {
+      onSuccess: async () => {
         const identity = authClient.getIdentity()
         const myAgent = getAgent(identity)
-        doLogin(myAgent, dispatch)
+        await doLogin(myAgent, dispatch)
       },
       onError: (error) => {
         console.error('Internet Identity authentication failed', error)
@@ -111,5 +116,40 @@ export async function IdentityAuthenticate(
     })
   } catch (error) {
     console.error('Unexpected error during authentication process', error)
+  }
+}
+
+/**
+ * Authenticates a user using a mnemonic seed phrase.
+ * @param phrase - An array of words representing the mnemonic seed phrase.
+ * @param dispatch - The dispatch function to trigger actions in the Redux store.
+ */
+export const mnemonicAuthenticate = async (
+  phrase: string[],
+  dispatch: AppDispatch,
+): Promise<void> => {
+  try {
+    const createIdentity = (seedPhrase: string[]): Identity | null => {
+      try {
+        return Secp256k1KeyIdentity.fromSeedPhrase(seedPhrase) as Identity
+      } catch (error) {
+        console.error('Error creating identity from seed phrase:', error)
+        return null
+      }
+    }
+
+    const newIdentity = createIdentity(phrase)
+
+    if (!newIdentity) {
+      throw new Error(
+        'Failed to generate identity from the provided seed phrase.',
+      )
+    }
+
+    const myAgent = getAgent(newIdentity)
+
+    await doLogin(myAgent, dispatch)
+  } catch (error) {
+    console.error('Authentication failed:', error)
   }
 }
