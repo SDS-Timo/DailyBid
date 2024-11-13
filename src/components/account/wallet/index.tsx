@@ -29,7 +29,8 @@ import WalletIconDark from '../../../assets/img/common/wallet-black.svg'
 import WalletIconLight from '../../../assets/img/common/wallet-white.svg'
 import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
-import { setBalances, setUserPoints } from '../../../store/balances'
+import { setUserPoints } from '../../../store/auth'
+import { setBalances } from '../../../store/balances'
 import { Result, TokenDataItem, TokenMetadata } from '../../../types'
 import {
   convertVolumeFromCanister,

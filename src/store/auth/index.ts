@@ -1,14 +1,8 @@
 import { HttpAgent, AnonymousIdentity } from '@dfinity/agent'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+import { AuthState } from '../../types'
 import { getAgent } from '../../utils/authUtils'
-
-interface AuthState {
-  userAgent: HttpAgent
-  isAuthenticated: boolean
-  userPrincipal: string
-  userDeposit: string
-}
 
 const anonymousIdentity = getAgent(new AnonymousIdentity())
 
@@ -17,6 +11,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   userPrincipal: '',
   userDeposit: '',
+  userPoints: null,
 }
 
 const authSlice = createSlice({
@@ -47,6 +42,12 @@ const authSlice = createSlice({
         userDeposit: action.payload,
       }
     },
+    setUserPoints: (state, action: PayloadAction<number | null>) => {
+      return {
+        ...state,
+        userPoints: action.payload,
+      }
+    },
     logout: (state) => {
       return {
         ...state,
@@ -54,6 +55,7 @@ const authSlice = createSlice({
         isAuthenticated: false,
         userPrincipal: '',
         userDeposit: '',
+        userPoints: null,
       }
     },
   },
@@ -64,6 +66,7 @@ export const {
   setIsAuthenticated,
   setUserPrincipal,
   setUserDeposit,
+  setUserPoints,
   logout,
 } = authSlice.actions
 export default authSlice.reducer

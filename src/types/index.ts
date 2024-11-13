@@ -1,3 +1,4 @@
+import { HttpAgent } from '@dfinity/agent'
 import { Option as OptionBymax } from 'bymax-react-select'
 
 export interface Language {
@@ -65,6 +66,13 @@ export interface PricesHistoryState {
 export interface TokenDataItem extends DataItem, TokenMetadata {
   [key: string]: any
 }
+export interface AuthState {
+  userAgent: HttpAgent
+  isAuthenticated: boolean
+  userPrincipal: string
+  userDeposit: string
+  userPoints: number | null
+}
 export interface OpenOrdersState {
   isRefreshUserData: boolean
   orderSettings: SettingsState
@@ -78,7 +86,6 @@ export interface ActionsState {
 }
 export interface BalancesState {
   balances: TokenDataItem[] | []
-  userPoints: number | null
 }
 export interface SettingsState {
   orderQuoteVolumeMinimum: number

@@ -21,9 +21,7 @@ const NavbarUser: React.FC = () => {
   const bgCircleColor = useColorModeValue('grey.25', 'grey.900')
   const borderColor = useColorModeValue('grey.900', 'grey.200')
 
-  const userPoints = useSelector(
-    (state: RootState) => state.balances.userPoints,
-  )
+  const userPoints = useSelector((state: RootState) => state.auth.userPoints)
 
   const userPrincipal = useSelector(
     (state: RootState) => state.auth.userPrincipal,
@@ -56,7 +54,7 @@ const NavbarUser: React.FC = () => {
           </Box>
         </MenuList>
       </Menu>
-      {userPoints && (
+      {typeof userPoints === 'number' && !isNaN(userPoints) && (
         <Box ml={4}>
           <Flex alignItems="center" justifyContent="center">
             <Tooltip label="Points balance" aria-label="Points balance tooltip">
