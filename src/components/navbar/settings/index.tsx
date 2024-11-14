@@ -19,6 +19,7 @@ import { useSelector } from 'react-redux'
 
 import CanisterIdSettings from './canisterIdSettings'
 import DerivationOriginSettings from './derivationOriginSettings'
+import DoubleConfirmationSettings from './doubleConfirmation'
 import LoginDurationSettings from './loginDurationSettings'
 import { RootState } from '../../../store'
 
@@ -92,6 +93,20 @@ const NavbarSettings: React.FC = () => {
               </h2>
               <AccordionPanel pb={4}>
                 <DerivationOriginSettings />
+              </AccordionPanel>
+            </AccordionItem>
+
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Flex flex="1" textAlign="left">
+                    Double Confirmation Settings
+                  </Flex>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                <DoubleConfirmationSettings />
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
