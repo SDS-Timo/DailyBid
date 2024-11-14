@@ -24,6 +24,7 @@ import {
   useToast,
   useClipboard,
   useBreakpointValue,
+  useDisclosure,
 } from '@chakra-ui/react'
 import { HttpAgent } from '@dfinity/agent'
 import { useFormik } from 'formik'
@@ -37,6 +38,7 @@ import {
   fixDecimal,
   convertVolumeFromCanister,
 } from '../../../../utils/calculationsUtils'
+import WithdrawalsConfirmationModal from '../../../confirmationModal'
 
 interface TokenRowProps {
   token: TokenDataItem
@@ -79,6 +81,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
   const bgColor = useColorModeValue('grey.200', 'grey.600')
   const bgColorMenu = useColorModeValue('grey.100', 'grey.900')
   const fontColor = useColorModeValue('grey.700', 'grey.25')
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const [action, setAction] = useState('')
   const [depositAllowance, setDepositAllowance] = useState<string | null>(null)
@@ -124,6 +127,11 @@ const TokenRow: React.FC<TokenRowProps> = ({
     })
   }
 
+  const isWithdrawConfirmationEnabled = (): boolean => {
+    const storedValue = localStorage.getItem('withdrawalsDoubleConfirmation')
+    return storedValue === 'true'
+  }
+
   const initialValues = {
     amount: '',
     account: '',
@@ -154,13 +162,19 @@ const TokenRow: React.FC<TokenRowProps> = ({
     onSubmit: (values) => {
       if (Number(values.amount) > 0) {
         if (action === 'withdraw') {
-          handleWithdraw(Number(values.amount), values.account, token)
+          if (isWithdrawConfirmationEnabled()) onOpen()
+          else handleWithdraw(Number(values.amount), values.account, token)
         } else if (action === 'deposit') {
           handleDeposit(Number(values.amount), values.account, token)
         }
       }
     },
   })
+
+  const handleWithdrawConfirm = () => {
+    onClose()
+    handleWithdraw(Number(formik.values.amount), formik.values.account, token)
+  }
 
   const getBalanceOf = useCallback(
     async (account: string | null = null) => {
@@ -305,241 +319,269 @@ const TokenRow: React.FC<TokenRowProps> = ({
   }, [token.withdrawStatus])
 
   return (
-    <Accordion allowToggle index={currentIndex === 0 ? 0 : undefined}>
-      <AccordionItem border="none">
-        <>
-          <AccordionButton display="none" />
-          <Flex key={token.id} justify="space-between" align="center" py={2}>
-            <Flex align="center">
-              <Menu>
-                <Tooltip label={token.principal} aria-label="Token Principal">
-                  <MenuButton
-                    as={Flex}
-                    align="center"
-                    cursor="pointer"
-                    onClick={handleCopyToClipboard}
-                  >
-                    <Flex align="center" cursor="pointer">
-                      <Image
-                        src={token.logo}
-                        alt={token.symbol}
-                        boxSize="30px"
-                      />
-                      <Text ml={2} fontSize="15px" fontWeight={600}>
-                        {token.symbol}
-                      </Text>
-                    </Flex>
-                  </MenuButton>
-                </Tooltip>
-                {isMobile && (
-                  <MenuList bg={bgColorMenu} p={2}>
-                    {token.principal}
-                  </MenuList>
-                )}
-              </Menu>
-            </Flex>
-            <Flex direction="column" align="flex-end" ml={2} overflowX="auto">
-              <Flex align="center" overflowX="auto" whiteSpace="nowrap">
-                <Text mr={2}>{volumeInTotal}</Text>
-                <Tooltip label="Deposit by Allowance" aria-label="Allowance">
-                  <IconButton
-                    aria-label="Allowance"
-                    icon={<RiHandCoinLine size="15px" />}
-                    variant="ghost"
-                    size="xs"
-                    _hover={{
-                      bg: bgColorHover,
-                    }}
-                    onClick={() => handleAccordionToggle('deposit')}
-                  />
-                </Tooltip>
-                <Tooltip label={claimTooltipText} aria-label="Claim Deposit">
-                  <IconButton
-                    hidden //Individual claim, in the future it should be enabled
-                    aria-label="Claim Deposit"
-                    icon={
-                      token?.notifyLoading ? (
-                        <Spinner size="xs" />
-                      ) : (
-                        <LuDownload size="15px" />
-                      )
-                    }
-                    onClick={() => {
-                      handleNotify(token.principal, token.base)
-                      setAction('claim')
-                    }}
-                    onMouseEnter={handleTrackedDeposit}
-                    variant="ghost"
-                    size="xs"
-                    _hover={{
-                      bg: bgColorHover,
-                    }}
-                  />
-                </Tooltip>
-                <Tooltip label="Withdraw" aria-label="Withdraw">
-                  <IconButton
-                    aria-label="Withdraw"
-                    icon={<LuUpload size="15px" />}
-                    variant="ghost"
-                    size="xs"
-                    _hover={{
-                      bg: bgColorHover,
-                    }}
-                    onClick={() => handleAccordionToggle('withdraw')}
-                  />
-                </Tooltip>
+    <>
+      <Accordion allowToggle index={currentIndex === 0 ? 0 : undefined}>
+        <AccordionItem border="none">
+          <>
+            <AccordionButton display="none" />
+            <Flex key={token.id} justify="space-between" align="center" py={2}>
+              <Flex align="center">
+                <Menu>
+                  <Tooltip label={token.principal} aria-label="Token Principal">
+                    <MenuButton
+                      as={Flex}
+                      align="center"
+                      cursor="pointer"
+                      onClick={handleCopyToClipboard}
+                    >
+                      <Flex align="center" cursor="pointer">
+                        <Image
+                          src={token.logo}
+                          alt={token.symbol}
+                          boxSize="30px"
+                        />
+                        <Text ml={2} fontSize="15px" fontWeight={600}>
+                          {token.symbol}
+                        </Text>
+                      </Flex>
+                    </MenuButton>
+                  </Tooltip>
+                  {isMobile && (
+                    <MenuList bg={bgColorMenu} p={2}>
+                      {token.principal}
+                    </MenuList>
+                  )}
+                </Menu>
               </Flex>
-              <Flex
-                direction="row"
-                justify="space-between"
-                align="center"
-                w="full"
-              >
-                <Text fontSize="12px" color="grey.400">
-                  {volumeInLocked} Locked
-                </Text>
-                <Text ml={2} fontSize="12px" color="grey.400">
-                  {volumeInAvailable} Available
-                </Text>
+              <Flex direction="column" align="flex-end" ml={2} overflowX="auto">
+                <Flex align="center" overflowX="auto" whiteSpace="nowrap">
+                  <Text mr={2}>{volumeInTotal}</Text>
+                  <Tooltip label="Deposit by Allowance" aria-label="Allowance">
+                    <IconButton
+                      aria-label="Allowance"
+                      icon={<RiHandCoinLine size="15px" />}
+                      variant="ghost"
+                      size="xs"
+                      _hover={{
+                        bg: bgColorHover,
+                      }}
+                      onClick={() => handleAccordionToggle('deposit')}
+                    />
+                  </Tooltip>
+                  <Tooltip label={claimTooltipText} aria-label="Claim Deposit">
+                    <IconButton
+                      hidden //Individual claim, in the future it should be enabled
+                      aria-label="Claim Deposit"
+                      icon={
+                        token?.notifyLoading ? (
+                          <Spinner size="xs" />
+                        ) : (
+                          <LuDownload size="15px" />
+                        )
+                      }
+                      onClick={() => {
+                        handleNotify(token.principal, token.base)
+                        setAction('claim')
+                      }}
+                      onMouseEnter={handleTrackedDeposit}
+                      variant="ghost"
+                      size="xs"
+                      _hover={{
+                        bg: bgColorHover,
+                      }}
+                    />
+                  </Tooltip>
+                  <Tooltip label="Withdraw" aria-label="Withdraw">
+                    <IconButton
+                      aria-label="Withdraw"
+                      icon={<LuUpload size="15px" />}
+                      variant="ghost"
+                      size="xs"
+                      _hover={{
+                        bg: bgColorHover,
+                      }}
+                      onClick={() => handleAccordionToggle('withdraw')}
+                    />
+                  </Tooltip>
+                </Flex>
+                <Flex
+                  direction="row"
+                  justify="space-between"
+                  align="center"
+                  w="full"
+                >
+                  <Text fontSize="12px" color="grey.400">
+                    {volumeInLocked} Locked
+                  </Text>
+                  <Text ml={2} fontSize="12px" color="grey.400">
+                    {volumeInAvailable} Available
+                  </Text>
+                </Flex>
               </Flex>
             </Flex>
-          </Flex>
 
-          <AccordionPanel pb={4}>
-            <Flex direction="column" gap={4}>
-              <Flex direction="column">
-                <FormControl variant="floating">
-                  <Input
-                    h="58px"
-                    placeholder=" "
-                    name="account"
-                    sx={{ borderRadius: '5px' }}
-                    isInvalid={
-                      !!formik.errors.account && formik.touched.account
-                    }
-                    isDisabled={false}
-                    value={formik.values.account}
-                    onKeyUp={() => formik.validateField('account')}
-                    onChange={(e) => {
-                      formik.handleChange(e)
-                    }}
-                  />
-                  <FormLabel color="grey.500" fontSize="15px">
-                    {action === 'deposit'
-                      ? 'Source account'
-                      : 'Destination account'}
-                  </FormLabel>
-                  {depositAllowance && (
-                    <Text color="grey.400" fontSize="12px">
-                      Allowance amount: {depositAllowance} {token.base}
-                    </Text>
-                  )}
-                  {!!formik.errors.account && formik.touched.account && (
-                    <Text color="red.500" fontSize="12px">
-                      {formik.errors.account}
-                    </Text>
-                  )}
-                </FormControl>
-              </Flex>
-              <Flex direction="column">
-                <InputGroup>
+            <AccordionPanel pb={4}>
+              <Flex direction="column" gap={4}>
+                <Flex direction="column">
                   <FormControl variant="floating">
                     <Input
                       h="58px"
                       placeholder=" "
-                      name="amount"
+                      name="account"
                       sx={{ borderRadius: '5px' }}
                       isInvalid={
-                        !!formik.errors.amount && formik.touched.amount
+                        !!formik.errors.account && formik.touched.account
                       }
                       isDisabled={false}
-                      value={formik.values.amount}
-                      onKeyUp={() => formik.validateField('amount')}
+                      value={formik.values.account}
+                      onKeyUp={() => formik.validateField('account')}
                       onChange={(e) => {
                         formik.handleChange(e)
                       }}
                     />
                     <FormLabel color="grey.500" fontSize="15px">
-                      Amount
+                      {action === 'deposit'
+                        ? 'Source account'
+                        : 'Destination account'}
                     </FormLabel>
+                    {depositAllowance && (
+                      <Text color="grey.400" fontSize="12px">
+                        Allowance amount: {depositAllowance} {token.base}
+                      </Text>
+                    )}
+                    {!!formik.errors.account && formik.touched.account && (
+                      <Text color="red.500" fontSize="12px">
+                        {formik.errors.account}
+                      </Text>
+                    )}
                   </FormControl>
-                  <InputRightElement h="58px">
-                    <Button
-                      h="58px"
-                      fontSize="11px"
-                      borderRadius="0 5px 5px 0"
-                      bgColor={'grey.500'}
-                      color="grey.25"
-                      _hover={{
-                        bg: 'grey.400',
-                        color: 'grey.25',
-                      }}
-                      onClick={async () => {
-                        if (action === 'withdraw') {
-                          handleMaxAvailableClick()
-                        } else if (action === 'deposit' && depositAllowance) {
-                          const amount =
-                            await handleMaxDepositAllowance(depositAllowance)
-                          formik.setFieldValue('amount', amount)
+                </Flex>
+                <Flex direction="column">
+                  <InputGroup>
+                    <FormControl variant="floating">
+                      <Input
+                        h="58px"
+                        placeholder=" "
+                        name="amount"
+                        sx={{ borderRadius: '5px' }}
+                        isInvalid={
+                          !!formik.errors.amount && formik.touched.amount
                         }
-                      }}
-                    >
-                      Max
-                    </Button>
-                  </InputRightElement>
-                </InputGroup>
-                {maxDepositAllowance && (
-                  <Text color="grey.400" fontSize="12px">
-                    Max available: {maxDepositAllowance} {token.base}
-                  </Text>
-                )}
-                {!!formik.errors.amount && formik.touched.amount && (
-                  <Text color="red.500" fontSize="12px">
-                    {formik.errors.amount}
-                  </Text>
-                )}
+                        isDisabled={false}
+                        value={formik.values.amount}
+                        onKeyUp={() => formik.validateField('amount')}
+                        onChange={(e) => {
+                          formik.handleChange(e)
+                        }}
+                      />
+                      <FormLabel color="grey.500" fontSize="15px">
+                        Amount
+                      </FormLabel>
+                    </FormControl>
+                    <InputRightElement h="58px">
+                      <Button
+                        h="58px"
+                        fontSize="11px"
+                        borderRadius="0 5px 5px 0"
+                        bgColor={'grey.500'}
+                        color="grey.25"
+                        _hover={{
+                          bg: 'grey.400',
+                          color: 'grey.25',
+                        }}
+                        onClick={async () => {
+                          if (action === 'withdraw') {
+                            handleMaxAvailableClick()
+                          } else if (action === 'deposit' && depositAllowance) {
+                            const amount =
+                              await handleMaxDepositAllowance(depositAllowance)
+                            formik.setFieldValue('amount', amount)
+                          }
+                        }}
+                      >
+                        Max
+                      </Button>
+                    </InputRightElement>
+                  </InputGroup>
+                  {maxDepositAllowance && (
+                    <Text color="grey.400" fontSize="12px">
+                      Max available: {maxDepositAllowance} {token.base}
+                    </Text>
+                  )}
+                  {!!formik.errors.amount && formik.touched.amount && (
+                    <Text color="red.500" fontSize="12px">
+                      {formik.errors.amount}
+                    </Text>
+                  )}
+                </Flex>
+                <Flex direction="column">
+                  <Button
+                    background={bgColor}
+                    variant="solid"
+                    h="58px"
+                    color={fontColor}
+                    _hover={{
+                      bg: bgColorHover,
+                      color: fontColor,
+                    }}
+                    isDisabled={
+                      (action === 'withdraw' &&
+                        token.withdrawStatus === 'loading') ||
+                      (action === 'deposit' &&
+                        token.depositStatus === 'loading')
+                    }
+                    onClick={() => formik.handleSubmit()}
+                  >
+                    {action === 'withdraw' ? (
+                      token.withdrawStatus === 'loading' ? (
+                        <>
+                          Withdraw{' '}
+                          <Spinner ml={2} size="sm" color={fontColor} />
+                        </>
+                      ) : (
+                        'Withdraw'
+                      )
+                    ) : action === 'deposit' ? (
+                      token.depositStatus === 'loading' ? (
+                        <>
+                          Deposit <Spinner ml={2} size="sm" color={fontColor} />
+                        </>
+                      ) : (
+                        'Deposit'
+                      )
+                    ) : null}
+                  </Button>
+                </Flex>
               </Flex>
-              <Flex direction="column">
-                <Button
-                  background={bgColor}
-                  variant="solid"
-                  h="58px"
-                  color={fontColor}
-                  _hover={{
-                    bg: bgColorHover,
-                    color: fontColor,
-                  }}
-                  isDisabled={
-                    (action === 'withdraw' &&
-                      token.withdrawStatus === 'loading') ||
-                    (action === 'deposit' && token.depositStatus === 'loading')
-                  }
-                  onClick={() => formik.handleSubmit()}
-                >
-                  {action === 'withdraw' ? (
-                    token.withdrawStatus === 'loading' ? (
-                      <>
-                        Withdraw <Spinner ml={2} size="sm" color={fontColor} />
-                      </>
-                    ) : (
-                      'Withdraw'
-                    )
-                  ) : action === 'deposit' ? (
-                    token.depositStatus === 'loading' ? (
-                      <>
-                        Deposit <Spinner ml={2} size="sm" color={fontColor} />
-                      </>
-                    ) : (
-                      'Deposit'
-                    )
-                  ) : null}
-                </Button>
-              </Flex>
-            </Flex>
-          </AccordionPanel>
-        </>
-      </AccordionItem>
-    </Accordion>
+            </AccordionPanel>
+          </>
+        </AccordionItem>
+      </Accordion>
+
+      <WithdrawalsConfirmationModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onConfirm={handleWithdrawConfirm}
+        title="Confirm Withdraw"
+        description={
+          <>
+            <Text>
+              Are you sure you want to withdraw{' '}
+              <strong>
+                {formik.values.amount} {token.base}
+              </strong>{' '}
+              to address
+            </Text>
+            <Text mt={3}>
+              <strong>{formik.values.account}</strong>?
+            </Text>
+            <Text mt={3}>This action cannot be undone.</Text>
+          </>
+        }
+        confirmText="Confirm"
+        cancelText="Cancel"
+      />
+    </>
   )
 }
 
