@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 
 import { useHandleAllTrackedDeposits } from './autoClaim'
 import { RootState } from '../../../../store'
+
 const AutoClaimTimer = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const { handleAllTrackedDeposits } = useHandleAllTrackedDeposits()
@@ -13,6 +14,9 @@ const AutoClaimTimer = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
   )
+  const userPrincipal = useSelector(
+    (state: RootState) => state.auth.userPrincipal,
+  )
 
   useEffect(() => {
     const startTimer = (interval: number) => {
@@ -21,7 +25,7 @@ const AutoClaimTimer = () => {
       }
 
       timerRef.current = setInterval(async () => {
-        await handleAllTrackedDeposits()
+        await handleAllTrackedDeposits(userPrincipal)
       }, interval)
     }
 
@@ -51,7 +55,7 @@ const AutoClaimTimer = () => {
     return () => {
       stopTimer()
     }
-  }, [autoClaimInterval, isAuthenticated])
+  }, [autoClaimInterval, isAuthenticated, userPrincipal])
 
   useEffect(() => {
     const handleStorageChange = () => {

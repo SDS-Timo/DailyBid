@@ -305,9 +305,16 @@ const Trading = () => {
 
   const fetchBalances = useCallback(async () => {
     setLoading(true)
-    const { getBalancesCredits } = useWallet()
-    const balancesCredits = await getBalancesCredits(userAgent, tokens)
+    const { getBalancesCredits, getUserPoints } = useWallet()
+
+    const [balancesCredits, points] = await Promise.all([
+      getBalancesCredits(userAgent, tokens),
+      getUserPoints(userAgent),
+    ])
+
     dispatch(setBalances(balancesCredits))
+    dispatch(setUserPoints(Number(points)))
+
     setLoading(false)
   }, [userAgent, tokens, dispatch])
 
