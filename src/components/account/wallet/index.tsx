@@ -31,7 +31,12 @@ import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
 import { setUserPoints } from '../../../store/auth'
 import { setBalances } from '../../../store/balances'
-import { Result, TokenDataItem, TokenMetadata } from '../../../types'
+import {
+  Result,
+  TokenDataItem,
+  TokenMetadata,
+  ClaimTokenBalance,
+} from '../../../types'
 import {
   convertVolumeFromCanister,
   convertVolumetoCanister,
@@ -45,12 +50,6 @@ import {
   getErrorMessageWithdraw,
   getErrorMessageDeposit,
 } from '../../../utils/walletUtils'
-
-interface ClaimTokenBalance {
-  principal: string
-  base: string
-  available: number
-}
 
 const WalletContent: React.FC = () => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')

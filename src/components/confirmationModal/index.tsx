@@ -41,7 +41,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <ModalContent bg={bgColor} color={fontColor}>
         <ModalHeader>{title}</ModalHeader>
         <ModalBody>
-          <Text>{description}</Text>
+          {typeof description === 'string' ? (
+            <Text>{description}</Text>
+          ) : (
+            description
+          )}
         </ModalBody>
         <ModalFooter>
           <Button

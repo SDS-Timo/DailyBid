@@ -17,6 +17,7 @@ import {
 } from '@chakra-ui/react'
 import { useSelector, useDispatch } from 'react-redux'
 
+import AutoClaimTimer from './autoClaim'
 import usePriceHistory from '../../../hooks/usePriceHistory'
 import { RootState, AppDispatch } from '../../../store'
 import { setIsRefreshUserData } from '../../../store/orders'
@@ -349,6 +350,7 @@ const HeaderInformation = () => {
           </Tooltip>
         </Flex>
       </Box>
+      <AutoClaimTimer />
     </Flex>
   )
 }

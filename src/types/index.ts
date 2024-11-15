@@ -66,6 +66,11 @@ export interface PricesHistoryState {
 export interface TokenDataItem extends DataItem, TokenMetadata {
   [key: string]: any
 }
+export interface ClaimTokenBalance {
+  principal: string
+  base: string
+  available: number
+}
 export interface AuthState {
   userAgent: HttpAgent
   isAuthenticated: boolean

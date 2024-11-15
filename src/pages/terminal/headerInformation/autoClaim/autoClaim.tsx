@@ -1,0 +1,94 @@
+import { useCallback } from 'react'
+
+import { Principal } from '@dfinity/principal'
+import { useSelector, useDispatch } from 'react-redux'
+
+import useWallet from '../../../../hooks/useWallet'
+import { RootState, AppDispatch } from '../../../../store'
+import { setBalances } from '../../../../store/balances'
+import { ClaimTokenBalance } from '../../../../types'
+import { getToken } from '../../../../utils/tokenUtils'
+
+export const useHandleAllTrackedDeposits = () => {
+  const { userAgent } = useSelector((state: RootState) => state.auth)
+  const balances = useSelector((state: RootState) => state.balances.balances)
+  const tokens = useSelector((state: RootState) => state.tokens.tokens)
+  const userPrincipal = useSelector(
+    (state: RootState) => state.auth.userPrincipal,
+  )
+  const { getTrackedDeposit, getBalance, balanceNotify } = useWallet()
+  const dispatch = useDispatch<AppDispatch>()
+
+  const handleAllTrackedDeposits = useCallback(async () => {
+    const tokensBalance: ClaimTokenBalance[] = []
+    await Promise.all(
+      balances.map(async (token) => {
+        const balanceOf = await getBalance(
+          userAgent,
+          [token],
+          `${token.principal}`,
+          userPrincipal,
+          'claim',
+        )
+
+        const deposit = await getTrackedDeposit(
+          userAgent,
+          [token],
+          `${token.principal}`,
+        )
+
+        if (
+          typeof balanceOf === 'number' &&
+          typeof deposit === 'number' &&
+          !isNaN(balanceOf) &&
+          !isNaN(deposit)
+        ) {
+          const available = balanceOf - deposit
+          if (available > 0) {
+            tokensBalance.push({
+              principal: `${token?.principal}`,
+              base: token?.base,
+              available,
+            })
+          }
+        }
+      }),
+    )
+
+    if (tokensBalance.length > 0) {
+      await Promise.all(
+        tokensBalance.map(async (token) => {
+          const tokenInfo = getToken(
+            tokens,
+            Principal.fromText(token.principal),
+          )
+
+          if (token.available >= Number(tokenInfo.fee)) {
+            await handleNotify(token.principal)
+          }
+        }),
+      )
+
+      await fetchBalances()
+    }
+
+    return tokensBalance
+  }, [balances, getBalance, getTrackedDeposit, userAgent, userPrincipal])
+
+  const fetchBalances = useCallback(async () => {
+    const { getBalancesCredits } = useWallet()
+
+    const balancesCredits = await getBalancesCredits(userAgent, tokens)
+
+    dispatch(setBalances(balancesCredits))
+  }, [userAgent, tokens, dispatch])
+
+  const handleNotify = useCallback(
+    async (principal: string | undefined) => {
+      await balanceNotify(userAgent, principal)
+    },
+    [balanceNotify, userAgent],
+  )
+
+  return { handleAllTrackedDeposits }
+}

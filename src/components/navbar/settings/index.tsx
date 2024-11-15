@@ -17,16 +17,19 @@ import {
 } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
+import AutoClaimSettings from './autoClaimSettings'
 import CanisterIdSettings from './canisterIdSettings'
 import DerivationOriginSettings from './derivationOriginSettings'
-import DoubleConfirmationSettings from './doubleConfirmation'
 import LoginDurationSettings from './loginDurationSettings'
+import RequireConfirmationSettings from './requireConfirmation'
 import { RootState } from '../../../store'
 
 const NavbarSettings: React.FC = () => {
   const bgColor = useColorModeValue('grey.100', 'grey.900')
 
-  const [isSelectOpen, setIsSelectOpen] = useState(false)
+  const [isSelectOpenAutoClaim, setIsSelectOpenAutoClaim] = useState(false)
+  const [isSelectOpenLoginDuration, setIsSelectOpenLoginDuration] =
+    useState(false)
 
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
@@ -49,6 +52,29 @@ const NavbarSettings: React.FC = () => {
               <h2>
                 <AccordionButton>
                   <Flex flex="1" textAlign="left">
+                    Auto Claim
+                  </Flex>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4} h={isSelectOpenAutoClaim ? '280px' : ''}>
+                <Box
+                  w="100%"
+                  onClick={() => {
+                    setIsSelectOpenAutoClaim(true)
+                  }}
+                >
+                  <AutoClaimSettings
+                    onSelectBlur={() => setIsSelectOpenAutoClaim(false)}
+                  />
+                </Box>
+              </AccordionPanel>
+            </AccordionItem>
+
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Flex flex="1" textAlign="left">
                     Backend Canister ID
                   </Flex>
                   <AccordionIcon />
@@ -63,20 +89,37 @@ const NavbarSettings: React.FC = () => {
               <h2>
                 <AccordionButton>
                   <Flex flex="1" textAlign="left">
+                    Require Confirmation
+                  </Flex>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                <RequireConfirmationSettings />
+              </AccordionPanel>
+            </AccordionItem>
+
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Flex flex="1" textAlign="left">
                     Internet Identity Login Duration
                   </Flex>
                   <AccordionIcon />
                 </AccordionButton>
               </h2>
-              <AccordionPanel pb={4} h={isSelectOpen ? '320px' : ''}>
+              <AccordionPanel
+                pb={4}
+                h={isSelectOpenLoginDuration ? '320px' : ''}
+              >
                 <Box
                   w="100%"
                   onClick={() => {
-                    setIsSelectOpen(!isAuthenticated)
+                    setIsSelectOpenLoginDuration(!isAuthenticated)
                   }}
                 >
                   <LoginDurationSettings
-                    onSelectBlur={() => setIsSelectOpen(false)}
+                    onSelectBlur={() => setIsSelectOpenLoginDuration(false)}
                   />
                 </Box>
               </AccordionPanel>
@@ -93,20 +136,6 @@ const NavbarSettings: React.FC = () => {
               </h2>
               <AccordionPanel pb={4}>
                 <DerivationOriginSettings />
-              </AccordionPanel>
-            </AccordionItem>
-
-            <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Flex flex="1" textAlign="left">
-                    Double Confirmation Settings
-                  </Flex>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel pb={4}>
-                <DoubleConfirmationSettings />
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
