@@ -43,14 +43,14 @@ const TokenTab: React.FC<TokenTabProps> = ({
   loading,
 }) => {
   const [filter, setFilter] = useState('')
-  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined)
+  const [activeBase, setActiveBase] = useState<string | null>(null)
 
   const filteredBalances = balances.filter((token) =>
     token.base.toLowerCase().includes(filter.toLowerCase()),
   )
 
-  const handleAccordionChange = (index: number) => {
-    setActiveIndex(index === activeIndex ? undefined : index)
+  const handleAccordionChange = (base: string) => {
+    setActiveBase((prev) => (prev === base ? null : base))
   }
 
   return (
@@ -76,17 +76,17 @@ const TokenTab: React.FC<TokenTabProps> = ({
           <Progress size="xs" isIndeterminate w="90%" />
         </Flex>
       ) : (
-        filteredBalances.map((token, index) => (
+        filteredBalances.map((token) => (
           <TokenRow
-            key={token.id}
+            key={token.base}
             token={token}
             userAgent={userAgent}
             userPrincipal={userPrincipal}
             handleNotify={handleNotify}
             handleWithdraw={handleWithdraw}
             handleDeposit={handleDeposit}
-            currentIndex={activeIndex === index ? 0 : undefined}
-            onAccordionChange={() => handleAccordionChange(index)}
+            currentIndex={activeBase === token.base ? 0 : undefined}
+            onAccordionChange={() => handleAccordionChange(token.base)}
           />
         ))
       )}
