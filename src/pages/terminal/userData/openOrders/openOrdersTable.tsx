@@ -8,7 +8,9 @@ import {
   IconButton,
   Spinner,
   Tooltip,
+  useColorModeValue,
 } from '@chakra-ui/react'
+import { FiEdit3 } from 'react-icons/fi'
 import { Row } from 'react-table'
 
 import { ColumnWithSorting } from '../../../../components/paginationTable'
@@ -18,8 +20,18 @@ import { getMinimumFractionDigits } from '../../../../utils/calculationsUtils'
 export default function tableContent(
   toggleVolume: string,
   handleToggleVolume: MouseEventHandler<HTMLParagraphElement> | undefined,
+  handleReplace: (
+    id: bigint | undefined,
+    base: string | undefined,
+    volumeInBase: number | undefined,
+    volumeInQuote: number | undefined,
+    price: number | undefined,
+    type: string | undefined,
+  ) => void,
   handleCancel: (id: bigint | undefined, type: string | undefined) => void,
 ) {
+  const bgColor = useColorModeValue('grey.200', 'grey.700')
+
   const tableColumns: ColumnWithSorting<TokenDataItem>[] = [
     {
       Header: 'Symbol',
@@ -155,15 +167,67 @@ export default function tableContent(
       accessor: 'actions',
       disableSortBy: true,
       Cell: ({ row }: { row: Row<TokenDataItem> }) => {
-        const { id, type, loading } = row.original
+        const {
+          id,
+          base,
+          volumeInBase,
+          volumeInQuote,
+          price,
+          type,
+          loading,
+          replacing,
+        } = row.original
         return (
           <Flex justifyContent="center" alignItems="center">
+            <IconButton
+              aria-label="Edit Order"
+              icon={<FiEdit3 />}
+              onClick={() =>
+                handleReplace(
+                  id,
+                  base,
+                  volumeInBase,
+                  volumeInQuote,
+                  price,
+                  type,
+                )
+              }
+              variant="ghost"
+              size="xs"
+              bg={
+                replacing
+                  ? type === 'buy'
+                    ? 'green.500'
+                    : 'red.500'
+                  : undefined
+              }
+              _hover={{
+                bg: replacing
+                  ? type === 'buy'
+                    ? 'green.500'
+                    : 'red.400'
+                  : bgColor,
+              }}
+              _active={{
+                bg: replacing
+                  ? type === 'buy'
+                    ? 'green.500'
+                    : 'red.400'
+                  : bgColor,
+              }}
+            />
             <IconButton
               aria-label="Cancel Order"
               icon={loading ? <Spinner size="xs" /> : <CloseIcon />}
               onClick={() => handleCancel(id, type)}
               variant="ghost"
               size="xs"
+              _hover={{
+                bg: bgColor,
+              }}
+              _active={{
+                bg: bgColor,
+              }}
             />
           </Flex>
         )

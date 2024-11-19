@@ -60,9 +60,12 @@ export const getErrorMessagePlaceOrder = (error: Result): string => {
     TooLowOrder: 'Too Low Order',
     ConflictingOrder: 'Conflicting Order',
     UnknownAsset: 'Unknown Asset',
+    UnknownOrder: 'Unknown Order',
     NoCredit: 'No Credit',
     UnknownPrincipal: 'Unknown Principal',
     VolumeStepViolated: 'Volume Step Violated',
+    SessionNumberMismatch: 'Session Number Mismatch',
+    PriceDigitsOverflow: 'Price Digits Overflow',
   }
 
   for (const key in error) {

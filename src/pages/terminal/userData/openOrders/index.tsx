@@ -17,7 +17,11 @@ import useOpenOrders from '../../../../hooks/useOrders'
 import useBalances from '../../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../../store'
 import { setBalances } from '../../../../store/balances'
-import { setOpenOrders, setIsRefreshUserData } from '../../../../store/orders'
+import {
+  setOpenOrders,
+  setOrderDetails,
+  setIsRefreshUserData,
+} from '../../../../store/orders'
 import { TokenDataItem, Result } from '../../../../types'
 import { getErrorMessageCancelOrder } from '../../../../utils/orderUtils'
 
@@ -51,6 +55,9 @@ const OpenOrders: React.FC = () => {
   const orderSettings = useSelector(
     (state: RootState) => state.orders.orderSettings,
   )
+  const orderDetails = useSelector(
+    (state: RootState) => state.orders.orderDetails,
+  )
   const openOrders = useSelector((state: RootState) => state.orders.openOrders)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
   const selectedSymbol = useSelector(
@@ -63,7 +70,7 @@ const OpenOrders: React.FC = () => {
     ? selectedSymbol[0]
     : selectedSymbol
 
-  const fetchOpenOrders = useCallback(async () => {
+  const fetchOpenOrders = async () => {
     if (selectedQuote) {
       setLoading(true)
       const { getOpenOrders } = useOpenOrders()
@@ -78,15 +85,7 @@ const OpenOrders: React.FC = () => {
       filterOpenOrders(openOrdersRaw)
       setLoading(false)
     }
-  }, [
-    userAgent,
-    tokens,
-    selectedSymbol,
-    selectedQuote,
-    orderSettings.orderPriceDigitsLimit,
-    isRefreshUserData,
-    dispatch,
-  ])
+  }
 
   const fetchBalances = useCallback(async () => {
     const { getBalancesCredits } = useBalances()
@@ -94,19 +93,28 @@ const OpenOrders: React.FC = () => {
     dispatch(setBalances(balancesCredits))
   }, [userAgent, tokens, dispatch])
 
-  const filterOpenOrders = useCallback(
-    (openOrders: TokenDataItem[]) => {
-      if (showAllMarkets) {
-        setOpenOrdersFiltered(openOrders)
-      } else {
-        const filtered = openOrders.filter(
-          (openOrder) => openOrder.symbol === symbol?.value,
-        )
-        setOpenOrdersFiltered(filtered)
-      }
-    },
-    [showAllMarkets, symbol],
-  )
+  const filterOpenOrders = (openOrders: TokenDataItem[]) => {
+    if (showAllMarkets) {
+      setOpenOrdersFiltered(() =>
+        openOrders.map((order) =>
+          orderDetails.type !== '' && order.id === orderDetails.id
+            ? { ...order, replacing: true }
+            : order,
+        ),
+      )
+    } else {
+      const filtered = openOrders.filter(
+        (openOrder) => openOrder.symbol === symbol?.value,
+      )
+      setOpenOrdersFiltered(() =>
+        filtered.map((order) =>
+          orderDetails.type !== '' && order.id === orderDetails.id
+            ? { ...order, replacing: true }
+            : order,
+        ),
+      )
+    }
+  }
 
   const handleCheckboxChange = useCallback((e: boolean) => {
     setShowAllMarkets(e)
@@ -115,6 +123,34 @@ const OpenOrders: React.FC = () => {
   const handleRefreshClick = useCallback(() => {
     dispatch(setIsRefreshUserData())
   }, [dispatch])
+
+  const handleReplaceOrderClick = (
+    id: bigint | undefined,
+    base: string | undefined,
+    volumeInBase: number | undefined,
+    volumeInQuote: number | undefined,
+    price: number | undefined,
+    type: string | undefined,
+  ) => {
+    if (orderDetails.id !== id) {
+      setOpenOrdersFiltered((prevState) =>
+        prevState.map((order) =>
+          order.id === id ? { ...order, replacing: true } : order,
+        ),
+      )
+
+      dispatch(
+        setOrderDetails({
+          id,
+          base,
+          volumeInBase,
+          volumeInQuote,
+          price,
+          type,
+        }),
+      )
+    }
+  }
 
   const handleCancelOrderClick = useCallback(
     async (id: bigint | undefined, type: string | undefined) => {
@@ -127,6 +163,16 @@ const OpenOrders: React.FC = () => {
           ),
         )
       }
+
+      dispatch(
+        setOrderDetails({
+          id: 0n,
+          volumeInBase: 0n,
+          volumeInQuote: 0n,
+          price: 0,
+          type: '',
+        }),
+      )
 
       refreshOpenOrders(true)
 
@@ -191,6 +237,7 @@ const OpenOrders: React.FC = () => {
   const { tableColumns, hiddenColumns, sortBy } = tableContent(
     toggleVolume,
     handleToggleVolume,
+    handleReplaceOrderClick,
     handleCancelOrderClick,
   )
 
@@ -200,15 +247,19 @@ const OpenOrders: React.FC = () => {
   }, [showAllMarkets])
 
   useEffect(() => {
+    if (orderDetails.type === '') {
+      setOpenOrdersFiltered((prevState) =>
+        prevState.map((order) =>
+          order.replacing ? { ...order, replacing: false } : order,
+        ),
+      )
+    }
+  }, [orderDetails])
+
+  useEffect(() => {
     if (isAuthenticated) fetchOpenOrders()
     else setShowAllMarkets(false)
-  }, [
-    selectedQuote,
-    selectedSymbol,
-    userAgent,
-    isRefreshUserData,
-    fetchOpenOrders,
-  ])
+  }, [userAgent, selectedQuote, symbol, isRefreshUserData])
 
   return (
     <Box

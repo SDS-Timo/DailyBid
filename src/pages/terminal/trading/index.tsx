@@ -27,8 +27,10 @@ import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
 import { setUserPoints } from '../../../store/auth'
 import { setBalances } from '../../../store/balances'
-import { setIsRefreshUserData } from '../../../store/orders'
+import { setOrderDetails, setIsRefreshUserData } from '../../../store/orders'
+import { setSelectedSymbol } from '../../../store/tokens'
 import { Result, TokenDataItem } from '../../../types'
+import { Option } from '../../../types'
 import { convertExponentialToDecimal } from '../../../utils/calculationsUtils'
 import {
   convertPriceToCanister,
@@ -69,6 +71,9 @@ const Trading = () => {
     (state: RootState) => state.auth.isAuthenticated,
   )
   const openOrders = useSelector((state: RootState) => state.orders.openOrders)
+  const orderDetails = useSelector(
+    (state: RootState) => state.orders.orderDetails,
+  )
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
   const balances = useSelector((state: RootState) => state.balances.balances)
   const isRefreshUserData = useSelector(
@@ -225,81 +230,150 @@ const Trading = () => {
       )
 
       const order = {
-        volume,
+        id: orderDetails.id,
+        volumeInBase: volume,
         price,
         type: tradeType,
       }
 
-      const orderExists = validationPlaceOrder(
-        openOrders,
-        symbol?.base,
-        symbol?.quote,
-        tradeType,
-        Number(values.price),
-        selectedQuote,
-      )
+      if (orderDetails.id === 0n) {
+        const orderExists = validationPlaceOrder(
+          openOrders,
+          symbol?.base,
+          symbol?.quote,
+          tradeType,
+          Number(values.price),
+          selectedQuote,
+        )
 
-      if (orderExists) {
-        setStatus({ success: false })
-        setSubmitting(false)
-        setMessage(orderExists)
-        return
+        if (orderExists) {
+          setStatus({ success: false })
+          setSubmitting(false)
+          setMessage(orderExists)
+          return
+        }
       }
 
+      const title =
+        orderDetails.id === 0n
+          ? 'Create order pending'
+          : 'Replace order pending'
+
       const toastId = toast({
-        title: 'Create order pending',
+        title,
         description: 'Please wait',
         status: 'loading',
         duration: null,
         isClosable: true,
       })
 
-      const { placeOrder } = useOrders()
-      placeOrder(userAgent, symbol, order)
-        .then(async (response: Result) => {
-          setStatus({ success: true })
-          setSubmitting(false)
-          setMessage(null)
-          dispatch(setIsRefreshUserData())
-          fetchBalances()
+      const { placeOrder, replaceOrder } = useOrders()
 
-          if (response.length > 0 && Object.keys(response[0]).includes('Ok')) {
-            if (toastId) {
-              toast.update(toastId, {
-                title: 'Success',
-                description: 'Order created',
-                status: 'success',
-                isClosable: true,
-              })
+      if (orderDetails.id === 0n) {
+        placeOrder(userAgent, symbol, order)
+          .then(async (response: Result) => {
+            setStatus({ success: true })
+            setSubmitting(false)
+            setMessage(null)
+            dispatch(setIsRefreshUserData())
+            fetchBalances()
+
+            if (
+              response.length > 0 &&
+              Object.keys(response[0]).includes('Ok')
+            ) {
+              if (toastId) {
+                toast.update(toastId, {
+                  title: 'Success',
+                  description: 'Order created',
+                  status: 'success',
+                  isClosable: true,
+                })
+              }
+            } else {
+              if (toastId) {
+                const description = getErrorMessagePlaceOrder(response[0].Err)
+                toast.update(toastId, {
+                  title: 'Create order rejected',
+                  description,
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
             }
-          } else {
+          })
+          .catch((error) => {
+            const message = error.response ? error.response.data : error.message
+
             if (toastId) {
-              const description = getErrorMessagePlaceOrder(response[0].Err)
               toast.update(toastId, {
                 title: 'Create order rejected',
-                description,
+                description: `Error: ${message}`,
                 status: 'error',
                 isClosable: true,
               })
             }
-          }
-        })
-        .catch((error) => {
-          const message = error.response ? error.response.data : error.message
 
-          if (toastId) {
-            toast.update(toastId, {
-              title: 'Create order rejected',
-              description: `Error: ${message}`,
-              status: 'error',
-              isClosable: true,
-            })
-          }
+            setStatus({ success: false })
+            setSubmitting(false)
+            console.error(message)
+          })
+      } else {
+        replaceOrder(userAgent, order)
+          .then(async (response: Result) => {
+            setStatus({ success: true })
+            setSubmitting(false)
+            setMessage(null)
+            dispatch(setIsRefreshUserData())
+            fetchBalances()
+            dispatch(
+              setOrderDetails({
+                id: 0n,
+                volumeInBase: 0n,
+                volumeInQuote: 0n,
+                price: 0,
+                type: '',
+              }),
+            )
 
-          setStatus({ success: false })
-          setSubmitting(false)
-          console.error(message)
-        })
+            if (Object.keys(response).includes('Ok')) {
+              if (toastId) {
+                toast.update(toastId, {
+                  title: 'Success',
+                  description: 'Order replaced',
+                  status: 'success',
+                  isClosable: true,
+                })
+              }
+            } else {
+              if (toastId) {
+                const description = getErrorMessagePlaceOrder(response.Err)
+                toast.update(toastId, {
+                  title: 'Replace order rejected',
+                  description,
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
+            }
+          })
+          .catch((error) => {
+            const message = error.response ? error.response.data : error.message
+
+            if (toastId) {
+              toast.update(toastId, {
+                title: 'Replace order rejected',
+                description: `Error: ${message}`,
+                status: 'error',
+                isClosable: true,
+              })
+            }
+
+            setStatus({ success: false })
+            setSubmitting(false)
+            console.error(message)
+          })
+      }
     },
   })
 
@@ -357,6 +431,18 @@ const Trading = () => {
     setAmountType('base')
     formik.resetForm({ values: initialValues })
     setBaseStepSize(null)
+
+    if (orderDetails.type !== '') {
+      dispatch(
+        setOrderDetails({
+          id: 0n,
+          volumeInBase: 0n,
+          volumeInQuote: 0n,
+          price: 0,
+          type: '',
+        }),
+      )
+    }
   }, [formik])
 
   const handlePercentageClick = useCallback(
@@ -513,10 +599,12 @@ const Trading = () => {
   }, [balances])
 
   useEffect(() => {
-    if (isAuthenticated) fetchBalances()
-    handleClearForm()
-    setTradeType('buy')
-  }, [userAgent, selectedSymbol])
+    if (symbol?.base !== orderDetails.base) {
+      if (isAuthenticated) fetchBalances()
+      handleClearForm()
+      setTradeType('buy')
+    }
+  }, [userAgent, symbol])
 
   useEffect(() => {
     if (isAuthenticated) fetchUserPoints()
@@ -540,6 +628,40 @@ const Trading = () => {
   useEffect(() => {
     setBaseStepSizeDecimal(symbol?.decimals)
   }, [symbol])
+
+  useEffect(() => {
+    if (
+      orderDetails.id !== 0n &&
+      (orderDetails.type === 'buy' || orderDetails.type === 'sell')
+    ) {
+      const token = tokens.find((token) => token.base === orderDetails.base)
+      if (token) {
+        formik.setFieldValue('price', orderDetails.price)
+        formik.setFieldValue('baseAmount', orderDetails.volumeInBase)
+        formik.setFieldValue('quoteAmount', orderDetails.volumeInQuote)
+
+        handleBaseVolumeCalculate(
+          Number(orderDetails.volumeInBase),
+          String(orderDetails.price),
+        )
+        setTradeType(orderDetails.type)
+
+        if (orderDetails.base !== symbol?.base) {
+          const option: Option = {
+            id: token.symbol,
+            value: token.symbol,
+            label: token.name,
+            image: token.logo,
+            base: token.base,
+            quote: token.quote,
+            decimals: token.decimals,
+            principal: token.principal,
+          }
+          dispatch(setSelectedSymbol(option))
+        }
+      }
+    }
+  }, [orderDetails])
 
   useEffect(() => {
     const price = parseFloat(formik.values.price)
@@ -896,8 +1018,11 @@ const Trading = () => {
             >
               {formik.isSubmitting ? (
                 <>
-                  Creating <Spinner ml={2} size="sm" color="grey.25" />
+                  {orderDetails.id !== 0n ? 'Replacing' : 'Creating'}{' '}
+                  <Spinner ml={2} size="sm" color="grey.25" />
                 </>
+              ) : orderDetails.id !== 0n ? (
+                'Replace'
               ) : (
                 'Create'
               )}

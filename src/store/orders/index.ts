@@ -12,6 +12,14 @@ const initialState: OpenOrdersState = {
     orderQuoteVolumeStep: 0,
     orderQuoteVolumeStepNat: '0',
   },
+  orderDetails: {
+    id: 0n,
+    base: '',
+    volumeInBase: 0n,
+    volumeInQuote: 0n,
+    price: 0,
+    type: '',
+  },
   openOrders: [],
 }
 
@@ -25,13 +33,20 @@ const ordersSlice = createSlice({
     setOrderSettings: (state, action) => {
       state.orderSettings = action.payload
     },
+    setOrderDetails: (state, action) => {
+      state.orderDetails = action.payload
+    },
     setOpenOrders: (state, action: PayloadAction<TokenDataItem[] | []>) => {
       state.openOrders = action.payload
     },
   },
 })
 
-export const { setIsRefreshUserData, setOrderSettings, setOpenOrders } =
-  ordersSlice.actions
+export const {
+  setIsRefreshUserData,
+  setOrderSettings,
+  setOrderDetails,
+  setOpenOrders,
+} = ordersSlice.actions
 
 export default ordersSlice.reducer

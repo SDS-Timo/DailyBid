@@ -81,6 +81,7 @@ export interface AuthState {
 export interface OpenOrdersState {
   isRefreshUserData: boolean
   orderSettings: SettingsState
+  orderDetails: Order
   openOrders: TokenDataItem[] | []
 }
 export interface TradesState {
@@ -106,7 +107,10 @@ export interface Result {
   [key: string]: any
 }
 export interface Order {
-  volume: bigint
+  id: bigint
+  base?: string
+  volumeInBase: bigint
+  volumeInQuote?: bigint
   price: number
   type: string
 }
