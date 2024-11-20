@@ -173,10 +173,34 @@ export default function tableContent(
           volumeInBase,
           volumeInQuote,
           price,
+          priceDigitsLimit,
           type,
           loading,
           replacing,
+          volumeInBaseDecimals,
+          volumeInQuoteDecimals,
         } = row.original
+
+        const fixedPrice = price.toLocaleString('en-US', {
+          minimumFractionDigits: getMinimumFractionDigits(
+            String(price),
+            Number(priceDigitsLimit),
+          ),
+          maximumFractionDigits: priceDigitsLimit,
+          useGrouping: false,
+        })
+
+        const fixedVolumeBaseInBase = volumeInBase.toLocaleString('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: volumeInBaseDecimals,
+          useGrouping: false,
+        })
+
+        const fixedVolumeInQuote = volumeInQuote.toLocaleString('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: volumeInQuoteDecimals,
+          useGrouping: false,
+        })
         return (
           <Flex justifyContent="center" alignItems="center">
             <IconButton
@@ -186,9 +210,9 @@ export default function tableContent(
                 handleReplace(
                   id,
                   base,
-                  volumeInBase,
-                  volumeInQuote,
-                  price,
+                  Number(fixedVolumeBaseInBase),
+                  Number(fixedVolumeInQuote),
+                  Number(fixedPrice),
                   type,
                 )
               }

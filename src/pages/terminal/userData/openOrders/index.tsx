@@ -99,7 +99,7 @@ const OpenOrders: React.FC = () => {
         openOrders.map((order) =>
           orderDetails.type !== '' && order.id === orderDetails.id
             ? { ...order, replacing: true }
-            : order,
+            : { ...order, replacing: false },
         ),
       )
     } else {
@@ -110,7 +110,7 @@ const OpenOrders: React.FC = () => {
         filtered.map((order) =>
           orderDetails.type !== '' && order.id === orderDetails.id
             ? { ...order, replacing: true }
-            : order,
+            : { ...order, replacing: false },
         ),
       )
     }
@@ -135,7 +135,9 @@ const OpenOrders: React.FC = () => {
     if (orderDetails.id !== id) {
       setOpenOrdersFiltered((prevState) =>
         prevState.map((order) =>
-          order.id === id ? { ...order, replacing: true } : order,
+          order.id === id
+            ? { ...order, replacing: true }
+            : { ...order, replacing: false },
         ),
       )
 
