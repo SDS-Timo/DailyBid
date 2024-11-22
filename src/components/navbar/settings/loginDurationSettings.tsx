@@ -51,11 +51,10 @@ const LoginDurationSettings: React.FC<LoginDurationSettingsProps> = ({
     const storedTime = localStorage.getItem('selectedTimeLoginDurationInterval')
 
     if (storedTime) {
-      setSelectedTime({
-        id: storedTime,
-        value: storedTime,
-        label: `${storedTime}h`,
-      })
+      const selectedOption = selectOptions.find(
+        (option) => option.value === storedTime,
+      )
+      setSelectedTime(selectedOption || null)
     } else {
       setSelectedTime(null)
     }
