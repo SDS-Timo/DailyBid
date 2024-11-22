@@ -16,13 +16,13 @@ import { useDispatch } from 'react-redux'
 import { AppDispatch } from '../../../../store'
 import { identityAuthenticate } from '../../../../utils/authUtils'
 
-interface IdentityComponentProps {
+interface NfidComponentProps {
   onClose: () => void
   currentIndex: number | null
   onAccordionChange: (index: number) => void
 }
 
-const IdentityComponent: React.FC<IdentityComponentProps> = ({
+const NfidComponent: React.FC<NfidComponentProps> = ({
   onClose,
   currentIndex,
   onAccordionChange,
@@ -84,4 +84,4 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
   )
 }
 
-export default IdentityComponent
+export default NfidComponent
