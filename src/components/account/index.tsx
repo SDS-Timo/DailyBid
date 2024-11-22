@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import IdentityComponent from './auth/identity'
 import MnemonicComponent from './auth/mnemonic'
+import NfidComponent from './auth/nfid'
 import SeedComponent from './auth/seed'
 import WalletComponent from './wallet'
 import { RootState } from '../../store'
@@ -75,17 +76,24 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                   />
                 </Box>
                 <Box mt={4}>
-                  <SeedComponent
+                  <NfidComponent
                     onClose={onClose}
                     currentIndex={activeIndex}
                     onAccordionChange={() => handleAccordionChange(1)}
                   />
                 </Box>
                 <Box mt={4}>
-                  <MnemonicComponent
+                  <SeedComponent
                     onClose={onClose}
                     currentIndex={activeIndex}
                     onAccordionChange={() => handleAccordionChange(2)}
+                  />
+                </Box>
+                <Box mt={4}>
+                  <MnemonicComponent
+                    onClose={onClose}
+                    currentIndex={activeIndex}
+                    onAccordionChange={() => handleAccordionChange(3)}
                   />
                 </Box>
               </Box>

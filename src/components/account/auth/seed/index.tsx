@@ -47,8 +47,8 @@ const SeedComponent: React.FC<SeedComponentProps> = ({
   return (
     <Accordion
       allowToggle
-      index={currentIndex === 1 ? [0] : []}
-      onChange={() => onAccordionChange(1)}
+      index={currentIndex === 2 ? [0] : []}
+      onChange={() => onAccordionChange(2)}
     >
       <AccordionItem border="none">
         <Box

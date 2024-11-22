@@ -35,15 +35,15 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
   const dispatch = useDispatch<AppDispatch>()
 
   const handleClick = async () => {
-    await identityAuthenticate(dispatch, 'IC')
+    await identityAuthenticate(dispatch, 'NFID')
     onClose()
   }
 
   return (
     <Accordion
       allowToggle
-      index={currentIndex === 0 ? [0] : []}
-      onChange={() => onAccordionChange(0)}
+      index={currentIndex === 1 ? [0] : []}
+      onChange={() => onAccordionChange(1)}
     >
       <AccordionItem border="none">
         <Box
@@ -55,7 +55,7 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
           <h2>
             <AccordionButton _expanded={{ bg: bgColor, color: fontColor }}>
               <Box as="span" flex="1" textAlign="left">
-                Internet Identity
+                NFID
               </Box>
               <AccordionIcon />
             </AccordionButton>

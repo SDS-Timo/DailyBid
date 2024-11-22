@@ -71,15 +71,21 @@ export async function seedAuthenticate(seed: string, dispatch: AppDispatch) {
 }
 
 /**
- * Authenticates the user using a internet identity and dispatches actions to set the user agent and authentication status.
+ * Authenticates the user using an internet identity or another authentication network and dispatches actions
+ * to set the user agent and authentication status.
  * @param dispatch - The dispatch function to trigger actions in the Redux store.
+ * @param AuthNetworkTypes - The authentication network type to use, either 'IC' (Internet Computer) or 'NFID'.
  */
 export async function identityAuthenticate(
   dispatch: AppDispatch,
+  AuthNetworkTypes: 'IC' | 'NFID',
 ): Promise<void> {
   try {
     const authClient = await AuthClient.create()
-    const HTTP_AGENT_HOST = `${process.env.HTTP_AGENT_HOST}`
+    const HTTP_AGENT_HOST =
+      AuthNetworkTypes === 'IC'
+        ? `${process.env.HTTP_AGENT_HOST}`
+        : `${process.env.HTTP_AGENT_HOST_NFID}`
 
     const selectedTime = localStorage.getItem(
       'selectedTimeLoginDurationInterval',
@@ -111,7 +117,9 @@ export async function identityAuthenticate(
         await doLogin(myAgent, dispatch)
       },
       onError: (error) => {
-        console.error('Internet Identity authentication failed', error)
+        AuthNetworkTypes === 'IC'
+          ? console.error('Internet Identity authentication failed', error)
+          : console.error('NFID authentication failed', error)
       },
     })
   } catch (error) {
