@@ -201,11 +201,25 @@ export function getDecimals(symbol: any): number {
 }
 
 /**
- * Add decimal information to the objects.
+ * Add decimal information to the objects grouped by their `symbol`.
  * This function calculates and assigns the number of decimal places for price,
- * volume in base currency, and volume in quote currency for each object.
- * @param objects - An array of objects containing price, volumeInBase, and volumeInQuote.
- * @returns The modified array of objects with decimal information added.
+ * volume in base currency, and volume in quote currency for each object. The calculation
+ * is performed separately for each group of objects sharing the same `symbol`, ensuring
+ * accurate decimal values specific to each symbol.
+ *
+ * The logic for calculating the number of decimal places works as follows:
+ * 1. Converts the number to a decimal format using `convertExponentialToDecimal`.
+ * 2. Extracts the decimal part of the number (everything after the decimal point).
+ * 3. Identifies the position of the first significant digit (non-zero) in the decimal part.
+ * 4. Calculates the number of decimal places by summing the position of the first significant
+ *    digit and the provided `significantDigits` parameter. If no significant digit exists,
+ *    the number of decimal places is set to 0.
+ *
+ * The maximum number of decimals found in the group is assigned to all objects in that group.
+ *
+ * @param objects - An array of objects containing price, volumeInBase, and volumeInQuote, grouped by `symbol`.
+ * @param significantDigits - The number of significant digits to consider when calculating decimal places.
+ * @returns The modified array of objects with decimal information added, grouped by `symbol`.
  */
 export function addDecimal<T extends DataItem | TokenDataItem>(
   objects: T[],
@@ -223,35 +237,49 @@ export function addDecimal<T extends DataItem | TokenDataItem>(
     return firstSignificantDigitIndex + significantDigits
   }
 
-  let maxPriceDecimals = 0
-  let maxVolumeInBaseDecimals = 0
-  let maxVolumeInQuoteDecimals = 0
+  // Group objects by `symbol`
+  const groupedBySymbol = objects.reduce<Record<string, T[]>>((acc, obj) => {
+    const symbol = (obj as any).symbol || 'default'
+    if (!acc[symbol]) {
+      acc[symbol] = []
+    }
+    acc[symbol].push(obj)
+    return acc
+  }, {})
 
-  objects.forEach((obj) => {
-    const priceDecimals = getDecimalPlaces(obj.price)
-    const volumeInBaseDecimals = getDecimalPlaces(obj.volumeInBase)
-    const volumeInQuoteDecimals = getDecimalPlaces(obj.volumeInQuote)
+  // Process each group separately
+  Object.values(groupedBySymbol).forEach((group) => {
+    let maxPriceDecimals = 0
+    let maxVolumeInBaseDecimals = 0
+    let maxVolumeInQuoteDecimals = 0
 
-    obj.priceDecimals = priceDecimals
-    obj.volumeInBaseDecimals = volumeInBaseDecimals
-    obj.volumeInQuoteDecimals = volumeInQuoteDecimals
+    group.forEach((obj) => {
+      const priceDecimals = getDecimalPlaces(obj.price)
+      const volumeInBaseDecimals = getDecimalPlaces(obj.volumeInBase)
+      const volumeInQuoteDecimals = getDecimalPlaces(obj.volumeInQuote)
 
-    maxPriceDecimals = Math.max(maxPriceDecimals, priceDecimals)
-    maxVolumeInBaseDecimals = Math.max(
-      maxVolumeInBaseDecimals,
-      volumeInBaseDecimals,
-    )
-    maxVolumeInQuoteDecimals = Math.max(
-      maxVolumeInQuoteDecimals,
-      volumeInQuoteDecimals,
-    )
-  })
+      obj.priceDecimals = priceDecimals
+      obj.volumeInBaseDecimals = volumeInBaseDecimals
+      obj.volumeInQuoteDecimals = volumeInQuoteDecimals
 
-  objects.forEach((obj) => {
-    obj.priceDecimals = maxPriceDecimals
-    obj.volumeDecimals = maxVolumeInBaseDecimals
-    obj.volumeInBaseDecimals = maxVolumeInBaseDecimals
-    obj.volumeInQuoteDecimals = maxVolumeInQuoteDecimals
+      maxPriceDecimals = Math.max(maxPriceDecimals, priceDecimals)
+      maxVolumeInBaseDecimals = Math.max(
+        maxVolumeInBaseDecimals,
+        volumeInBaseDecimals,
+      )
+      maxVolumeInQuoteDecimals = Math.max(
+        maxVolumeInQuoteDecimals,
+        volumeInQuoteDecimals,
+      )
+    })
+
+    // Update the maximum decimals within the group
+    group.forEach((obj) => {
+      obj.priceDecimals = maxPriceDecimals
+      obj.volumeDecimals = maxVolumeInBaseDecimals
+      obj.volumeInBaseDecimals = maxVolumeInBaseDecimals
+      obj.volumeInQuoteDecimals = maxVolumeInQuoteDecimals
+    })
   })
 
   return objects

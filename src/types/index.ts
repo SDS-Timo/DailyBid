@@ -38,6 +38,7 @@ export interface DataItem {
   volumeInTotalNat?: string
   priceDecimals?: number
   volumeDecimals?: number
+  baseDecimals?: number
   quoteDecimals?: number
   volumeInBaseDecimals?: number
   volumeInQuoteDecimals?: number

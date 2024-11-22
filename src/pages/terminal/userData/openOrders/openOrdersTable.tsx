@@ -112,9 +112,15 @@ export default function tableContent(
           volumeInQuote,
           volumeInBase,
           quoteDecimals,
+          baseDecimals,
           volumeInBaseDecimals,
           volumeInQuoteDecimals,
         } = row.original
+
+        const volumeBaseAllDecimals = volumeInBase.toLocaleString('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: baseDecimals,
+        })
 
         const volumeBase = volumeInBase.toLocaleString('en-US', {
           minimumFractionDigits: 0,
@@ -149,7 +155,10 @@ export default function tableContent(
                 </Text>
               </Tooltip>
             ) : (
-              <Tooltip label={`${volumeBase} ${base}`} aria-label="Base value">
+              <Tooltip
+                label={`${volumeBaseAllDecimals} ${base}`}
+                aria-label="Base value"
+              >
                 <Text as="span">
                   {volumeBase}{' '}
                   <Text as="span" fontSize="10px">

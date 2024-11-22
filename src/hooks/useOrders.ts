@@ -86,6 +86,7 @@ const useOrders = () => {
           volumeInQuote,
           volumeInBase,
           quoteDecimals: selectedQuote.decimals,
+          baseDecimals: token.decimals,
           priceDigitsLimit,
           ...token,
         }

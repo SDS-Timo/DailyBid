@@ -69,9 +69,24 @@ const useTokens = () => {
       const serviceActor = getActor(userAgent)
 
       const quotePrincipal = await serviceActor.getQuoteLedger()
-      const { token } = await getTokenInfo(userAgent, quotePrincipal, null)
+      const { token, logo } = await getTokenInfo(
+        userAgent,
+        quotePrincipal,
+        null,
+      )
 
-      return token
+      const { volumeInBase: fee } = convertVolumeFromCanister(
+        Number(token.fee),
+        token.decimals,
+        0,
+      )
+
+      return {
+        ...token,
+        fee: fee.toString(),
+        logo,
+        principal: quotePrincipal.toText(),
+      }
     } catch (error) {
       console.error('Error fetching quote token:', error)
       return null

@@ -10,6 +10,7 @@ import SymbolSelection from './symbolSelection'
 import Trading from './trading'
 import UserData from './userData'
 import { RootState } from '../../store'
+
 const Terminal: React.FC = () => {
   const bgColor = useColorModeValue('grey.50', 'grey.800')
   const isResizeUserData = useSelector(
