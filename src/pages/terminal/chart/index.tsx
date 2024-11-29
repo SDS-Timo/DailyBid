@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react'
 import { useSelector, useDispatch } from 'react-redux'
 
-import Chart from './chart'
+import EChart from './echart'
 import usePriceHistory from '../../../hooks/usePriceHistory'
 import { RootState, AppDispatch } from '../../../store'
 import { setHeaderInformation, setPricesHistory } from '../../../store/prices'
@@ -184,7 +184,7 @@ const ChartPlot = () => {
             </FormControl>
           </Box>
         </Box>
-        <Chart
+        <EChart
           data={chartData}
           volumeAxis={volumeAxis === 'quote' ? symbol?.quote : symbol?.base}
         />

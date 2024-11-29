@@ -342,6 +342,11 @@ export function calculateMinMax(values: number[]): {
   const max = Math.max(...values)
   const range = max - min
 
+  if (range === 0) {
+    // If range is 0, return min as 0 and max as the maximum value
+    return { minValue: 0, maxValue: max }
+  }
+
   // Calculate the percentage adjustment continuously from 2% to 10%
   const adjustmentFactor = Math.min(0.02 + range / 10, 0.1)
   const adjustment = range * adjustmentFactor

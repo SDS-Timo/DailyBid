@@ -25,38 +25,43 @@ const AuctionsChart: React.FC<Props> = ({ data, volumeAxis }) => {
       return
     }
 
-    // Destroy any existing chart instance to avoid memory leaks
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy()
     }
 
     const prices = data.map((item: DataItem) => item.price ?? 0)
+    const volumes = data.map((item: DataItem) => item.volume ?? 0)
+    const timestamps = data.map((item: DataItem) =>
+      new Date(item.datetime).getTime(),
+    )
+
     const { minValue, maxValue } = calculateMinMax(prices)
 
-    // Create the chart instance
     chartInstanceRef.current = new Chart(ctx, {
       type: 'line',
       data: {
+        labels: timestamps,
         datasets: [
           {
             label: 'Price',
-            data: data.map((item: DataItem) => ({
-              x: new Date(item.datetime).getTime(),
-              y: item.price ?? null,
+            data: prices.map((price, index) => ({
+              x: timestamps[index],
+              y: price,
             })),
+            type: 'line',
             borderColor: theme.colors.yellow['500'],
-            borderWidth: 2,
             backgroundColor: theme.colors.yellow['500'],
+            borderWidth: 2,
             yAxisID: 'y-price',
           },
           {
             label: 'Volume',
-            data: data.map((item: DataItem) => ({
-              x: new Date(item.datetime).getTime(),
-              y: item.volume ?? null,
+            data: volumes.map((volume, index) => ({
+              x: timestamps[index],
+              y: volume,
             })),
+            type: 'line',
             borderColor: theme.colors.blue['500'],
-            borderWidth: 2,
             backgroundColor: theme.colors.blue['500'],
             yAxisID: 'y-volume',
           },
@@ -66,6 +71,22 @@ const AuctionsChart: React.FC<Props> = ({ data, volumeAxis }) => {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'day',
+              tooltipFormat: 'MMM dd',
+            },
+            grid: {
+              display: false,
+            },
+            ticks: {
+              color:
+                colorMode === 'dark'
+                  ? theme.colors.grey['200']
+                  : theme.colors.grey['900'],
+            },
+          },
           'y-price': {
             type: 'linear',
             position: 'left',
@@ -80,8 +101,8 @@ const AuctionsChart: React.FC<Props> = ({ data, volumeAxis }) => {
               text: 'Price',
               color:
                 colorMode === 'dark'
-                  ? theme.colors.grey['400']
-                  : theme.colors.grey['700'],
+                  ? theme.colors.grey['200']
+                  : theme.colors.grey['900'],
             },
             ticks: {
               color:
@@ -89,7 +110,9 @@ const AuctionsChart: React.FC<Props> = ({ data, volumeAxis }) => {
                   ? theme.colors.grey['200']
                   : theme.colors.grey['900'],
               callback: function (value) {
-                const decimals = data.length ? data[0].priceDigitsLimit : 0
+                const decimals = data.length
+                  ? (data[0].priceDigitsLimit ?? 2)
+                  : 2
                 return Number(value).toLocaleString('en-US', {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: decimals,
@@ -118,25 +141,9 @@ const AuctionsChart: React.FC<Props> = ({ data, volumeAxis }) => {
                   ? theme.colors.grey['200']
                   : theme.colors.grey['900'],
               callback: function (value) {
-                const decimals = data.length ? data[0].volumeDecimals : 0
+                const decimals = data.length ? (data[0].volumeDecimals ?? 2) : 2
                 return Number(value).toFixed(decimals)
               },
-            },
-          },
-          x: {
-            type: 'time',
-            time: {
-              unit: 'day',
-              tooltipFormat: 'MMM dd',
-            },
-            grid: {
-              display: false,
-            },
-            ticks: {
-              color:
-                colorMode === 'dark'
-                  ? theme.colors.grey['200']
-                  : theme.colors.grey['900'],
             },
           },
         },
@@ -183,7 +190,6 @@ const AuctionsChart: React.FC<Props> = ({ data, volumeAxis }) => {
       },
     })
 
-    // Cleanup function to destroy the chart when component unmounts
     return () => {
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy()

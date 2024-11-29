@@ -11,7 +11,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <Helmet titleTemplate="%s" defaultTitle="ICRC1 Auction" />
+      <Helmet titleTemplate="%s" defaultTitle="DailyBid" />
       {content}
     </HelmetProvider>
   )

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+/* import React, { useEffect } from 'react'
 
 // eslint-disable-next-line node/no-extraneous-import
 import { useTokens } from 'icrc84-package'
@@ -32,3 +32,4 @@ const TestComponent: React.FC = () => {
 }
 
 export default TestComponent
+ */
