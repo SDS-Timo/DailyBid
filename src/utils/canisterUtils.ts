@@ -1,7 +1,7 @@
 import { Actor, ActorSubclass, HttpAgent } from '@dfinity/agent'
 
 import { _SERVICE as Icrc84Actor } from '../../declarations/icrc1_auction/icrc1_auction.did'
-import { idlFactory as Icrc84IDLFactory } from '../../declarations/icrc1_auction/icrc1_auction.did.js'
+import { idlFactory as Icrc84IDLFactory } from '../../declarations/icrc1_auction/icrc1_auction.did'
 
 let actorCache: ActorSubclass<Icrc84Actor> | null = null
 let userAgentCache: HttpAgent | null = null

@@ -120,13 +120,24 @@ export async function getTokenInfo(
 }
 
 /**
- * Retrieves the token information for a given principal from a list of tokens.
+ * Retrieves token metadata based on a provided principal or token base symbol.
  *
- * @param tokens - An array of token objects.
- * @param principal - The principal object used to identify a specific token.
- * @returns - The token information matching the given principal, or a standard token object if not found.
+ * This function searches through an array of token metadata objects (`tokens`) to find a token
+ * that matches the given `principal` or `token` (base symbol). If no match is found, a default
+ * standard token object is returned.
+ * @param tokens - An array of token metadata objects to search within.
+ * @param principal - (Optional) The principal object used to identify a token. The function
+ *                    compares the string representation of the principal with the `principal` field of tokens.
+ * @param token - (Optional) The base symbol of the token to find. The function compares this value
+ *                with the `base` field of tokens.
+ * @returns - The metadata object of the matched token. If no match is found, a standard token object
+ *            with default empty values is returned.
  */
-export function getToken(tokens: TokenMetadata[], principal: Principal) {
+export function getToken(
+  tokens: TokenMetadata[],
+  principal?: Principal,
+  token?: string,
+) {
   const standard = {
     symbol: '',
     name: '',
@@ -138,10 +149,18 @@ export function getToken(tokens: TokenMetadata[], principal: Principal) {
     principal: '',
   }
 
-  if (!tokens || !principal || tokens.length === 0) return standard
+  if (!tokens || tokens.length === 0) return standard
 
-  const token =
-    tokens.find((token) => token.principal === principal.toText()) ?? standard
+  if (principal) {
+    const foundToken =
+      tokens.find((t) => t.principal === principal.toText()) ?? standard
+    return { ...foundToken }
+  }
 
-  return { ...token }
+  if (token) {
+    const foundToken = tokens.find((t) => t.base === token) ?? standard
+    return { ...foundToken }
+  }
+
+  return standard
 }

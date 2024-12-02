@@ -53,6 +53,8 @@ export interface TokenMetadata {
   quote: string
   base: string
   principal?: string
+  syncTimestamp?: bigint
+  value?: number
 }
 export interface TokensState {
   tokens: TokenMetadata[] | []
