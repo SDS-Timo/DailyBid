@@ -27,9 +27,14 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     http_request: IDL.Func([HttpRequest], [HttpResponse], ['query']),
     http_transform: IDL.Func([TransformArgs], [HttpResponsePayload], ['query']),
+    pushRates: IDL.Func(
+      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Float64))],
+      [],
+      ['oneway'],
+    ),
     queryRates: IDL.Func(
       [IDL.Vec(IDL.Text)],
-      [IDL.Vec(IDL.Opt(RateInfo))],
+      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(RateInfo)))],
       ['query'],
     ),
   })

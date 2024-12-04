@@ -1,8 +1,7 @@
 import { HttpAgent } from '@dfinity/agent'
 
-import { TokenMetadata } from '../types'
+import { TokenApi } from '../types'
 import { getActorMetalPriceApi } from '../utils/canisterMetalPriceApiUtils'
-import { getToken } from '../utils/tokenUtils'
 
 /**
  * Custom hook for fetching and managing prices from metal price api.
@@ -12,43 +11,67 @@ const useMetalPriceApi = () => {
    * Fetches the price in real time and maps token data with corresponding prices.
    *
    * @param userAgent - An instance of HttpAgent used for making authenticated requests.
-   * @param tokens - An array of token metadata.
    * @returns - A promise that resolves to an array of enriched token metadata with prices.
    */
   const getMetalPriceApi = async (
     userAgent: HttpAgent,
-    tokens: TokenMetadata[],
-  ): Promise<TokenMetadata[]> => {
+  ): Promise<TokenApi[]> => {
     try {
       if (!process.env.ENV_METAL_PRICES_API_TOKENS) {
         throw new Error('ENV_METAL_PRICES_API_TOKENS is not defined')
       }
 
-      if (!tokens || tokens.length === 0) return []
+      // Parse the tokens and their names from the environment variable
+      const tokensWithNames = process.env.ENV_METAL_PRICES_API_TOKENS.split(',')
 
-      // Parse the tokens from the environment variable
-      const apiTokens = process.env.ENV_METAL_PRICES_API_TOKENS.split(',')
-
-      // Map tokens to USD-prefixed symbols and metadata objects
-      const usdTokens = apiTokens.map((token) => `USD${token}`)
-      const tokenObjects = apiTokens.map((token) =>
-        getToken(tokens, undefined, token),
+      // Create a mapping of symbols to their names
+      const tokenMap: Record<string, string> = tokensWithNames.reduce(
+        (map, pair) => {
+          const [symbol, name] = pair.split(':')
+          map[symbol] = name
+          return map
+        },
+        {} as Record<string, string>,
       )
+
+      // Extract symbols from the token map
+      const apiTokens = Object.keys(tokenMap)
+
+      // Map tokens to USD-prefixed symbols
+      const usdTokens = apiTokens.map((token) => `USD${token}`)
 
       // Initialize the service actor and fetch prices
       const serviceActor = getActorMetalPriceApi(userAgent)
       const prices = await serviceActor.queryRates(usdTokens)
 
       // Map prices back to their corresponding token metadata
-      const enrichedTokenObjects = tokenObjects.map((tokenObject, index) => {
-        const priceData = prices[index]?.['0']
-        return {
-          ...tokenObject,
+      const tokenObjects = apiTokens.flatMap((token, index) => {
+        const priceData = prices[index]?.['1']['0']
+
+        // Creation of the base token
+        const tokenObject = {
+          symbol: token,
+          name: tokenMap[token] || 'Unknown',
           syncTimestamp: priceData ? priceData.syncTimestamp : 0n,
           value: priceData ? priceData.value : 0,
         }
+
+        // XAU (kg) calculation
+        if (token === 'XAU') {
+          const xauKgValue = tokenObject.value / 0.0311035
+          const xauKgToken = {
+            symbol: 'XAU (kg)',
+            name: 'Gold',
+            syncTimestamp: tokenObject.syncTimestamp,
+            value: xauKgValue,
+          }
+          return [tokenObject, xauKgToken]
+        }
+
+        return [tokenObject]
       })
-      return enrichedTokenObjects
+
+      return tokenObjects
     } catch (error) {
       console.error('Error fetching metal price API:', error)
       return []

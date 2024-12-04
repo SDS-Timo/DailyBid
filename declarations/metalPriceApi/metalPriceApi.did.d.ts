@@ -32,7 +32,8 @@ export interface TransformArgs {
 export interface _SERVICE {
   http_request: ActorMethod<[HttpRequest], HttpResponse>
   http_transform: ActorMethod<[TransformArgs], HttpResponsePayload>
-  queryRates: ActorMethod<[Array<string>], Array<[] | [RateInfo]>>
+  pushRates: ActorMethod<[Array<[string, number]>], undefined>
+  queryRates: ActorMethod<[Array<string>], Array<[string, [] | [RateInfo]]>>
 }
 export declare const idlFactory: IDL.InterfaceFactory
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[]
