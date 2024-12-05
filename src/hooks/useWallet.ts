@@ -190,9 +190,9 @@ const useWallet = () => {
           ? deposit[0][1]['tracked_deposit'].Ok
           : undefined
 
-        if (volume !== undefined) {
-          const token = getToken(tokens, tokenCanisterId)
+        const token = getToken(tokens, tokenCanisterId)
 
+        if (volume !== undefined) {
           const { volumeInBase } = convertVolumeFromCanister(
             Number(volume),
             getDecimals(token),
@@ -201,10 +201,16 @@ const useWallet = () => {
 
           return [{ token, volumeInBase }]
         } else {
-          return deposit
+          return [{ token, volumeInBase: 0 }]
         }
       } else {
         const deposits: Array<Result> = await serviceActor.icrc84_query([])
+        if (deposits.length === 0) {
+          return tokens.map((token) => ({
+            token,
+            volumeInBase: 0,
+          }))
+        }
 
         return deposits.map((deposit) => {
           const tokenCanisterId = deposit[0]

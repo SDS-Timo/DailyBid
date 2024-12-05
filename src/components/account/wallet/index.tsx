@@ -148,7 +148,7 @@ const WalletContent: React.FC = () => {
               item.token.base === token.base,
           ) || null
 
-        const deposit = tokenDeposit ? tokenDeposit.volumeInBase : null
+        const deposit = tokenDeposit ? tokenDeposit.volumeInBase : 0
 
         if (
           typeof balanceOf === 'number' &&
