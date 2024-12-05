@@ -86,6 +86,7 @@ export const getErrorMessageCancelOrder = (error: Result): string => {
   const errorMessages: { [key: string]: string } = {
     UnknownOrder: 'Unknown Order',
     UnknownPrincipal: 'Unknown Principal',
+    SessionNumberMismatch: 'Session Number Mismatch',
   }
 
   for (const key in error) {

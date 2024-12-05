@@ -23,7 +23,7 @@ export interface HttpResponsePayload {
 }
 export interface RateInfo {
   value: number
-  syncTimestamp: bigint
+  timestamp: bigint
 }
 export interface TransformArgs {
   context: Uint8Array | number[]

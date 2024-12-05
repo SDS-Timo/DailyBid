@@ -129,6 +129,8 @@ const WalletContent: React.FC = () => {
 
     const { getTrackedDeposit, getBalance } = useWallet()
 
+    const trackedDeposit = await getTrackedDeposit(userAgent, tokens, '')
+
     const tokensBalance: ClaimTokenBalance[] = []
     const claims = await Promise.all(
       balances.map(async (token) => {
@@ -140,11 +142,13 @@ const WalletContent: React.FC = () => {
           'claim',
         )
 
-        const deposit = await getTrackedDeposit(
-          userAgent,
-          [token],
-          `${token.principal}`,
-        )
+        const tokenDeposit =
+          trackedDeposit.find(
+            (item: { token: { base: string } }) =>
+              item.token.base === token.base,
+          ) || null
+
+        const deposit = tokenDeposit ? tokenDeposit.volumeInBase : null
 
         if (
           typeof balanceOf === 'number' &&

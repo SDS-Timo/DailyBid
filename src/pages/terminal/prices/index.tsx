@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Box, TabList, Tab, TabPanels, TabPanel, Tabs } from '@chakra-ui/react'
 
 import PriceHistory from './history'
-import PriceInfo from './prices'
+import PriceInfo from './info'
 
 const HistoryTabs: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)

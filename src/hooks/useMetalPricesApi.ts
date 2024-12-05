@@ -52,7 +52,7 @@ const useMetalPriceApi = () => {
         const tokenObject = {
           symbol: token,
           name: tokenMap[token] || 'Unknown',
-          syncTimestamp: priceData ? priceData.syncTimestamp : 0n,
+          timestamp: priceData ? priceData.timestamp : 0n,
           value: priceData ? priceData.value : 0,
         }
 
@@ -62,7 +62,7 @@ const useMetalPriceApi = () => {
           const xauKgToken = {
             symbol: 'XAU (kg)',
             name: 'Gold',
-            syncTimestamp: tokenObject.syncTimestamp,
+            timestamp: tokenObject.timestamp,
             value: xauKgValue,
           }
           return [tokenObject, xauKgToken]

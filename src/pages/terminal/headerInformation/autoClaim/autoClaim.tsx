@@ -27,6 +27,8 @@ export const useHandleAllTrackedDeposits = () => {
   const handleAllTrackedDeposits = async (userPrincipal: string) => {
     const balances = await fetchBalances()
 
+    const trackedDeposit = await getTrackedDeposit(userAgent, tokens, '')
+
     const tokensBalance: ClaimTokenBalance[] = []
     await Promise.all(
       balances.map(async (token) => {
@@ -38,11 +40,13 @@ export const useHandleAllTrackedDeposits = () => {
           'claim',
         )
 
-        const deposit = await getTrackedDeposit(
-          userAgent,
-          [token],
-          `${token.principal}`,
-        )
+        const tokenDeposit =
+          trackedDeposit.find(
+            (item: { token: { base: string } }) =>
+              item.token.base === token.base,
+          ) || null
+
+        const deposit = tokenDeposit ? tokenDeposit.volumeInBase : null
 
         if (
           typeof balanceOf === 'number' &&

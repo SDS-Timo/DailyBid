@@ -200,11 +200,16 @@ const TokenRow: React.FC<TokenRowProps> = ({
 
     const balanceOf = await getBalanceOf()
 
-    const deposit = await getTrackedDeposit(
+    const trackedDeposit = await getTrackedDeposit(
       userAgent,
       [token],
       `${token.principal}`,
     )
+
+    const deposit =
+      Array.isArray(trackedDeposit) && trackedDeposit[0]
+        ? trackedDeposit[0].volumeInBase
+        : null
 
     if (
       typeof balanceOf !== 'number' ||
@@ -370,7 +375,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
                   </Tooltip>
                   <Tooltip label={claimTooltipText} aria-label="Claim Deposit">
                     <IconButton
-                      hidden //Individual claim, in the future it should be enabled
+                      //hidden //Individual claim, in the future it should be enabled
                       aria-label="Claim Deposit"
                       icon={
                         token?.notifyLoading ? (

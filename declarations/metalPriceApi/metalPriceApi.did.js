@@ -22,7 +22,7 @@ export const idlFactory = ({ IDL }) => {
   })
   const RateInfo = IDL.Record({
     value: IDL.Float64,
-    syncTimestamp: IDL.Nat64,
+    timestamp: IDL.Nat,
   })
   return IDL.Service({
     http_request: IDL.Func([HttpRequest], [HttpResponse], ['query']),

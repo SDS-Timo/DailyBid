@@ -160,43 +160,69 @@ const useWallet = () => {
   }
 
   /**
-   * Fetches the tracked deposit for a given principal.
+   * Fetches the tracked deposit for a given principal or all balances if no principal is provided.
    *
    * @param userAgent - An instance of HttpAgent used for making authenticated requests.
-   * @param tokens - An array of token objects.
-   * @param principal - The principal ID as a string.
-   * @returns The tracked deposit data or 0 in case of an error.
+   * @param tokens - An array of token objects representing metadata for the tokens.
+   * @param principal - (Optional) The principal ID as a string. If provided, fetches the deposit for the specific principal.
+   *                    If not provided, fetches the balances for all available tokens.
+   * @returns An array of objects containing token metadata and the corresponding tracked deposit volume in base units.
+   *          If a specific principal is provided, the array contains a single object. If an error occurs, returns 0.
    */
   const getTrackedDeposit = async (
     userAgent: HttpAgent,
     tokens: TokenMetadata[],
-    principal: string,
-  ): Promise<number | Result> => {
+    principal?: string,
+  ): Promise<{ token: TokenMetadata; volumeInBase: number }[] | Result> => {
     try {
-      if (!tokens || tokens.length === 0) return 0
-
-      const tokenCanisterId = Principal.fromText(principal)
+      if (!tokens || tokens.length === 0) return []
 
       const serviceActor = getActor(userAgent)
-      const deposit: Result =
-        await serviceActor.icrc84_trackedDeposit(tokenCanisterId)
 
-      if (deposit.Ok !== undefined) {
-        const token = getToken(tokens, tokenCanisterId)
+      if (principal) {
+        const tokenCanisterId = Principal.fromText(principal)
 
-        const { volumeInBase } = convertVolumeFromCanister(
-          Number(deposit.Ok),
-          getDecimals(token),
-          0,
-        )
+        const deposit: Result = await serviceActor.icrc84_query([
+          tokenCanisterId,
+        ])
 
-        return volumeInBase
+        const volume = deposit[0]
+          ? deposit[0][1]['tracked_deposit'].Ok
+          : undefined
+
+        if (volume !== undefined) {
+          const token = getToken(tokens, tokenCanisterId)
+
+          const { volumeInBase } = convertVolumeFromCanister(
+            Number(volume),
+            getDecimals(token),
+            0,
+          )
+
+          return [{ token, volumeInBase }]
+        } else {
+          return deposit
+        }
       } else {
-        return deposit
+        const deposits: Array<Result> = await serviceActor.icrc84_query([])
+
+        return deposits.map((deposit) => {
+          const tokenCanisterId = deposit[0]
+          const token = getToken(tokens, tokenCanisterId)
+
+          const volume = deposit[1]['tracked_deposit'].Ok
+          const { volumeInBase } = convertVolumeFromCanister(
+            Number(volume ?? 0),
+            getDecimals(token),
+            0,
+          )
+
+          return { token, volumeInBase }
+        })
       }
     } catch (error) {
       console.error('Error fetching tracked deposit:', error)
-      return 0
+      return []
     }
   }
 

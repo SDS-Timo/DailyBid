@@ -57,7 +57,7 @@ export interface TokenMetadata {
 export interface TokenApi {
   symbol: string
   name: string
-  syncTimestamp: bigint
+  timestamp: bigint
   value: number
 }
 export interface TokensState {

@@ -4,11 +4,11 @@ import { Tr, Td, Text } from '@chakra-ui/react'
 
 import { TokenApi } from '../../../types'
 
-interface PricesRowProps {
+interface InfoRowProps {
   token: TokenApi
 }
 
-const PricesRow: React.FC<PricesRowProps> = ({ token }) => {
+const InfoRow: React.FC<InfoRowProps> = ({ token }) => {
   return (
     <Tr>
       <Td textAlign="center">
@@ -34,4 +34,4 @@ const PricesRow: React.FC<PricesRowProps> = ({ token }) => {
   )
 }
 
-export default PricesRow
+export default InfoRow

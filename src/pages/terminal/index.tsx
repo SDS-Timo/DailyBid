@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux'
 
 import Chart from './chart'
 import HeaderInformation from './headerInformation'
-import History from './history'
+import Prices from './prices'
 import SymbolSelection from './symbolSelection'
 import Trading from './trading'
 import UserData from './userData'
@@ -86,7 +86,7 @@ const Terminal: React.FC = () => {
           p={4}
           borderRadius="md"
         >
-          <History />
+          <Prices />
         </Box>
       </Flex>
     </Box>

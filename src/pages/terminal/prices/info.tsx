@@ -3,12 +3,12 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Box, Table, Thead, Tbody, Tr, Th } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
-import PricesRow from './pricesRow'
+import InfoRow from './infoRow'
 import useMetalPriceApi from '../../../hooks/useMetalPricesApi'
 import { RootState } from '../../../store'
 import { TokenApi } from '../../../types'
 
-const Prices: React.FC = () => {
+const Info: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [prices, setPrices] = useState<TokenApi[]>([])
 
@@ -45,11 +45,11 @@ const Prices: React.FC = () => {
     }
 
     const handleSessionTime = () => {
-      if (prices.length > 0 && prices[0].syncTimestamp) {
+      if (prices.length > 0 && prices[0].timestamp) {
         const now = Date.now()
 
         const syncTimestamp = Number(
-          BigInt(prices[0].syncTimestamp) / BigInt(1_000_000),
+          BigInt(prices[0].timestamp) / BigInt(1_000_000),
         )
 
         const remainingTime = Math.max(2 * 60 * 1000 - (now - syncTimestamp), 0)
@@ -91,7 +91,7 @@ const Prices: React.FC = () => {
           </Thead>
           <Tbody>
             {prices.map((token) => (
-              <PricesRow key={token.symbol} token={token} />
+              <InfoRow key={token.symbol} token={token} />
             ))}
           </Tbody>
         </Table>
@@ -100,4 +100,4 @@ const Prices: React.FC = () => {
   )
 }
 
-export default Prices
+export default Info
