@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Tr, Td, Text } from '@chakra-ui/react'
 
-import { TokenApi } from '../../../types'
+import { TokenApi } from '../../../../types'
 
 interface InfoRowProps {
   token: TokenApi

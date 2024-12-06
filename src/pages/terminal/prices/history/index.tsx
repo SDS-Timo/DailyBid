@@ -4,8 +4,8 @@ import { Box, Table, Thead, Tbody, Tr, Th, Text } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
 import HistoryRow from './historyRow'
-import { RootState } from '../../../store'
-import { DataItem } from '../../../types'
+import { RootState } from '../../../../store'
+import { DataItem } from '../../../../types'
 
 const PriceHistory: React.FC = () => {
   const [prices, setPrices] = useState<DataItem[]>([])

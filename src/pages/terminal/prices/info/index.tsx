@@ -4,9 +4,9 @@ import { Box, Table, Thead, Tbody, Tr, Th } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
 import InfoRow from './infoRow'
-import useMetalPriceApi from '../../../hooks/useMetalPricesApi'
-import { RootState } from '../../../store'
-import { TokenApi } from '../../../types'
+import useMetalPriceApi from '../../../../hooks/useMetalPricesApi'
+import { RootState } from '../../../../store'
+import { TokenApi } from '../../../../types'
 
 const Info: React.FC = () => {
   const [loading, setLoading] = useState(true)

@@ -48,12 +48,6 @@ export const idlFactory = ({ IDL }) => {
       CallLedgerError: IDL.Record({ message: IDL.Text }),
     }),
   })
-  const BalanceResponse = IDL.Variant({
-    Ok: Amount,
-    Err: IDL.Variant({
-      NotAvailable: IDL.Record({ message: IDL.Text }),
-    }),
-  })
   const TokenInfo = IDL.Record({
     allowance_fee: Amount,
     withdrawal_fee: Amount,
@@ -180,14 +174,14 @@ export const idlFactory = ({ IDL }) => {
     icrc84_deposit: IDL.Func([DepositArgs], [DepositResponse], []),
     icrc84_notify: IDL.Func([NotifyArg], [NotifyResponse], []),
     icrc84_query: IDL.Func(
-      [IDL.Vec(Token)],
+      [IDL.Vec(IDL.Principal)],
       [
         IDL.Vec(
           IDL.Tuple(
-            Token,
+            IDL.Principal,
             IDL.Record({
               credit: IDL.Int,
-              tracked_deposit: BalanceResponse,
+              tracked_deposit: IDL.Opt(IDL.Nat),
             }),
           ),
         ),

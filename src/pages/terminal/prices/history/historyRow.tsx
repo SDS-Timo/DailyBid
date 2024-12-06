@@ -2,8 +2,8 @@ import React from 'react'
 
 import { Td, Tr, Text, Tooltip } from '@chakra-ui/react'
 
-import { DataItem, Option } from '../../../types'
-import { getMinimumFractionDigits } from '../../../utils/calculationsUtils'
+import { DataItem, Option } from '../../../../types'
+import { getMinimumFractionDigits } from '../../../../utils/calculationsUtils'
 interface HistoryRowProps {
   data: DataItem
   symbol: Option | null

@@ -186,9 +186,7 @@ const useWallet = () => {
           tokenCanisterId,
         ])
 
-        const volume = deposit[0]
-          ? deposit[0][1]['tracked_deposit'].Ok
-          : undefined
+        const volume = deposit[0] ? deposit[0][1]['tracked_deposit'] : undefined
 
         const token = getToken(tokens, tokenCanisterId)
 
@@ -216,7 +214,7 @@ const useWallet = () => {
           const tokenCanisterId = deposit[0]
           const token = getToken(tokens, tokenCanisterId)
 
-          const volume = deposit[1]['tracked_deposit'].Ok
+          const volume = deposit[1]['tracked_deposit']
           const { volumeInBase } = convertVolumeFromCanister(
             Number(volume ?? 0),
             getDecimals(token),

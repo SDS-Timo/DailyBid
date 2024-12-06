@@ -7,9 +7,6 @@ export interface Account {
   subaccount: [] | [Subaccount]
 }
 export type Amount = bigint
-export type BalanceResponse =
-  | { Ok: Amount }
-  | { Err: { NotAvailable: { message: string } } }
 export type CancelOrderResponse =
   | { Ok: [OrderId, Token, bigint, number] }
   | {
@@ -178,8 +175,8 @@ export interface _SERVICE {
   icrc84_deposit: ActorMethod<[DepositArgs], DepositResponse>
   icrc84_notify: ActorMethod<[NotifyArg], NotifyResponse>
   icrc84_query: ActorMethod<
-    [Array<Token>],
-    Array<[Token, { credit: bigint; tracked_deposit: BalanceResponse }]>
+    [Array<Principal>],
+    Array<[Principal, { credit: bigint; tracked_deposit: [] | [bigint] }]>
   >
   icrc84_supported_tokens: ActorMethod<[], Array<Token>>
   icrc84_token_info: ActorMethod<[Token], TokenInfo>
