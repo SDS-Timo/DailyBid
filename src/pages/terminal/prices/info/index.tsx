@@ -4,22 +4,32 @@ import { Box, Table, Thead, Tbody, Tr, Th } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
 import InfoRow from './infoRow'
+import useCryptoPriceApi from '../../../../hooks/useCryptoPricesApi'
 import useMetalPriceApi from '../../../../hooks/useMetalPricesApi'
 import { RootState } from '../../../../store'
 import { TokenApi } from '../../../../types'
 
 const Info: React.FC = () => {
   const [loading, setLoading] = useState(true)
-  const [prices, setPrices] = useState<TokenApi[]>([])
+  const [metalPrices, setMetalPrices] = useState<TokenApi[]>([])
+  const [cryptoPrices, setCryptoPrices] = useState<TokenApi[]>([])
 
   const { userAgent } = useSelector((state: RootState) => state.auth)
 
   const fetchPrices = useCallback(async () => {
     setLoading(true)
     const { getMetalPriceApi } = useMetalPriceApi()
+    const { getCryptoPricesApi } = useCryptoPriceApi()
     try {
-      const fetchedPrices = await getMetalPriceApi(userAgent)
-      setPrices(fetchedPrices)
+      const [fetchedMetalPrices, fetchedCryptoPrices] = await Promise.all([
+        getMetalPriceApi(userAgent),
+        getCryptoPricesApi(),
+      ])
+
+      const mergedData = [...fetchedCryptoPrices, ...fetchedMetalPrices]
+
+      setCryptoPrices(mergedData)
+      setMetalPrices(fetchedMetalPrices)
     } catch (error) {
       console.error('Failed to fetch prices:', error)
     } finally {
@@ -45,14 +55,12 @@ const Info: React.FC = () => {
     }
 
     const handleSessionTime = () => {
-      if (prices.length > 0 && prices[0].timestamp) {
+      if (metalPrices.length > 0 && metalPrices[0].timestamp) {
         const now = Date.now()
 
-        const syncTimestamp = Number(
-          BigInt(prices[0].timestamp) / BigInt(1_000_000),
-        )
-
+        const syncTimestamp = Number(metalPrices[0].timestamp) * 1000
         const remainingTime = Math.max(2 * 60 * 1000 - (now - syncTimestamp), 0)
+
         if (remainingTime > 0) {
           timeoutId = setTimeout(() => {
             startPolling()
@@ -73,7 +81,7 @@ const Info: React.FC = () => {
       }
       stopPolling()
     }
-  }, [prices, fetchPrices])
+  }, [metalPrices, fetchPrices])
 
   return (
     <Box
@@ -90,7 +98,7 @@ const Info: React.FC = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {prices.map((token) => (
+            {cryptoPrices.map((token) => (
               <InfoRow key={token.symbol} token={token} />
             ))}
           </Tbody>
