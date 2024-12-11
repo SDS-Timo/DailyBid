@@ -11,7 +11,7 @@ const renderWithChakraProvider = (ui: React.ReactElement) => {
   return render(<ChakraProvider>{ui}</ChakraProvider>)
 }
 
-describe('PaginationTable', () => {
+describe('PaginationTable Component', () => {
   const emptyMessage = 'No data available'
   const bgColor = 'black'
   const fontColor = 'white'

@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 
 import ConfirmationModal from './index'
 
-describe('ConfirmationModal', () => {
+describe('ConfirmationModal Component', () => {
   const defaultProps = {
     isOpen: true,
     onClose: jest.fn(),

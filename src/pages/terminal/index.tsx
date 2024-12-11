@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 
 import { Box, Flex, useColorModeValue } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
@@ -9,13 +9,30 @@ import Prices from './prices'
 import SymbolSelection from './symbolSelection'
 import Trading from './trading'
 import UserData from './userData'
+import Disclaimer from '../../components/disclaimerModal'
 import { RootState } from '../../store'
 
 const Terminal: React.FC = () => {
   const bgColor = useColorModeValue('grey.50', 'grey.800')
+  const [isDisclaimerOpen, setDisclaimerOpen] = useState(false)
   const isResizeUserData = useSelector(
     (state: RootState) => state.uiSettings.isResizeUserData,
   )
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  )
+
+  const handleDisclaimerClose = () => {
+    localStorage.setItem('hasAcceptedDisclaimer', 'true')
+    setDisclaimerOpen(false)
+  }
+
+  useEffect(() => {
+    const hasAcceptedDisclaimer = localStorage.getItem('hasAcceptedDisclaimer')
+    if (!hasAcceptedDisclaimer && isAuthenticated) {
+      setDisclaimerOpen(true)
+    }
+  }, [isAuthenticated])
 
   return (
     <Box px={2}>
@@ -89,6 +106,7 @@ const Terminal: React.FC = () => {
           <Prices />
         </Box>
       </Flex>
+      <Disclaimer isOpen={isDisclaimerOpen} onClose={handleDisclaimerClose} />
     </Box>
   )
 }

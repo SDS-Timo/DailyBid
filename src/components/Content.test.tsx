@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 
 import Content from './content'
 
-describe('Content component', () => {
+describe('Content Component', () => {
   it('renders children correctly', () => {
     const { getByText } = render(
       <Content>
