@@ -11,6 +11,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux'
 
 import EChart from './echart'
+//import Chart from './chart'
 import usePriceHistory from '../../../hooks/usePriceHistory'
 import { RootState, AppDispatch } from '../../../store'
 import { setHeaderInformation, setPricesHistory } from '../../../store/prices'

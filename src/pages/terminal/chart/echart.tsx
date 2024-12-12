@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react'
 import { Box, useTheme, useColorMode } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 
+import useWindowSize from '../../../hooks/useWindowSize'
 import { DataItem } from '../../../types'
 import { calculateMinMax } from '../../../utils/calculationsUtils'
 
@@ -14,6 +15,7 @@ interface Props {
 const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
   const theme = useTheme()
   const { colorMode } = useColorMode()
+  const { width } = useWindowSize()
   const chartRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -77,7 +79,7 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
       ],
       xAxis: [
         {
-          type: 'category',
+          type: 'time',
           data: timestamps,
           axisLabel: {
             show: false,
@@ -94,7 +96,7 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
           gridIndex: 0,
         },
         {
-          type: 'category',
+          type: 'time',
           data: timestamps,
           axisLabel: {
             formatter: (value: string) =>
@@ -158,7 +160,9 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
         {
           name: 'Price',
           type: 'line',
-          data: prices,
+          data: prices.map((price, index) => ({
+            value: [timestamps[index], price],
+          })),
           lineStyle: {
             color: theme.colors.yellow['500'],
             width: 2,
@@ -181,7 +185,9 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
         {
           name: 'Volume',
           type: 'bar',
-          data: volumes,
+          data: volumes.map((volume, index) => ({
+            value: [timestamps[index], volume],
+          })),
           barWidth: '50%',
           itemStyle: {
             color: theme.colors.blue['500'],
@@ -203,7 +209,7 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
     return () => {
       chartInstance.dispose()
     }
-  }, [data, colorMode, theme, volumeAxis])
+  }, [data, colorMode, theme, volumeAxis, width])
 
   return <Box position="relative" ref={chartRef} h="30vh" />
 }
