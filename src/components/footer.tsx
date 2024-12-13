@@ -2,7 +2,12 @@ import React from 'react'
 
 import { Container, Box, Flex, Text } from '@chakra-ui/react'
 
+//import useWindow from '../hooks/useWindow'
+
 const Footer: React.FC = () => {
+  //const { getIsTelegramApp } = useWindow()
+  //const isTelegramApp = getIsTelegramApp()
+
   return (
     <footer className="footer">
       <Container maxW="auto">

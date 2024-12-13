@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react'
 import { Box, useTheme, useColorMode } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 
-import useWindowSize from '../../../hooks/useWindowSize'
+import useWindow from '../../../hooks/useWindow'
 import { DataItem } from '../../../types'
 import { calculateMinMax } from '../../../utils/calculationsUtils'
 
@@ -15,7 +15,8 @@ interface Props {
 const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
   const theme = useTheme()
   const { colorMode } = useColorMode()
-  const { width } = useWindowSize()
+  const { getWindowSize } = useWindow()
+  const { width } = getWindowSize()
   const chartRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
