@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { Box, Flex, useDisclosure, useColorMode, Image } from '@chakra-ui/react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 import NavbarHelp from './help'
 import NavbarInfo from './info'
@@ -12,7 +12,11 @@ import NavbarUser from './user'
 import NavbarWallet from './wallet'
 import LogoDark from '../../assets/img/logo/dailyBid_black.svg'
 import LogoLight from '../../assets/img/logo/dailyBid_white.svg'
+import useWindow from '../../hooks/useWindow'
 import { RootState } from '../../store'
+import { AppDispatch } from '../../store'
+import { mnemonicAuthenticate } from '../../utils/authUtils'
+import { decrypt } from '../../utils/cryptoUtils'
 import AccountComponent from '../account'
 
 const NavbarComponent: React.FC = () => {
@@ -21,6 +25,33 @@ const NavbarComponent: React.FC = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
   )
+
+  const dispatch = useDispatch<AppDispatch>()
+
+  const { getIsTelegramApp } = useWindow()
+  const isTelegramApp = getIsTelegramApp()
+
+  const sanitizePhrase = (phrase: string): string[] =>
+    phrase.split(' ').filter((chunk) => chunk.trim() !== '')
+
+  const validateAndLogin = async (mnemonicPhrase: string) => {
+    try {
+      const sanitizedPhrase = sanitizePhrase(mnemonicPhrase)
+      await mnemonicAuthenticate(sanitizedPhrase, dispatch)
+    } catch (error) {
+      console.error('Automatic authentication failed.')
+    }
+  }
+
+  useEffect(() => {
+    if (isTelegramApp) {
+      const localStorageSaved = localStorage.getItem('mnemonicPhrase')
+      if (localStorageSaved) {
+        const seed = decrypt(localStorageSaved)
+        validateAndLogin(seed)
+      }
+    }
+  }, [isTelegramApp])
 
   return (
     <Flex

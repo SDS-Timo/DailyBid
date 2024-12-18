@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import {
   Box,
@@ -10,6 +10,7 @@ import {
   DrawerContent,
   DrawerCloseButton,
   Button,
+  Link,
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -19,6 +20,7 @@ import MnemonicComponent from './auth/mnemonic'
 import NfidComponent from './auth/nfid'
 import SeedComponent from './auth/seed'
 import WalletComponent from './wallet'
+import useWindow from '../../hooks/useWindow'
 import { RootState } from '../../store'
 import { logout } from '../../store/auth'
 
@@ -33,7 +35,11 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
 }) => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const [showOtherLogins, setShowOtherLogins] = useState<boolean>(false)
+
   const dispatch = useDispatch()
+  const { getIsTelegramApp } = useWindow()
+  const isTelegramApp = getIsTelegramApp()
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
   )
@@ -46,6 +52,16 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
   const handleAccordionChange = (index: number) => {
     setActiveIndex(index === activeIndex ? null : index)
   }
+
+  const handleShowOtherLogins = () => {
+    setShowOtherLogins((prev) => !prev)
+  }
+
+  useEffect(() => {
+    if (isTelegramApp) {
+      setActiveIndex(3)
+    }
+  }, [isTelegramApp])
 
   return (
     <>
@@ -68,27 +84,33 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
               <WalletComponent />
             ) : (
               <Box>
-                <Box>
-                  <IdentityComponent
-                    onClose={onClose}
-                    currentIndex={activeIndex}
-                    onAccordionChange={() => handleAccordionChange(0)}
-                  />
-                </Box>
-                <Box mt={4}>
-                  <NfidComponent
-                    onClose={onClose}
-                    currentIndex={activeIndex}
-                    onAccordionChange={() => handleAccordionChange(1)}
-                  />
-                </Box>
-                <Box mt={4}>
-                  <SeedComponent
-                    onClose={onClose}
-                    currentIndex={activeIndex}
-                    onAccordionChange={() => handleAccordionChange(2)}
-                  />
-                </Box>
+                {!isTelegramApp && (
+                  <>
+                    <Box>
+                      <IdentityComponent
+                        onClose={onClose}
+                        currentIndex={activeIndex}
+                        onAccordionChange={() => handleAccordionChange(0)}
+                      />
+                    </Box>
+                    <Box mt={4}>
+                      <NfidComponent
+                        onClose={onClose}
+                        currentIndex={activeIndex}
+                        onAccordionChange={() => handleAccordionChange(1)}
+                      />
+                    </Box>
+                  </>
+                )}
+                {(!isTelegramApp || showOtherLogins) && (
+                  <Box mt={4}>
+                    <SeedComponent
+                      onClose={onClose}
+                      currentIndex={activeIndex}
+                      onAccordionChange={() => handleAccordionChange(2)}
+                    />
+                  </Box>
+                )}
                 <Box mt={4}>
                   <MnemonicComponent
                     onClose={onClose}
@@ -96,6 +118,18 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                     onAccordionChange={() => handleAccordionChange(3)}
                   />
                 </Box>
+                {isTelegramApp && (
+                  <Box display="flex" mt={4} mr={5} justifyContent="flex-end">
+                    <Link
+                      as="button"
+                      textDecoration="underline"
+                      onClick={handleShowOtherLogins}
+                      fontSize="13px"
+                    >
+                      {!showOtherLogins ? 'Other Logins' : 'Other Logins'}
+                    </Link>
+                  </Box>
+                )}
               </Box>
             )}
           </DrawerBody>

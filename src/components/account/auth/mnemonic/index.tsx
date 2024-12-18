@@ -18,8 +18,10 @@ import {
 import * as bip39 from 'bip39'
 import { useDispatch } from 'react-redux'
 
+import useWindow from '../../../../hooks/useWindow'
 import { AppDispatch } from '../../../../store'
 import { mnemonicAuthenticate } from '../../../../utils/authUtils'
+import { encrypt, decrypt } from '../../../../utils/cryptoUtils'
 
 interface MnemonicComponentProps {
   onClose: () => void
@@ -37,7 +39,11 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
   const borderColor = useColorModeValue('grey.300', 'grey.700')
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
 
+  const { getIsTelegramApp } = useWindow()
+  const isTelegramApp = getIsTelegramApp()
+
   const [seed, setSeed] = useState<string>('')
+  const [seedLocalStorage, setSeedLocalStorage] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const dispatch = useDispatch<AppDispatch>()
@@ -59,11 +65,16 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
     return sanitizedPhrase.every((word) => wordList.includes(word))
   }, [seed, wordList])
 
+  const generateMnemonicPhrase = (): string => {
+    return bip39.generateMnemonic(256)
+  }
+
   const validateAndLogin = async () => {
     try {
       setErrorMessage(null)
       const sanitizedPhrase = sanitizePhrase(seed)
       await mnemonicAuthenticate(sanitizedPhrase, dispatch)
+      if (isTelegramApp) localStorage.setItem('mnemonicPhrase', encrypt(seed))
       setSeed('')
       onClose()
     } catch (error) {
@@ -87,6 +98,17 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
     }
   }, [isPhraseValid, seed])
 
+  useEffect(() => {
+    if (isTelegramApp) {
+      const localStorageSaved = localStorage.getItem('mnemonicPhrase')
+      if (localStorageSaved) {
+        const seed = decrypt(localStorageSaved)
+        setSeedLocalStorage(seed)
+        setSeed(seed)
+      }
+    }
+  }, [isTelegramApp])
+
   return (
     <Accordion
       allowToggle
@@ -109,24 +131,44 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
             </AccordionButton>
           </h2>
           <AccordionPanel p={4}>
-            <FormControl variant="floating">
-              <Input
-                h="58px"
-                placeholder=" "
-                value={seed}
-                onChange={(e) => setSeed(e.target.value)}
-                sx={{ borderRadius: '5px' }}
-              />
-              <FormLabel color="grey.500" fontSize="15px">
-                Suggested phrase between 12 and 24 words
-              </FormLabel>
-              {errorMessage && (
-                <Text color="red.500" fontSize="12px">
-                  {errorMessage}
-                </Text>
-              )}
-            </FormControl>
-            <Flex direction="column" mt={4}>
+            {!seedLocalStorage ? (
+              <FormControl variant="floating">
+                <Input
+                  h="58px"
+                  placeholder=" "
+                  value={seed}
+                  onChange={(e) => setSeed(e.target.value)}
+                  sx={{ borderRadius: '5px' }}
+                />
+                <FormLabel color="grey.500" fontSize="15px">
+                  Suggested phrase between 12 and 24 words
+                </FormLabel>
+                {errorMessage && (
+                  <Text color="red.500" fontSize="12px">
+                    {errorMessage}
+                  </Text>
+                )}
+              </FormControl>
+            ) : (
+              <Flex direction="column" mt={!seedLocalStorage ? 4 : 0} mb={4}>
+                <Button
+                  background={bgColor}
+                  variant="solid"
+                  h="58px"
+                  color={fontColor}
+                  _hover={{
+                    bg: bgColorHover,
+                    color: fontColor,
+                  }}
+                  onClick={() => {
+                    setSeedLocalStorage(''), setSeed('')
+                  }}
+                >
+                  Enter Mnemonic
+                </Button>
+              </Flex>
+            )}
+            <Flex direction="column" mt={!seedLocalStorage ? 4 : 0}>
               <Button
                 background={bgColor}
                 variant="solid"
@@ -136,10 +178,25 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
                   bg: bgColorHover,
                   color: fontColor,
                 }}
-                isDisabled={!isPhraseValid}
-                onClick={validateAndLogin}
+                isDisabled={
+                  !(
+                    (isTelegramApp && !seedLocalStorage && !seed) ||
+                    (isPhraseValid && seed.length > 0) ||
+                    (!isTelegramApp && seedLocalStorage)
+                  )
+                }
+                onClick={() => {
+                  if (!seedLocalStorage && !seed && isTelegramApp) {
+                    const newMnemonic = generateMnemonicPhrase()
+                    setSeed(newMnemonic)
+                  } else {
+                    validateAndLogin()
+                  }
+                }}
               >
-                Log in
+                {!seedLocalStorage && !seed && isTelegramApp
+                  ? 'Generate New Mnemonic'
+                  : 'Log in'}
               </Button>
             </Flex>
           </AccordionPanel>
