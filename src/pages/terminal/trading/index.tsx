@@ -582,6 +582,11 @@ const Trading = () => {
 
   const handlePricePercentageCalculate = (percentage: number) => {
     const currentPrice = priceValue || Number(getTokenPriceValueInfo())
+    if (currentPrice === 0) {
+      formik.setFieldValue('price', '', false)
+      return
+    }
+
     const updatedPrice = currentPrice + currentPrice * (percentage / 100)
 
     const newPrice = formatSignificantDigits(
