@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { DataItem, PricesHistoryState, HeaderInformation } from '../../types'
+import { DataItem, PricesState, HeaderInformation, TokenApi } from '../../types'
 
-const initialState: PricesHistoryState = {
+const initialState: PricesState = {
   isRefreshPrices: false,
   headerInformation: null,
   pricesHistory: [],
+  pricesInfo: [],
 }
 
 const priceHistorySlice = createSlice({
@@ -15,19 +16,26 @@ const priceHistorySlice = createSlice({
     setIsRefreshPrices: (state) => {
       state.isRefreshPrices = !state.isRefreshPrices
     },
-    setPricesHistory: (state, action: PayloadAction<DataItem[] | []>) => {
-      state.pricesHistory = action.payload
-    },
     setHeaderInformation: (
       state,
       action: PayloadAction<HeaderInformation | null>,
     ) => {
       state.headerInformation = action.payload
     },
+    setPricesHistory: (state, action: PayloadAction<DataItem[] | []>) => {
+      state.pricesHistory = action.payload
+    },
+    setPricesInfo: (state, action: PayloadAction<TokenApi[] | []>) => {
+      state.pricesInfo = action.payload
+    },
   },
 })
 
-export const { setIsRefreshPrices, setPricesHistory, setHeaderInformation } =
-  priceHistorySlice.actions
+export const {
+  setIsRefreshPrices,
+  setHeaderInformation,
+  setPricesHistory,
+  setPricesInfo,
+} = priceHistorySlice.actions
 
 export default priceHistorySlice.reducer

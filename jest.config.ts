@@ -21,7 +21,11 @@ const config: JestConfigWithTsJest = {
     }),
     '^.+\\.png$': '<rootDir>/__mocks__/fileMock.ts',
   },
-  setupFilesAfterEnv: ['jest-localstorage-mock', '@testing-library/jest-dom'],
+  setupFilesAfterEnv: [
+    'jest-localstorage-mock',
+    '@testing-library/jest-dom',
+    '<rootDir>/jest.setup.ts',
+  ],
 }
 
 export default config

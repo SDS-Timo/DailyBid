@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { Box, Table, Thead, Tbody, Tr, Th } from '@chakra-ui/react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 import InfoRow from './infoRow'
 import useCryptoPriceApi from '../../../../hooks/useCryptoPricesApi'
 import useMetalPriceApi from '../../../../hooks/useMetalPricesApi'
-import { RootState } from '../../../../store'
+import { RootState, AppDispatch } from '../../../../store'
+import { setPricesInfo } from '../../../../store/prices'
 import { TokenApi } from '../../../../types'
 
 const Info: React.FC = () => {
@@ -15,6 +16,8 @@ const Info: React.FC = () => {
   const [cryptoPrices, setCryptoPrices] = useState<TokenApi[]>([])
 
   const { userAgent } = useSelector((state: RootState) => state.auth)
+
+  const dispatch = useDispatch<AppDispatch>()
 
   const fetchPrices = useCallback(async () => {
     setLoading(true)
@@ -28,6 +31,7 @@ const Info: React.FC = () => {
 
       const mergedData = [...fetchedCryptoPrices, ...fetchedMetalPrices]
 
+      dispatch(setPricesInfo(mergedData))
       setCryptoPrices(mergedData)
       setMetalPrices(fetchedMetalPrices)
     } catch (error) {

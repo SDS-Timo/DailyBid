@@ -164,7 +164,7 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
                     setSeedLocalStorage(''), setSeed('')
                   }}
                 >
-                  Enter Mnemonic
+                  Enter new Mnemonic
                 </Button>
               </Flex>
             )}
@@ -195,8 +195,10 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
                 }}
               >
                 {!seedLocalStorage && !seed && isTelegramApp
-                  ? 'Generate New Mnemonic'
-                  : 'Log in'}
+                  ? 'Generate new Mnemonic'
+                  : seedLocalStorage && isTelegramApp
+                    ? 'Use stored Mnemonic'
+                    : 'Log in'}
               </Button>
             </Flex>
           </AccordionPanel>

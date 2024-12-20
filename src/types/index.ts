@@ -65,10 +65,11 @@ export interface TokensState {
   selectedSymbol: Option | Option[] | null
   selectedQuote: TokenMetadata
 }
-export interface PricesHistoryState {
+export interface PricesState {
   isRefreshPrices: boolean
-  pricesHistory: DataItem[] | []
   headerInformation: HeaderInformation | null
+  pricesHistory: DataItem[] | []
+  pricesInfo: TokenApi[] | []
 }
 export interface TokenDataItem extends DataItem, TokenMetadata {
   [key: string]: any

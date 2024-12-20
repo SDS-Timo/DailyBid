@@ -21,6 +21,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import * as Yup from 'yup'
 
 import TradeTypeSelector from './tradeTypeSelector'
+import CustomSlider from '../../../components/customSlider'
 import LoginButtonComponent from '../../../components/loginButton'
 import useOrders from '../../../hooks/useOrders'
 import useWallet from '../../../hooks/useWallet'
@@ -31,7 +32,10 @@ import { setOrderDetails, setIsRefreshUserData } from '../../../store/orders'
 import { setSelectedSymbol } from '../../../store/tokens'
 import { Result, TokenDataItem } from '../../../types'
 import { Option } from '../../../types'
-import { convertExponentialToDecimal } from '../../../utils/calculationsUtils'
+import {
+  convertExponentialToDecimal,
+  formatSignificantDigits,
+} from '../../../utils/calculationsUtils'
 import {
   convertPriceToCanister,
   convertVolumetoCanister,
@@ -65,6 +69,8 @@ const Trading = () => {
   >(undefined)
   const [available, setAvailable] = useState<TokenDataItem | null>(null)
   const [selectedPercentage, setSelectedPercentage] = useState(null)
+  const [priceValue, setPriceValue] = useState<number | null>(null)
+  const [currentSliderValue, setCurrentSliderValue] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const { userAgent } = useSelector((state: RootState) => state.auth)
   const isAuthenticated = useSelector(
@@ -88,6 +94,7 @@ const Trading = () => {
   const orderSettings = useSelector(
     (state: RootState) => state.orders.orderSettings,
   )
+  const pricesInfo = useSelector((state: RootState) => state.prices.pricesInfo)
   const symbol = Array.isArray(selectedSymbol)
     ? selectedSymbol[0]
     : selectedSymbol
@@ -414,6 +421,25 @@ const Trading = () => {
     [balances, symbol],
   )
 
+  const getTokenPriceValueInfo = () => {
+    const tokenNameMap = JSON.parse(`${process.env.ENV_TOKEN_MAP}`)
+
+    const getMappedTokenName = (baseSymbol: string) =>
+      tokenNameMap[baseSymbol] || baseSymbol
+
+    const token = pricesInfo.find(
+      (token) => token.symbol === getMappedTokenName(`${symbol?.base}`),
+    )
+    if (token && token.value > 0) {
+      const newValue = formatSignificantDigits(
+        String(token.value),
+        orderSettings.orderPriceDigitsLimit,
+      )
+      return newValue
+    }
+    return ''
+  }
+
   const handleTradeTypeChange = useCallback(
     (type: string) => {
       if (!formik.isSubmitting) {
@@ -430,6 +456,7 @@ const Trading = () => {
     handlePercentageClick(0)
     setAmountType('base')
     formik.resetForm({ values: initialValues })
+    setPriceValue(null)
     setBaseStepSize(null)
 
     if (orderDetails.type !== '') {
@@ -553,6 +580,18 @@ const Trading = () => {
     ],
   )
 
+  const handlePricePercentageCalculate = (percentage: number) => {
+    const currentPrice = priceValue || Number(getTokenPriceValueInfo())
+    const updatedPrice = currentPrice + currentPrice * (percentage / 100)
+
+    const newPrice = formatSignificantDigits(
+      String(updatedPrice),
+      orderSettings.orderPriceDigitsLimit,
+    )
+
+    handlePriceInputChange(newPrice)
+  }
+
   const handleCalculateBaseAmount = useCallback(
     (price: string, quoteAmount: string, volumeFloor: string) => {
       const numericPrice = parseFloat(price)
@@ -604,6 +643,15 @@ const Trading = () => {
       handleClearForm()
       setTradeType('buy')
     }
+
+    if (!isAuthenticated) {
+      formik.setFieldValue('price', '', false)
+    } else if (symbol?.base) {
+      const value = getTokenPriceValueInfo()
+      if (value) handlePriceInputChange(value)
+      else formik.setFieldValue('price', '', false)
+    }
+    setCurrentSliderValue(0)
   }, [userAgent, symbol])
 
   useEffect(() => {
@@ -728,6 +776,8 @@ const Trading = () => {
               setSelectedPercentage(null)
               const { price, volume } = handlePriceInputChange(e.target.value)
 
+              setPriceValue(Number(price))
+
               amountType === 'quote'
                 ? handleCalculateBaseAmount(
                     String(price),
@@ -749,6 +799,24 @@ const Trading = () => {
             </Text>
           )}
         </FormControl>
+
+        <Box mt={2} mb={2} width="90%" alignSelf="center">
+          <CustomSlider
+            step={1}
+            unit="%"
+            values={[-5, 0, +5]}
+            currentValue={currentSliderValue}
+            isDisabled={!isAuthenticated}
+            colorScheme="grey"
+            tooltipBgColor="grey.600"
+            tooltipTextColor="white"
+            fontSize="12px"
+            onChangeValue={(value) => {
+              handlePricePercentageCalculate(value),
+                setCurrentSliderValue(value)
+            }}
+          />
+        </Box>
       </Flex>
       <Flex direction="column">
         <InputGroup>

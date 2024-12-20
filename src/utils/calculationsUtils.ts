@@ -372,3 +372,27 @@ export function convertExponentialToDecimal(value: string | number): string {
   const bigNumberValue = new BigNumber(value)
   return bigNumberValue.toFixed().replace(/\.?0+$/, '')
 }
+
+/**
+ * Extracts a specific number of significant digits from a numeric string,
+ * ignoring the decimal point (.) but preserving its original position.
+ * @param value - The input string representing a number, which may include a decimal point.
+ * @param count - The number of significant digits to extract, excluding the decimal point.
+ * @returns - The formatted string with the specified number of significant digits.
+ */
+export function formatSignificantDigits(value: string, count: number) {
+  let result = ''
+  let usefulChars = 0
+
+  for (const char of value) {
+    if (char === '.') {
+      result += char
+    } else if (usefulChars < count) {
+      result += char
+      usefulChars++
+    }
+    if (usefulChars === count) break
+  }
+
+  return result
+}

@@ -76,7 +76,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
           {isAuthenticated ? (
             <DrawerHeader>Account details</DrawerHeader>
           ) : (
-            <DrawerHeader>Log in to Auction with</DrawerHeader>
+            <DrawerHeader>Log in with</DrawerHeader>
           )}
 
           <DrawerBody>
@@ -126,7 +126,9 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                       onClick={handleShowOtherLogins}
                       fontSize="13px"
                     >
-                      {!showOtherLogins ? 'Other Logins' : 'Other Logins'}
+                      {!showOtherLogins
+                        ? 'Experimental Logins'
+                        : 'Default Logins'}
                     </Link>
                   </Box>
                 )}
