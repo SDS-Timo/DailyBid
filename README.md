@@ -1,50 +1,107 @@
-# ICRC-1 Auction
+# DailyBid
 
-An auction canister for selling/buying ICRC1 fungible tokens
+![DailyBid Logo](https://alpha.daily-bid.com/assets/dailyBid_white-CqrDwDOM.svg)
 
-## Local setup
+## Table of Contents
 
-It is assumed that you have:
+- [Project Description](#project-description)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contribution](#contribution)
+- [License](#license)
+- [Authors](#authors)
 
-- Dfinity SDK installed
-- NodeJS installed
-- ic-mops installed
+## Project Description
 
-Once you have cloned the repository, follow this process in your terminal:
+**DailyBid** is a decentralized auction platform (dApp) built on the ICP Network. It allows users to participate in auctions transparently and securely using canisters and authentication via seed phrases. The project aims to revolutionize the auction process by eliminating intermediaries and ensuring greater trust between participants.
 
-1. In your project directory, run this command to install npm dependencies:
+## Features
 
-```
-npm install
-```
+- Create and manage decentralized auctions.
+- Participate in auctions with secure authentication.
+- Intuitive interface for real-time bid tracking.
 
-2. Start local Internet Computer replica:
+## Technologies Used
 
-```
-dfx start --clean --background
-```
+- **Frontend:** React, Vite, Chakra UI
+- **Languages:** JavaScript, TypeScript
+- **State Management:** Redux
+- **Blockchain:** ICP Network
 
-3. Create canisters:
+## Prerequisites
 
-```
-npm run create
-```
+Ensure you have the following tools installed:
 
-4. If you want to use mocked ICRC1 ledger as trusted ledger for debug purposes, put just created `icrc1_ledger_mock`
-   canister id into `dfx.json::icrc1_auction->init_arg->first principal`
+- [Node.js](https://nodejs.org/) (version 14 or higher)
+- [npm](https://www.npmjs.com/)
+- [dfx](https://smartcontracts.org/docs/developers-guide/cli-reference.html) (Internet Computer SDK)
 
-5. Setup and deploy canisters locally
+## Installation
 
-```
-npm run setup
-```
+Follow these steps to set up the development environment:
 
-6. First installation only: call function `init` on auction canister:
+1. **Clone the repository:**
 
-```
-dfx canister call icrc1_auction init
-```
+   ```bash
+   git clone https://github.com/SDS-Timo/DailyBid.git
 
-7. Now you can use auction locally. Mocked ICRC1 ledger allows to create tokens out of thin air using `issueTokens`
-   function. You should create at least one additional ICRC1 ledger in order to be able to place any bid/ask. This repo
-   provides additional canister `icrc1_ledger_mock_2`, which you can register as another ICRC1 ledger in auction for testing
+   ```
+
+2. **Navigate to the project directory:**
+
+   ```bash
+   cd DailyBid
+
+   ```
+
+3. **Install dependencies:**
+
+   ```bash
+   npm install
+
+   ```
+
+4. **Start dfx:**
+
+   ```bash
+   dfx start
+
+   ```
+
+5. **Deploy the canister:**
+
+   ```bash
+   npm run deploy
+   ```
+
+## Usage
+
+After installation, follow these steps to run the application:
+
+1. **Start the frontend:**
+
+   ```bash
+   npm run dev
+
+   ```
+
+2. **Access the application:**
+
+Open your browser and go to http://localhost:3993 to view the DailyBid interface.
+
+## Contribution
+
+Contributions are welcome! Follow these steps to contribute:
+
+1. Fork this repository.
+2. Create a branch for your feature (git checkout -b feature/new-feature).
+3. Commit your changes (git commit -m 'Add new feature').
+4. Push to the branch (git push origin feature/new-feature).
+5. Open a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
