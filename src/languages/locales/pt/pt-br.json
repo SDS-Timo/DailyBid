@@ -1,0 +1,21 @@
+{
+  "translation": {
+    "401 Error": "Erro 401",
+    "Unauthorized": "Não autorizado",
+    "User is not authorized to view the requested resource.": "Usuário não autorizado a visualizar o recurso requisitado.",
+    "Return to website": "Retorne para o website",
+
+    "404 Error": "Erro 404",
+    "Page not found.": "Página não encontrada",
+    "The page you are looking for might have been removed.": "A página que você está procurando pode ter sido removida.",
+
+    "500 Error": "Erro 500",
+    "Internal server error.": "Erro interno do servidor",
+    "The server encountered something unexpected that didn't allow it to complete the request.": "O servidor encontrou algo inesperado que não permitiu concluir a solicitação.",
+
+    "English": "Inglês",
+    "Portuguese": "Português",
+    "Spanish": "Espanhol",
+    "Italian": "Italiano"
+  }
+}
