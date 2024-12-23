@@ -12,7 +12,6 @@
 - [Usage](#usage)
 - [Contribution](#contribution)
 - [License](#license)
-- [Authors](#authors)
 
 ## Project Description
 
