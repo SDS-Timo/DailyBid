@@ -3,43 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react'
 
 import AutoClaimSettings from './autoClaimSettings'
 
-interface Option {
-  id: string
-  value: string
-  label: string
-}
-
-interface SelectProps {
-  options: Option[]
-  value: Option | null
-  onChange: (option: Option | null) => void
-  placeholder: string
-}
-
-jest.mock('bymax-react-select', () => ({
-  Select: ({ options, value, onChange, placeholder }: SelectProps) => (
-    <select
-      data-testid="select"
-      value={value ? value.value : ''}
-      onChange={(e) => {
-        const selectedOption = options.find(
-          (option) => option.value === e.target.value,
-        )
-        onChange(selectedOption || null)
-      }}
-    >
-      <option value="" disabled>
-        {placeholder}
-      </option>
-      {options.map((option) => (
-        <option key={option.id} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  ),
-}))
-
 const renderWithChakra = (ui: React.ReactElement): ReturnType<typeof render> =>
   render(<ChakraProvider>{ui}</ChakraProvider>)
 
