@@ -16,38 +16,28 @@ const initialState = {
 }
 const store = mockStore(initialState)
 
+jest.mock('../../../utils/authUtils', () => ({
+  getAgent: jest.fn(() => ({
+    fetchRootKey: jest.fn(),
+    getPrincipal: jest.fn().mockResolvedValue('mock-principal'),
+  })),
+}))
+
+jest.mock('@dfinity/agent', () => ({
+  HttpAgent: jest.fn().mockImplementation(() => ({
+    createSync: jest.fn(),
+    fetchRootKey: jest.fn(),
+    getPrincipal: jest.fn().mockResolvedValue('mock-principal'),
+  })),
+  AnonymousIdentity: jest.fn(),
+}))
+
 jest.mock('../../../hooks/useTokens', () => () => ({
   getTokens: jest.fn(),
 }))
 
 jest.mock('../../../utils/canisterUtils', () => ({
   getAuctionCanisterId: jest.fn(() => 'mock-canister-id'),
-}))
-
-jest.mock('@dfinity/agent', () => ({
-  HttpAgent: class {
-    constructor() {}
-    createSync = jest.fn()
-  },
-  AnonymousIdentity: class {},
-}))
-
-jest.mock('@dfinity/auth-client', () => ({
-  AuthClient: {
-    create: jest.fn().mockResolvedValue({
-      login: jest.fn(),
-      isAuthenticated: jest.fn().mockResolvedValue(true),
-      getIdentity: jest.fn(),
-    }),
-  },
-}))
-
-jest.mock('@dfinity/identity', () => ({
-  Ed25519KeyIdentity: class {},
-}))
-
-jest.mock('@dfinity/identity-secp256k1', () => ({
-  Secp256k1KeyIdentity: class {},
 }))
 
 describe('CanisterIdSettings Component', () => {
@@ -61,38 +51,44 @@ describe('CanisterIdSettings Component', () => {
     )
   }
 
-  it('renders the component with default values', () => {
+  it('renders the component with default values', async () => {
     renderComponent()
 
-    const inputElement = screen.getByPlaceholderText(' ')
-    expect(inputElement).toBeInTheDocument()
-    expect(inputElement).toHaveValue('mock-canister-id')
+    await waitFor(() => {
+      const inputElement = screen.getByLabelText('Backend Canister Id')
+      expect(inputElement).toBeInTheDocument()
+      expect(inputElement).toHaveValue('mock-canister-id')
 
-    const saveButton = screen.getByText('Save')
-    expect(saveButton).toBeInTheDocument()
+      const saveButton = screen.getByText('Save')
+      expect(saveButton).toBeInTheDocument()
+    })
   })
 
   it('shows an error for invalid Canister ID', async () => {
     renderComponent()
 
-    const inputElement = screen.getByPlaceholderText(' ')
-    fireEvent.change(inputElement, { target: { value: 'invalid-id' } })
-
-    const saveButton = screen.getByText('Save')
-    fireEvent.click(saveButton)
-
     await waitFor(() => {
+      const inputElement = screen.getByLabelText('Backend Canister Id')
+      fireEvent.change(inputElement, { target: { value: 'invalid-id' } })
+
+      const saveButton = screen.getByText('Save')
+      fireEvent.click(saveButton)
+
       const errorMessage = screen.getByText('Invalid Canister ID')
       expect(errorMessage).toBeInTheDocument()
     })
   })
 
-  it('updates the input field value', () => {
+  it('updates the input field value', async () => {
     renderComponent()
 
-    const inputElement = screen.getByPlaceholderText(' ')
-    fireEvent.change(inputElement, { target: { value: 'aaaaa-aa' } })
+    await waitFor(() => {
+      const inputElement = screen.getByLabelText('Backend Canister Id')
+      fireEvent.change(inputElement, {
+        target: { value: 'g2mgr-byaaa-aaaai-aaaaa-cai' },
+      })
 
-    expect(inputElement).toHaveValue('aaaaa-aa')
+      expect(inputElement).toHaveValue('g2mgr-byaaa-aaaai-aaaaa-cai')
+    })
   })
 })
