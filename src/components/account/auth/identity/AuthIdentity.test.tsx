@@ -18,6 +18,7 @@ describe('IdentityComponent', () => {
   let onAccordionChangeMock: jest.Mock
 
   beforeEach(() => {
+    jest.clearAllMocks()
     store = mockStore({})
     onCloseMock = jest.fn()
     onAccordionChangeMock = jest.fn()
