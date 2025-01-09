@@ -198,16 +198,35 @@ const Trading = () => {
                 ),
               )
 
+              const baseAmountOrderDetailsNat = Number(
+                convertVolumetoCanister(
+                  Number(orderDetails.volumeInBase),
+                  Number(symbol?.decimals),
+                ),
+              )
+
               const availableBalance = Number(available?.volumeInAvailableNat)
 
               const orderAmount: number =
                 availableBalance > 0 && priceNat > 0
                   ? tradeType === 'buy'
                     ? priceNat * baseAmountNat
-                    : availableBalance
+                    : baseAmountNat
                   : 0
 
-              if (orderAmount > availableBalance) {
+              const orderDetailsAmount: number =
+                availableBalance > 0 && priceNat > 0
+                  ? tradeType === 'buy'
+                    ? priceNat * baseAmountOrderDetailsNat
+                    : baseAmountOrderDetailsNat
+                  : 0
+
+              const insufficientFunds =
+                (orderAmount > availableBalance && orderDetails.id === 0n) ||
+                (orderAmount > orderDetailsAmount + availableBalance &&
+                  orderDetails.id !== 0n)
+
+              if (insufficientFunds) {
                 return createError({ path, message: 'Not enough funds' })
               }
 
@@ -445,6 +464,7 @@ const Trading = () => {
       if (!formik.isSubmitting) {
         setTradeType(type)
         updateAvailable(type)
+        setSelectedPercentage(null)
       }
     },
     [formik.isSubmitting, updateAvailable],
@@ -651,7 +671,7 @@ const Trading = () => {
 
     if (!isAuthenticated) {
       formik.setFieldValue('price', '', false)
-    } else if (symbol?.base) {
+    } else if (symbol?.base && symbol?.base !== orderDetails.base) {
       const value = getTokenPriceValueInfo()
       if (value) handlePriceInputChange(value)
       else formik.setFieldValue('price', '', false)
@@ -667,6 +687,10 @@ const Trading = () => {
     if (tradeType === 'sell') {
       setAmountType('base')
       formik.setFieldValue('amountType', 'base')
+    }
+
+    if (orderDetails.id !== 0n && orderDetails.type !== tradeType) {
+      handleClearForm()
     }
   }, [tradeType])
 
@@ -720,8 +744,12 @@ const Trading = () => {
     const price = parseFloat(formik.values.price)
 
     if (available && selectedPercentage && !isNaN(price)) {
-      const percentageAvailable =
-        (selectedPercentage / 100) * available.volumeInBase
+      const auxAvailable =
+        orderDetails.id === 0n
+          ? available.volumeInBase
+          : available.volumeInBase + Number(orderDetails.volumeInBase)
+
+      const percentageAvailable = (selectedPercentage / 100) * auxAvailable
 
       let baseAmount = 0
       let quoteAmount = 0
