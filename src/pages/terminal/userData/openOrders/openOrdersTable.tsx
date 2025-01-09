@@ -186,8 +186,6 @@ export default function tableContent(
           type,
           loading,
           replacing,
-          volumeInBaseDecimals,
-          volumeInQuoteDecimals,
         } = row.original
 
         const fixedPrice = price.toLocaleString('en-US', {
@@ -199,17 +197,6 @@ export default function tableContent(
           useGrouping: false,
         })
 
-        const fixedVolumeBaseInBase = volumeInBase.toLocaleString('en-US', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: volumeInBaseDecimals,
-          useGrouping: false,
-        })
-
-        const fixedVolumeInQuote = volumeInQuote.toLocaleString('en-US', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: volumeInQuoteDecimals,
-          useGrouping: false,
-        })
         return (
           <Flex justifyContent="center" alignItems="center">
             <IconButton
@@ -219,8 +206,8 @@ export default function tableContent(
                 handleReplace(
                   id,
                   base,
-                  Number(fixedVolumeBaseInBase),
-                  Number(fixedVolumeInQuote),
+                  Number(volumeInBase),
+                  Number(volumeInQuote),
                   Number(fixedPrice),
                   type,
                 )
