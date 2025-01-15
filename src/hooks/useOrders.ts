@@ -281,12 +281,32 @@ const useOrders = () => {
     }
   }
 
+  /**
+   * Manages orders by invoking the `manageOrders` method of the provided service actor.
+   *
+   * @param userAgent - An instance of HttpAgent used for making authenticated requests.
+   * @returns - A promise that resolves to the result of the `manageOrders` operation or an empty array if an error occurs.
+   */
+  const manageOrders = async (userAgent: HttpAgent) => {
+    try {
+      const serviceActor = getActor(userAgent)
+
+      const result = await serviceActor.manageOrders([{ all: [] }], [], [])
+
+      return result
+    } catch (error) {
+      console.error('Error manage orders:', error)
+      return []
+    }
+  }
+
   return {
     getOpenOrders,
     getOrderSettings,
     placeOrder,
     replaceOrder,
     cancelOrder,
+    manageOrders,
   }
 }
 

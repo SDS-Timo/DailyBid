@@ -99,6 +99,7 @@ export interface ActionsState {
   actions: TokenDataItem[] | []
 }
 export interface BalancesState {
+  isRefreshBalances: boolean
   balances: TokenDataItem[] | []
 }
 export interface SettingsState {

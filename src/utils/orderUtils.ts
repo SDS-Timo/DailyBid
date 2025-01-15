@@ -96,3 +96,25 @@ export const getErrorMessageCancelOrder = (error: Result): string => {
   }
   return 'Something went wrong'
 }
+
+/**
+ * Gets a user-friendly error message for a manage orders error.
+ *
+ * @param error - An object representing the manage orders error.
+ * @returns A string with the corresponding error message.
+ */
+export const getErrorMessageManageOrders = (error: Result): string => {
+  const errorMessages: { [key: string]: string } = {
+    placement: 'Error Placement',
+    UnknownPrincipal: 'Unknown Principal',
+    SessionNumberMismatch: 'Session Number Mismatch',
+    cancellation: 'Error Cancellation',
+  }
+
+  for (const key in error) {
+    if (error[key] !== undefined && key in errorMessages) {
+      return errorMessages[key]
+    }
+  }
+  return 'Something went wrong'
+}

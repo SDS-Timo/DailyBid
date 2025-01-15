@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer'
 
-import { encodeIcrcAccount } from '@dfinity/ledger-icrc'
+import { encodeIcrcAccount, decodeIcrcAccount } from '@dfinity/ledger-icrc'
 import { Principal } from '@dfinity/principal'
 import bigInt from 'big-integer'
 
@@ -83,6 +83,14 @@ export function getUserDepositAddress(principal: string) {
   })
 
   return depositAccount
+}
+
+export const decodeIcrcAccountText = (account: string) => {
+  try {
+    return decodeIcrcAccount(account)
+  } catch {
+    return undefined
+  }
 }
 
 /**

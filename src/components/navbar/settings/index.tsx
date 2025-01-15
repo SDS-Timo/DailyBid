@@ -20,6 +20,7 @@ import { useSelector } from 'react-redux'
 import AutoClaimSettings from './autoClaimSettings'
 import CanisterIdSettings from './canisterIdSettings'
 import DerivationOriginSettings from './derivationOriginSettings'
+import FullWithdrawalSettings from './fullWithdrawalSettings'
 import LoginDurationSettings from './loginDurationSettings'
 import RequireConfirmationSettings from './requireConfirmation'
 import { RootState } from '../../../store'
@@ -84,6 +85,22 @@ const NavbarSettings: React.FC = () => {
                 <CanisterIdSettings />
               </AccordionPanel>
             </AccordionItem>
+
+            {isAuthenticated && (
+              <AccordionItem>
+                <h2>
+                  <AccordionButton>
+                    <Flex flex="1" textAlign="left">
+                      Full Withdrawal
+                    </Flex>
+                    <AccordionIcon />
+                  </AccordionButton>
+                </h2>
+                <AccordionPanel pb={4}>
+                  <FullWithdrawalSettings />
+                </AccordionPanel>
+              </AccordionItem>
+            )}
 
             <AccordionItem>
               <h2>

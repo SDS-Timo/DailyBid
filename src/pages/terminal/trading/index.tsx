@@ -85,6 +85,9 @@ const Trading = () => {
   const isRefreshUserData = useSelector(
     (state: RootState) => state.orders.isRefreshUserData,
   )
+  const isRefreshBalances = useSelector(
+    (state: RootState) => state.balances.isRefreshBalances,
+  )
   const selectedSymbol = useSelector(
     (state: RootState) => state.tokens.selectedSymbol,
   )
@@ -449,6 +452,7 @@ const Trading = () => {
     const token = pricesInfo.find(
       (token) => token.symbol === getMappedTokenName(`${symbol?.base}`),
     )
+
     if (token && token.value > 0) {
       const newValue = formatSignificantDigits(
         String(token.value),
@@ -682,6 +686,10 @@ const Trading = () => {
   useEffect(() => {
     if (isAuthenticated) fetchUserPoints()
   }, [isRefreshUserData])
+
+  useEffect(() => {
+    if (isAuthenticated) fetchBalances()
+  }, [isRefreshBalances])
 
   useEffect(() => {
     if (tradeType === 'sell') {
