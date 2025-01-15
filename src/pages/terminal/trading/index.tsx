@@ -454,11 +454,27 @@ const Trading = () => {
     )
 
     if (token && token.value > 0) {
-      const newValue = formatSignificantDigits(
-        String(token.value),
-        orderSettings.orderPriceDigitsLimit,
-      )
-      return newValue
+      // GLDT unit price calculation
+      if (token.symbol === 'XAU') {
+        const TROY_OUNCE_TO_KG = 0.0311035
+        const GLDT_UNIT_FACTOR = 1 / 100000
+
+        const pricePerKg = token.value / TROY_OUNCE_TO_KG
+        const gldtUnitPrice = pricePerKg * GLDT_UNIT_FACTOR
+
+        const newValue = formatSignificantDigits(
+          String(gldtUnitPrice),
+          orderSettings.orderPriceDigitsLimit,
+        )
+
+        return newValue
+      } else {
+        const newValue = formatSignificantDigits(
+          String(token.value),
+          orderSettings.orderPriceDigitsLimit,
+        )
+        return newValue
+      }
     }
     return ''
   }
