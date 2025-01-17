@@ -24,6 +24,7 @@ import {
 } from '../../../../store/orders'
 import { TokenDataItem, Result } from '../../../../types'
 import { getErrorMessageCancelOrder } from '../../../../utils/orderUtils'
+import { getSimpleToastDescription } from '../../../../utils/uiUtils'
 
 const OpenOrders: React.FC = () => {
   const bgColor = useColorModeValue('grey.200', 'grey.700')
@@ -166,6 +167,8 @@ const OpenOrders: React.FC = () => {
         )
       }
 
+      const startTime = Date.now()
+
       dispatch(
         setOrderDetails({
           id: 0n,
@@ -189,21 +192,29 @@ const OpenOrders: React.FC = () => {
       const { cancelOrder } = useOpenOrders()
       cancelOrder(userAgent, id, type)
         .then((response: Result) => {
+          const endTime = Date.now()
+          const durationInSeconds = (endTime - startTime) / 1000
+
           if (response.length > 0 && Object.keys(response[0]).includes('Ok')) {
             if (toastId) {
               toast.update(toastId, {
                 title: 'Success',
-                description: 'Order cancelled',
+                description: getSimpleToastDescription(
+                  'Order cancelled',
+                  durationInSeconds,
+                ),
                 status: 'success',
                 isClosable: true,
               })
             }
           } else {
             if (toastId) {
-              const description = getErrorMessageCancelOrder(response[0].Err)
               toast.update(toastId, {
                 title: 'Cancel order rejected',
-                description,
+                description: getSimpleToastDescription(
+                  getErrorMessageCancelOrder(response[0].Err),
+                  durationInSeconds,
+                ),
                 status: 'error',
                 isClosable: true,
               })
@@ -216,10 +227,16 @@ const OpenOrders: React.FC = () => {
         .catch((error) => {
           const message = error.response ? error.response.data : error.message
 
+          const endTime = Date.now()
+          const durationInSeconds = (endTime - startTime) / 1000
+
           if (toastId) {
             toast.update(toastId, {
               title: 'Cancel order rejected',
-              description: `Error: ${message}`,
+              description: getSimpleToastDescription(
+                `Error: ${message}`,
+                durationInSeconds,
+              ),
               status: 'error',
               isClosable: true,
             })

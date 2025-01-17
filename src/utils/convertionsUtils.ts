@@ -85,6 +85,11 @@ export function getUserDepositAddress(principal: string) {
   return depositAccount
 }
 
+/**
+ * Decodes an ICRC account string into its parsed representation. Is used to verify ICRC addresses.
+ * @param account - The ICRC account string to decode.
+ * @returns - Returns the decoded account object if successful, or `undefined` if the decoding fails.
+ */
 export const decodeIcrcAccountText = (account: string) => {
   try {
     return decodeIcrcAccount(account)

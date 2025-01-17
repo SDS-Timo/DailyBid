@@ -49,6 +49,7 @@ import {
   validationPlaceOrder,
   getErrorMessagePlaceOrder,
 } from '../../../utils/orderUtils'
+import { getSimpleToastDescription } from '../../../utils/uiUtils'
 
 const Trading = () => {
   const toast = useToast({
@@ -247,6 +248,8 @@ const Trading = () => {
     onSubmit: (values, { setStatus, setSubmitting }) => {
       setMessage(null)
 
+      const startTime = Date.now()
+
       const price = convertPriceToCanister(
         Number(values.price),
         Number(symbol?.decimals),
@@ -307,6 +310,9 @@ const Trading = () => {
             dispatch(setIsRefreshUserData())
             fetchBalances()
 
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
             if (
               response.length > 0 &&
               Object.keys(response[0]).includes('Ok')
@@ -314,17 +320,22 @@ const Trading = () => {
               if (toastId) {
                 toast.update(toastId, {
                   title: 'Success',
-                  description: 'Order created',
+                  description: getSimpleToastDescription(
+                    'Order created',
+                    durationInSeconds,
+                  ),
                   status: 'success',
                   isClosable: true,
                 })
               }
             } else {
               if (toastId) {
-                const description = getErrorMessagePlaceOrder(response[0].Err)
                 toast.update(toastId, {
                   title: 'Create order rejected',
-                  description,
+                  description: getSimpleToastDescription(
+                    getErrorMessagePlaceOrder(response[0].Err),
+                    durationInSeconds,
+                  ),
                   status: 'error',
                   isClosable: true,
                 })
@@ -334,10 +345,16 @@ const Trading = () => {
           .catch((error) => {
             const message = error.response ? error.response.data : error.message
 
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
             if (toastId) {
               toast.update(toastId, {
                 title: 'Create order rejected',
-                description: `Error: ${message}`,
+                description: getSimpleToastDescription(
+                  `Error: ${message}`,
+                  durationInSeconds,
+                ),
                 status: 'error',
                 isClosable: true,
               })
@@ -365,21 +382,29 @@ const Trading = () => {
               }),
             )
 
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
             if (Object.keys(response).includes('Ok')) {
               if (toastId) {
                 toast.update(toastId, {
                   title: 'Success',
-                  description: 'Order replaced',
+                  description: getSimpleToastDescription(
+                    'Order replaced',
+                    durationInSeconds,
+                  ),
                   status: 'success',
                   isClosable: true,
                 })
               }
             } else {
               if (toastId) {
-                const description = getErrorMessagePlaceOrder(response.Err)
                 toast.update(toastId, {
                   title: 'Replace order rejected',
-                  description,
+                  description: getSimpleToastDescription(
+                    getErrorMessagePlaceOrder(response.Err),
+                    durationInSeconds,
+                  ),
                   status: 'error',
                   isClosable: true,
                 })
@@ -389,10 +414,16 @@ const Trading = () => {
           .catch((error) => {
             const message = error.response ? error.response.data : error.message
 
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
             if (toastId) {
               toast.update(toastId, {
                 title: 'Replace order rejected',
-                description: `Error: ${message}`,
+                description: getSimpleToastDescription(
+                  `Error: ${message}`,
+                  durationInSeconds,
+                ),
                 status: 'error',
                 isClosable: true,
               })

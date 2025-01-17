@@ -24,6 +24,7 @@ import { setIsRefreshBalances } from '../../../store/balances'
 import { setIsRefreshUserData } from '../../../store/orders'
 import { decodeIcrcAccountText } from '../../../utils/convertionsUtils'
 import { getErrorMessageManageOrders } from '../../../utils/orderUtils'
+import { getSimpleToastDescription } from '../../../utils/uiUtils'
 import { getErrorMessageWithdraw } from '../../../utils/walletUtils'
 import WithdrawalsConfirmationModal from '../../confirmationModal'
 
@@ -125,6 +126,8 @@ const fullWithdrawSettings: React.FC = () => {
 
   const handleWithdrawConfirm = async () => {
     try {
+      let startTime = Date.now()
+
       onClose()
 
       let toastId = toast({
@@ -137,11 +140,17 @@ const fullWithdrawSettings: React.FC = () => {
 
       const response = await fetchManageOrders()
 
+      let endTime = Date.now()
+      let durationInSeconds = (endTime - startTime) / 1000
+
       if (Object.keys(response).includes('Ok')) {
         if (toastId) {
           toast.update(toastId, {
             title: 'Success',
-            description: 'Manage orders done',
+            description: getSimpleToastDescription(
+              'Manage orders done',
+              durationInSeconds,
+            ),
             status: 'success',
             isClosable: true,
           })
@@ -156,7 +165,10 @@ const fullWithdrawSettings: React.FC = () => {
               : 'Unknown error'
           toast.update(toastId, {
             title: 'Manage orders rejected',
-            description,
+            description: getSimpleToastDescription(
+              description,
+              durationInSeconds,
+            ),
             status: 'error',
             isClosable: true,
           })
@@ -172,7 +184,12 @@ const fullWithdrawSettings: React.FC = () => {
         isClosable: true,
       })
 
+      startTime = Date.now()
+
       const result = await fetchWithdrawals(formik.values.destinationAccount)
+
+      endTime = Date.now()
+      durationInSeconds = (endTime - startTime) / 1000
 
       if (toastId) {
         if (result.errors && result.errors.length > 0) {
@@ -190,7 +207,18 @@ const fullWithdrawSettings: React.FC = () => {
           toast.update(toastId, {
             title: 'Full withdrawal rejected',
             description: (
-              <div style={{ whiteSpace: 'pre-line' }}>{errorMessages}</div>
+              <>
+                <div style={{ whiteSpace: 'pre-line' }}>{errorMessages}</div>
+                <div
+                  style={{
+                    fontSize: '0.8em',
+                    textAlign: 'right',
+                    marginTop: '0.5em',
+                  }}
+                >
+                  {`Duration: ${durationInSeconds.toFixed(1)}s`}
+                </div>
+              </>
             ),
             status: 'error',
             isClosable: true,
@@ -198,7 +226,10 @@ const fullWithdrawSettings: React.FC = () => {
         } else if (result.successes && result.successes.length > 0) {
           toast.update(toastId, {
             title: 'Success',
-            description: 'Full withdrawal done',
+            description: getSimpleToastDescription(
+              'Full withdrawal done',
+              durationInSeconds,
+            ),
             status: 'success',
             isClosable: true,
           })
@@ -207,7 +238,10 @@ const fullWithdrawSettings: React.FC = () => {
         } else {
           toast.update(toastId, {
             title: 'No withdrawal made',
-            description: 'Insufficient balance in all assets.',
+            description: getSimpleToastDescription(
+              'Insufficient balance in all assets.',
+              durationInSeconds,
+            ),
             status: 'warning',
             isClosable: true,
           })
