@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import InfoRow from './infoRow'
 import useCryptoPriceApi from '../../../../hooks/useCryptoPricesApi'
+import useDexscreenerPricesApi from '../../../../hooks/useDexscreenerPricesApi'
 import useMetalPriceApi from '../../../../hooks/useMetalPricesApi'
 import { RootState, AppDispatch } from '../../../../store'
 import { setPricesInfo } from '../../../../store/prices'
@@ -19,17 +20,41 @@ const Info: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>()
 
+  const ICP_TOKENS = process.env.ENV_CRYPTO_DEXSCREENER_API_ICP_TOKENS || ''
+
   const fetchPrices = useCallback(async () => {
     setLoading(true)
     const { getMetalPriceApi } = useMetalPriceApi()
     const { getCryptoPricesApi } = useCryptoPriceApi()
+    const { getDexscreenerPricesData } = useDexscreenerPricesApi()
+
     try {
-      const [fetchedMetalPrices, fetchedCryptoPrices] = await Promise.all([
+      const [
+        fetchedMetalPrices,
+        fetchedCryptoPrices,
+        fetchedDexscreenerPrices,
+      ] = await Promise.all([
         getMetalPriceApi(userAgent),
         getCryptoPricesApi(),
+        getDexscreenerPricesData(ICP_TOKENS),
       ])
 
-      const mergedData = [...fetchedCryptoPrices, ...fetchedMetalPrices]
+      const filteredDexscreenerPrices = Object.values(
+        fetchedDexscreenerPrices as Record<string, any>,
+      ).map(
+        ({ name, value, timestamp, baseToken }): TokenApi => ({
+          symbol: baseToken.symbol,
+          name,
+          value: parseFloat(value),
+          timestamp: BigInt(timestamp),
+        }),
+      )
+
+      const mergedData = [
+        ...fetchedCryptoPrices,
+        ...filteredDexscreenerPrices,
+        ...fetchedMetalPrices,
+      ]
 
       dispatch(setPricesInfo(mergedData))
       setCryptoPrices(mergedData)
