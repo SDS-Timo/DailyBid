@@ -36,24 +36,28 @@ const useWindow = () => {
 
   /**
    * Checks if the application is running inside the Telegram in-app browser.
-   * This function inspects the `navigator.userAgent` string for the presence of "Telegram".
+   * This function inspects the `window.location.href` for the presence of 'tgWebAppData' to determine if the app is running in Telegram.
+   * Additionally, it checks for 'tgWebAppPlatform=web' to identify if the Telegram Web platform is being used.
    *
-   * @returns `true` if the app is running in Telegram, otherwise `false`.
+   * @returns An object with two properties:
+   *   - `isTelegram`: `true` if telegram is used.
+   *   - `isTelegramWeb`: `true` if web telegram is used.
    */
   const getIsTelegramApp = () => {
-    const [isTelegram, setIsTelegram] = useState(false)
+    const [state, setState] = useState({
+      isTelegram: false,
+      isTelegramWeb: false,
+    })
 
     useEffect(() => {
-      const checkTelegramDomain = () => {
-        const ancestorOrigin = window.location.href
-
-        return !!ancestorOrigin && ancestorOrigin.includes('tgWebAppData')
-      }
-
-      setIsTelegram(checkTelegramDomain())
+      const ancestorOrigin = window.location.href
+      setState({
+        isTelegram: ancestorOrigin.includes('tgWebAppData'),
+        isTelegramWeb: ancestorOrigin.includes('tgWebAppPlatform=web'),
+      })
     }, [])
 
-    return isTelegram
+    return state
   }
 
   return {

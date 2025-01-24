@@ -40,7 +40,7 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
 
   const { getIsTelegramApp } = useWindow()
-  const isTelegramApp = getIsTelegramApp()
+  const { isTelegram } = getIsTelegramApp()
 
   const [seed, setSeed] = useState<string>('')
   const [seedLocalStorage, setSeedLocalStorage] = useState<string>('')
@@ -74,7 +74,7 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
       setErrorMessage(null)
       const sanitizedPhrase = sanitizePhrase(seed)
       await mnemonicAuthenticate(sanitizedPhrase, dispatch)
-      if (isTelegramApp) localStorage.setItem('mnemonicPhrase', encrypt(seed))
+      if (isTelegram) localStorage.setItem('mnemonicPhrase', encrypt(seed))
       setSeed('')
       onClose()
     } catch (error) {
@@ -99,7 +99,7 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
   }, [isPhraseValid, seed])
 
   useEffect(() => {
-    if (isTelegramApp) {
+    if (isTelegram) {
       const localStorageSaved = localStorage.getItem('mnemonicPhrase')
       if (localStorageSaved) {
         const seed = decrypt(localStorageSaved)
@@ -107,7 +107,7 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
         setSeed(seed)
       }
     }
-  }, [isTelegramApp])
+  }, [isTelegram])
 
   return (
     <Accordion
@@ -180,13 +180,13 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
                 }}
                 isDisabled={
                   !(
-                    (isTelegramApp && !seedLocalStorage && !seed) ||
+                    (isTelegram && !seedLocalStorage && !seed) ||
                     (isPhraseValid && seed.length > 0) ||
-                    (!isTelegramApp && seedLocalStorage)
+                    (!isTelegram && seedLocalStorage)
                   )
                 }
                 onClick={() => {
-                  if (!seedLocalStorage && !seed && isTelegramApp) {
+                  if (!seedLocalStorage && !seed && isTelegram) {
                     const newMnemonic = generateMnemonicPhrase()
                     setSeed(newMnemonic)
                   } else {
@@ -194,9 +194,9 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
                   }
                 }}
               >
-                {!seedLocalStorage && !seed && isTelegramApp
+                {!seedLocalStorage && !seed && isTelegram
                   ? 'Generate new Mnemonic'
-                  : seedLocalStorage && isTelegramApp
+                  : seedLocalStorage && isTelegram
                     ? 'Use stored Mnemonic'
                     : 'Log in'}
               </Button>

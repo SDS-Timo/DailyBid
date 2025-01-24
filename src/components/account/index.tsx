@@ -39,7 +39,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
 
   const dispatch = useDispatch()
   const { getIsTelegramApp } = useWindow()
-  const isTelegramApp = getIsTelegramApp()
+  const { isTelegram, isTelegramWeb } = getIsTelegramApp()
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
   )
@@ -58,10 +58,10 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
   }
 
   useEffect(() => {
-    if (isTelegramApp) {
+    if (isTelegram && !isTelegramWeb) {
       setActiveIndex(3)
     }
-  }, [isTelegramApp])
+  }, [isTelegram])
 
   return (
     <>
@@ -84,7 +84,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
               <WalletComponent />
             ) : (
               <Box>
-                {!isTelegramApp && (
+                {(!isTelegram || isTelegramWeb || showOtherLogins) && (
                   <>
                     <Box>
                       <IdentityComponent
@@ -100,16 +100,14 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                         onAccordionChange={() => handleAccordionChange(1)}
                       />
                     </Box>
+                    <Box mt={4}>
+                      <SeedComponent
+                        onClose={onClose}
+                        currentIndex={activeIndex}
+                        onAccordionChange={() => handleAccordionChange(2)}
+                      />
+                    </Box>
                   </>
-                )}
-                {(!isTelegramApp || showOtherLogins) && (
-                  <Box mt={4}>
-                    <SeedComponent
-                      onClose={onClose}
-                      currentIndex={activeIndex}
-                      onAccordionChange={() => handleAccordionChange(2)}
-                    />
-                  </Box>
                 )}
                 <Box mt={4}>
                   <MnemonicComponent
@@ -118,7 +116,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                     onAccordionChange={() => handleAccordionChange(3)}
                   />
                 </Box>
-                {isTelegramApp && (
+                {isTelegram && !isTelegramWeb && (
                   <Box display="flex" mt={4} mr={5} justifyContent="flex-end">
                     <Link
                       as="button"

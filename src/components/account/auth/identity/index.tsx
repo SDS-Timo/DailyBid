@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { useDispatch } from 'react-redux'
 
+import useWindow from '../../../../hooks/useWindow'
 import { AppDispatch } from '../../../../store'
 import { identityAuthenticate } from '../../../../utils/authUtils'
 
@@ -32,10 +33,16 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
   const borderColor = useColorModeValue('grey.300', 'grey.700')
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
 
+  const { getIsTelegramApp } = useWindow()
+  const { isTelegram, isTelegramWeb } = getIsTelegramApp()
   const dispatch = useDispatch<AppDispatch>()
 
   const handleClick = async () => {
-    await identityAuthenticate(dispatch, 'IC')
+    if (isTelegram && !isTelegramWeb) {
+      window.open('https://alpha.daily-bid.com/auth/loginii', '_blank')
+    } else {
+      await identityAuthenticate(dispatch, 'IC')
+    }
     onClose()
   }
 

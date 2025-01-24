@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 
 import AuthLayout from './layouts/auth'
 import DashboardLayout from './layouts/dashboard'
+import LoginII from './pages/auth/loginII'
 import Page404 from './pages/auth/page404'
 import Page500 from './pages/auth/page500'
 import Terminal from './pages/terminal'
@@ -29,6 +30,10 @@ const routes = [
       </AuthLayout>
     ),
     children: [
+      {
+        path: 'loginII',
+        element: <LoginII />,
+      },
       {
         path: '500',
         element: <Page500 />,

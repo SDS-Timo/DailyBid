@@ -35,7 +35,10 @@ describe('MnemonicComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     ;(useWindow as jest.Mock).mockReturnValue({
-      getIsTelegramApp: jest.fn(() => false),
+      getIsTelegramApp: jest.fn(() => ({
+        isTelegram: false,
+        isTelegramWeb: false,
+      })),
     })
     ;(useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch)
     ;(authUtils.mnemonicAuthenticate as jest.Mock).mockResolvedValue(true)
@@ -122,7 +125,10 @@ describe('MnemonicComponent', () => {
   it('uses stored mnemonic when in Telegram app', async () => {
     localStorage.setItem('mnemonicPhrase', 'encryptedMnemonic')
     ;(useWindow as jest.Mock).mockReturnValue({
-      getIsTelegramApp: jest.fn(() => true),
+      getIsTelegramApp: jest.fn(() => ({
+        isTelegram: true,
+        isTelegramWeb: true,
+      })),
     })
 
     renderComponent()
@@ -139,7 +145,10 @@ describe('MnemonicComponent', () => {
 
   it('generates new mnemonic if no stored mnemonic exists and in Telegram app', async () => {
     ;(useWindow as jest.Mock).mockReturnValue({
-      getIsTelegramApp: jest.fn(() => true),
+      getIsTelegramApp: jest.fn(() => ({
+        isTelegram: true,
+        isTelegramWeb: true,
+      })),
     })
 
     renderComponent()

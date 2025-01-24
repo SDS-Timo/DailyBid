@@ -29,7 +29,7 @@ const NavbarComponent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
 
   const { getIsTelegramApp } = useWindow()
-  const isTelegramApp = getIsTelegramApp()
+  const { isTelegram } = getIsTelegramApp()
 
   const sanitizePhrase = (phrase: string): string[] =>
     phrase.split(' ').filter((chunk) => chunk.trim() !== '')
@@ -44,14 +44,14 @@ const NavbarComponent: React.FC = () => {
   }
 
   useEffect(() => {
-    if (isTelegramApp) {
+    if (isTelegram) {
       const localStorageSaved = localStorage.getItem('mnemonicPhrase')
       if (localStorageSaved) {
         const seed = decrypt(localStorageSaved)
         validateAndLogin(seed)
       }
     }
-  }, [isTelegramApp])
+  }, [isTelegram])
 
   return (
     <Flex

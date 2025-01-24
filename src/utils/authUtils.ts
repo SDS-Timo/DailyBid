@@ -78,12 +78,12 @@ export async function seedAuthenticate(seed: string, dispatch: AppDispatch) {
  */
 export async function identityAuthenticate(
   dispatch: AppDispatch,
-  AuthNetworkTypes: 'IC' | 'NFID',
+  AuthNetworkTypes: 'IC' | 'ICT' | 'NFID',
 ): Promise<void> {
   try {
     const authClient = await AuthClient.create()
     const HTTP_AGENT_HOST =
-      AuthNetworkTypes === 'IC'
+      AuthNetworkTypes === 'IC' || AuthNetworkTypes === 'ICT'
         ? `${process.env.HTTP_AGENT_HOST}`
         : `${process.env.HTTP_AGENT_HOST_NFID}`
 
@@ -113,6 +113,22 @@ export async function identityAuthenticate(
       windowOpenerFeatures: windowFeatures,
       onSuccess: async () => {
         const identity = authClient.getIdentity()
+
+        if (AuthNetworkTypes === 'ICT') {
+          const delegation = (identity as any)._delegation
+          if (!delegation) {
+            console.error('Delegation data not available')
+            return
+          }
+
+          const returnTo = 'https://t.me/dailybittest_bot/trade'
+
+          const redirectURL = `${returnTo}?delegation=${encodeURIComponent(
+            JSON.stringify(delegation),
+          )}`
+          window.location.href = redirectURL
+        }
+
         const myAgent = getAgent(identity)
         await doLogin(myAgent, dispatch)
       },
