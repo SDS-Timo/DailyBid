@@ -12,7 +12,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <Main>
       <Flex justifyContent="center" alignItems="center" height="100vh">
-        <Container>{children}</Container>
+        <Container maxW="100%" display="flex" justifyContent="center">
+          {children}
+        </Container>
       </Flex>
     </Main>
   )

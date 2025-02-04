@@ -15,7 +15,10 @@ import { useDispatch } from 'react-redux'
 
 import useWindow from '../../../../hooks/useWindow'
 import { AppDispatch } from '../../../../store'
-import { identityAuthenticate } from '../../../../utils/authUtils'
+import {
+  identityAuthenticate,
+  generatePublicKey,
+} from '../../../../utils/authUtils'
 
 interface IdentityComponentProps {
   onClose: () => void
@@ -39,7 +42,12 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
 
   const handleClick = async () => {
     if (isTelegram && !isTelegramWeb) {
-      window.open('https://alpha.daily-bid.com/auth/loginii', '_blank')
+      const { identity, publicKey } = generatePublicKey()
+      localStorage.setItem('identity', JSON.stringify(identity.toJSON()))
+
+      window.Telegram.WebApp.openLink(
+        `https://alpha.daily-bid.com/auth/loginii?sessionKey=${publicKey}`,
+      )
     } else {
       await identityAuthenticate(dispatch, 'IC')
     }

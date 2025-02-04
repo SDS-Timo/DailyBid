@@ -84,15 +84,15 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
               <WalletComponent />
             ) : (
               <Box>
+                <Box>
+                  <IdentityComponent
+                    onClose={onClose}
+                    currentIndex={activeIndex}
+                    onAccordionChange={() => handleAccordionChange(0)}
+                  />
+                </Box>
                 {(!isTelegram || isTelegramWeb || showOtherLogins) && (
                   <>
-                    <Box>
-                      <IdentityComponent
-                        onClose={onClose}
-                        currentIndex={activeIndex}
-                        onAccordionChange={() => handleAccordionChange(0)}
-                      />
-                    </Box>
                     <Box mt={4}>
                       <NfidComponent
                         onClose={onClose}

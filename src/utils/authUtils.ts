@@ -31,11 +31,27 @@ export function getAgent(identity: Identity) {
 }
 
 /**
+ * Generates a new Ed25519 key pair and extracts the public key.
+ * This function creates a new Ed25519 key pair, retrieves the public key in DER format,
+ * and converts it into a hexadecimal string.
+ * @returns - An object containing:
+ *  - `identity`: The generated `Ed25519KeyIdentity` instance.
+ *  - `publicKey`: The extracted public key as a hexadecimal string.
+ */
+export function generatePublicKey() {
+  const identity = Ed25519KeyIdentity.generate()
+  const publicKeyDer = identity.getPublicKey().toDer()
+  const publicKey = Buffer.from(publicKeyDer).toString('hex')
+
+  return { identity, publicKey }
+}
+
+/**
  * Performs the login process by dispatching actions to set the user agent and authentication status.
  * @param myAgent - The HTTP agent to be used for the login process.
  * @param dispatch - The dispatch function to trigger actions in the Redux store.
  */
-async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
+export async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
   dispatch(setUserAgent(myAgent))
   dispatch(setIsAuthenticated(true))
 
@@ -78,12 +94,12 @@ export async function seedAuthenticate(seed: string, dispatch: AppDispatch) {
  */
 export async function identityAuthenticate(
   dispatch: AppDispatch,
-  AuthNetworkTypes: 'IC' | 'ICT' | 'NFID',
+  AuthNetworkTypes: 'IC' | 'NFID',
 ): Promise<void> {
   try {
     const authClient = await AuthClient.create()
     const HTTP_AGENT_HOST =
-      AuthNetworkTypes === 'IC' || AuthNetworkTypes === 'ICT'
+      AuthNetworkTypes === 'IC'
         ? `${process.env.HTTP_AGENT_HOST}`
         : `${process.env.HTTP_AGENT_HOST_NFID}`
 
@@ -113,22 +129,6 @@ export async function identityAuthenticate(
       windowOpenerFeatures: windowFeatures,
       onSuccess: async () => {
         const identity = authClient.getIdentity()
-
-        if (AuthNetworkTypes === 'ICT') {
-          const delegation = (identity as any)._delegation
-          if (!delegation) {
-            console.error('Delegation data not available')
-            return
-          }
-
-          const returnTo = 'https://t.me/dailybittest_bot/trade'
-
-          const redirectURL = `${returnTo}?delegation=${encodeURIComponent(
-            JSON.stringify(delegation),
-          )}`
-          window.location.href = redirectURL
-        }
-
         const myAgent = getAgent(identity)
         await doLogin(myAgent, dispatch)
       },
