@@ -17,6 +17,7 @@ import NavbarUser from './user'
 import NavbarWallet from './wallet'
 import LogoDark from '../../assets/img/logo/dailyBid_black.svg'
 import LogoLight from '../../assets/img/logo/dailyBid_white.svg'
+import useDPasteApi from '../../hooks/useDpasteApi'
 import useWindow from '../../hooks/useWindow'
 import { RootState } from '../../store'
 import { AppDispatch } from '../../store'
@@ -37,7 +38,9 @@ const NavbarComponent: React.FC = () => {
   const { getIsTelegramApp } = useWindow()
   const { isTelegram } = getIsTelegramApp()
 
-  // Automatic login mnemonic
+  const { readPrivateSnippetFromDpaste } = useDPasteApi()
+
+  // Telegram mini app - Automatic login mnemonic
   const validateAndLogin = async (mnemonicPhrase: string) => {
     try {
       const sanitizePhrase = (phrase: string): string[] =>
@@ -50,36 +53,12 @@ const NavbarComponent: React.FC = () => {
     }
   }
 
-  async function readPrivateSnippetFromDpaste(snippetCode: string) {
-    try {
-      const snippetUrl = `https://dpaste.com/${snippetCode}.txt`
-
-      const API_TOKEN = process.env.ENV_DPASTE_API_KEY
-
-      const response = await fetch(snippetUrl, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch snippet: ${response.statusText}`)
-      }
-
-      const snippetContent = await response.text()
-      return snippetContent
-    } catch (error: any) {
-      console.error('Error reading snippet from dpaste:', error.message)
-      throw error
-    }
-  }
-
   useEffect(() => {
     const urlParams = new URL(window.location.href)
     const delegationCode =
       urlParams.searchParams.get('tgWebAppStartParam') || ''
 
+    // Telegram mini app - Internet Identity delegation login
     const processDelegation = async (delegationCode: string) => {
       const delegationJSON = await readPrivateSnippetFromDpaste(delegationCode)
 
@@ -112,7 +91,7 @@ const NavbarComponent: React.FC = () => {
       }
     }
 
-    if (delegationCode) {
+    if (isTelegram && delegationCode) {
       processDelegation(delegationCode)
     } else if (isTelegram) {
       const localStorageSaved = localStorage.getItem('mnemonicPhrase')

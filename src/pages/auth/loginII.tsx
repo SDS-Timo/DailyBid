@@ -19,8 +19,12 @@ import {
   ECDSAKeyIdentity,
   DelegationChain,
 } from '@dfinity/identity'
+import { Select } from 'bymax-react-select'
 import { Helmet } from 'react-helmet-async'
 
+import customStyles from '../../common/styles'
+import useDPasteApi from '../../hooks/useDpasteApi'
+import { Option } from '../../types'
 import { getInternetIdentityDerivationOrigin } from '../../utils/canisterUtils'
 import { hexToByteArray } from '../../utils/convertionsUtils'
 
@@ -31,62 +35,19 @@ function getSessionKeyFromQuery(): string {
   return urlParams.get('sessionKey') || ''
 }
 
-function getLoginDuration(): string {
-  const savedValue = localStorage.getItem('selectedTimeLoginDurationInterval')
-
-  const numericValue = savedValue ? Number(savedValue) : 0.5
-
-  if (isNaN(numericValue)) return 'No value'
-
-  if (numericValue <= 12) {
-    return `${numericValue} hour${numericValue <= 1 ? '' : 's'}`
-  } else {
-    const days = numericValue / 24
-    return `${days} day${days === 1 ? '' : 's'}`
-  }
-}
-
-async function saveToDpasteWithAuth(content: any) {
-  try {
-    const API_TOKEN = process.env.ENV_DPASTE_API_KEY
-
-    const response = await fetch('https://dpaste.com/api/v2/', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        content,
-        lexer: 'text',
-        expiry_days: '1',
-        visibility: 'private',
-      }).toString(),
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to save to dpaste.com: ${response.statusText}`)
-    }
-
-    const result = await response.text()
-    console.log('Saved to dpaste.com URL:', result)
-
-    const code = new URL(result).pathname.replace('/', '')
-    console.log('Extracted Code:', code)
-
-    return code
-  } catch (error) {
-    console.error('Error saving to dpaste.com with auth:', error)
-    throw error
-  }
-}
-
 const LoginII: React.FC = () => {
   const [userPrincipal, setUserPrincipal] = useState('')
   const [delegationCode, setDelegationCode] = useState('')
+  const [selectedTime, setSelectedTime] = useState<Option | null>({
+    id: '720',
+    value: '720',
+    label: '30d',
+  })
 
-  const deepLink = `tg://resolve?domain=daily_bid_bot&appname=gui&startapp=${delegationCode}`
-  const alternativeLink = `https://t.me/daily_bid_bot/gui?startapp=${delegationCode}`
+  const { saveToDpasteWithAuth } = useDPasteApi()
+
+  const deepLink = `${process.env.ENV_TELEGRAM_DEEP_LINK}&startapp=${delegationCode}`
+  const alternativeLink = `${process.env.ENV_TELEGRAM_ALTERNATIVE_LINK}?startapp=${delegationCode}`
 
   const { onCopy: onCopyDeepLink } = useClipboard(deepLink)
   const { onCopy: onCopyAltLink } = useClipboard(alternativeLink)
@@ -110,6 +71,28 @@ const LoginII: React.FC = () => {
     })
   }
 
+  const selectOptions = [
+    { id: '1', value: '1', label: '1h' },
+    { id: '3', value: '3', label: '3h' },
+    { id: '12', value: '12', label: '12h' },
+    { id: '24', value: '24', label: '1d' },
+    { id: '168', value: '168', label: '7d' },
+    { id: '720', value: '720', label: '30d' },
+  ]
+
+  const handleLoginDurationOptionChange = (
+    option: Option | Option[] | null,
+  ) => {
+    const optionValue =
+      Array.isArray(option) && option.length > 0
+        ? option[0]
+        : (option as Option | null)
+
+    if (optionValue && optionValue !== undefined && optionValue.value) {
+      setSelectedTime(optionValue)
+    }
+  }
+
   const handleClick = async () => {
     let delegationChain
 
@@ -120,11 +103,8 @@ const LoginII: React.FC = () => {
       return
     }
 
-    console.log('Tab opened:', newTab)
-
     const originalWindowOpen = window.open
     window.open = function (url, target) {
-      console.log('Library tried to open:', url)
       if (newTab && !newTab.closed) {
         if (url) {
           newTab.location.href = url.toString()
@@ -146,14 +126,14 @@ const LoginII: React.FC = () => {
       })
 
       const AUTH_EXPIRATION_INTERNET_IDENTITY = BigInt(
-        24 * 60 * 60 * 1000 * 1000 * 1000,
+        Number(selectedTime?.value) * 60 * 60 * 1000 * 1000 * 1000,
       )
 
       await new Promise((resolve) => {
         authClient.login({
           maxTimeToLive: AUTH_EXPIRATION_INTERNET_IDENTITY,
-          identityProvider: 'https://identity.ic0.app/#authorize',
-          derivationOrigin: getInternetIdentityDerivationOrigin(),
+          identityProvider: `${process.env.HTTP_AGENT_HOST}/#authorize`,
+          derivationOrigin: process.env.ENV_AUTH_DERIVATION_ORIGIN,
           onSuccess: resolve,
         })
       })
@@ -169,7 +149,7 @@ const LoginII: React.FC = () => {
           const middleToApp = await DelegationChain.create(
             middleKeyIdentity,
             appPublicKey,
-            new Date(Date.now() + 15 * 60 * 1000), // 15 min
+            new Date(Date.now() + Number(selectedTime?.value) * 60 * 60 * 1000),
             { previous: middleIdentity.getDelegation() },
           )
 
@@ -180,7 +160,7 @@ const LoginII: React.FC = () => {
       }
 
       if (delegationChain) {
-        const returnTo = 'tg://resolve?domain=daily_bid_bot&appname=gui'
+        const returnTo = process.env.ENV_TELEGRAM_DEEP_LINK
 
         const delegationCodeDPaste = await saveToDpasteWithAuth(
           JSON.stringify(delegationChain),
@@ -189,8 +169,14 @@ const LoginII: React.FC = () => {
         setDelegationCode(delegationCodeDPaste)
 
         const miniAppUrl = `${returnTo}&startapp=${delegationCodeDPaste}`
+
         window.location.href = miniAppUrl
-        newTab.close()
+
+        window.onblur = () => {
+          window.onfocus = () => {
+            setTimeout(() => window.close(), 1000)
+          }
+        }
       } else {
         console.error('Delegation chain is undefined.')
       }
@@ -205,18 +191,18 @@ const LoginII: React.FC = () => {
   }
 
   return (
-    <Box textAlign="center" width="100%" margin="auto">
+    <Box textAlign="center" width="100%">
       <Helmet title="DailyBid - Internet Identity Login" />
       <Heading as="h1" size="2xl" fontWeight="bold" mb={8}>
         Internet Identity
       </Heading>
-
       <Box
         display="flex"
         justifyContent="center"
-        alignItems="center"
+        alignItems="flex-start"
         mb={8}
         maxWidth="900px"
+        minH="315px"
         width="100%"
         margin="auto"
         top="0"
@@ -226,78 +212,190 @@ const LoginII: React.FC = () => {
         overflowX="auto"
         whiteSpace="nowrap"
       >
-        <Box textAlign="right" pr={4} minWidth="150px">
-          <Text fontSize="lg" fontWeight="normal">
-            Derivation Origin:
-          </Text>
-          <Text fontSize="lg" fontWeight="normal">
-            Duration (TTL):
-          </Text>
+        <Box
+          textAlign="right"
+          pr={4}
+          minWidth="150px"
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+        >
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="right"
+            minH="58px"
+          >
+            <Text fontSize="lg" fontWeight="normal">
+              Duration (TTL):
+            </Text>
+          </Box>
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="right"
+            mt={2}
+          >
+            <Text fontSize="lg" fontWeight="normal">
+              Derivation Origin:
+            </Text>
+          </Box>
           {userPrincipal && (
             <>
-              <Text fontSize="lg" fontWeight="normal">
-                User Principal:
-              </Text>
-              <Text fontSize="lg" fontWeight="normal">
-                Deep Link:
-              </Text>
-              <Text fontSize="lg" fontWeight="normal">
-                Alternative Link:
-              </Text>
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="right"
+                mt={2}
+              >
+                <Text fontSize="lg" fontWeight="normal">
+                  User Principal:
+                </Text>
+              </Box>
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="right"
+                mt={2}
+              >
+                <Text fontSize="lg" fontWeight="normal">
+                  Deep Link:
+                </Text>
+              </Box>
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="right"
+                mt={3}
+              >
+                <Text fontSize="lg" fontWeight="normal">
+                  Alternative Link:
+                </Text>
+              </Box>
             </>
           )}
         </Box>
 
-        <Box textAlign="left" pl={4} minWidth="250px">
-          <Text fontSize="lg" fontWeight="normal">
-            {getInternetIdentityDerivationOrigin()}
-          </Text>
-          <Text fontSize="lg" fontWeight="normal">
-            {getLoginDuration()}
-          </Text>
+        <Box
+          textAlign="left"
+          pl={4}
+          minWidth="250px"
+          display="flex"
+          flexDirection="column"
+        >
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="left"
+            maxW={300}
+          >
+            <Select
+              id="loginDuration"
+              value={selectedTime}
+              isMulti={false}
+              isClearable={false}
+              isLocked={!!userPrincipal}
+              options={selectOptions}
+              placeholder="Select the login duration"
+              noOptionsMessage="No data"
+              onChange={handleLoginDurationOptionChange}
+              styles={customStyles as any}
+            />
+          </Box>
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="left"
+            mt={2}
+          >
+            <Text fontSize="lg" fontWeight="normal">
+              {getInternetIdentityDerivationOrigin()}
+            </Text>
+          </Box>
+
           {userPrincipal && (
             <>
-              <Text fontSize="lg" fontWeight="normal">
-                {userPrincipal}
-              </Text>
-              <Text fontSize="lg" fontWeight="normal">
-                <Link href={deepLink} isExternal>
-                  {deepLink}
-                </Link>
-                <IconButton
-                  aria-label="Copy link"
-                  icon={<CopyIcon />}
-                  size="sm"
-                  onClick={() => handleCopy('deepLink')}
-                  ml={1}
-                  variant="ghost"
-                />
-              </Text>
-              <Text fontSize="lg" fontWeight="normal">
-                <Link href={alternativeLink} isExternal>
-                  {alternativeLink}
-                </Link>
-                <IconButton
-                  aria-label="Copy link"
-                  icon={<CopyIcon />}
-                  size="sm"
-                  onClick={() => handleCopy('alternativeLink')}
-                  ml={1}
-                  variant="ghost"
-                />
-              </Text>
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="left"
+                mt={2}
+              >
+                <Text fontSize="lg" fontWeight="normal">
+                  {userPrincipal}
+                </Text>
+              </Box>
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="left"
+                mt={2}
+              >
+                <Text fontSize="lg" fontWeight="normal">
+                  <Link href={deepLink} isExternal>
+                    {deepLink}
+                  </Link>
+                  <IconButton
+                    aria-label="Copy link"
+                    icon={<CopyIcon />}
+                    size="sm"
+                    onClick={() => handleCopy('deepLink')}
+                    ml={1}
+                    variant="ghost"
+                  />
+                </Text>
+              </Box>
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="left"
+                mt={2}
+              >
+                <Text fontSize="lg" fontWeight="normal">
+                  <Link href={alternativeLink} isExternal>
+                    {alternativeLink}
+                  </Link>
+                  <IconButton
+                    aria-label="Copy link"
+                    icon={<CopyIcon />}
+                    size="sm"
+                    onClick={() => handleCopy('alternativeLink')}
+                    ml={1}
+                    variant="ghost"
+                  />
+                </Text>
+              </Box>
             </>
           )}
         </Box>
       </Box>
 
-      <Text fontSize="lg" fontWeight="normal" mb={8} mt={4}>
-        Click the button below to log in with Internet Identity.
-      </Text>
+      {userPrincipal ? (
+        <Text fontSize="lg" fontWeight="normal" mb={8} mt={4}>
+          You have been redirected to Telegram. If the redirection did not work
+          try to open one of the links above in a browser manually.
+        </Text>
+      ) : (
+        <>
+          <Text fontSize="lg" fontWeight="normal" mb={8} mt={4}>
+            Click the button below to log in with Internet Identity.
+          </Text>
 
-      <Button colorScheme="blue" size="lg" onClick={handleClick}>
-        Login
-      </Button>
+          <Button colorScheme="blue" size="lg" onClick={handleClick}>
+            Login
+          </Button>
+        </>
+      )}
     </Box>
   )
 }

@@ -46,7 +46,7 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
       localStorage.setItem('identity', JSON.stringify(identity.toJSON()))
 
       window.Telegram.WebApp.openLink(
-        `https://alpha.daily-bid.com/auth/loginii?sessionKey=${publicKey}`,
+        `${process.env.ENV_LOGIN_II_PROXY_PAGE_LINK}?sessionKey=${publicKey}`,
       )
     } else {
       await identityAuthenticate(dispatch, 'IC')

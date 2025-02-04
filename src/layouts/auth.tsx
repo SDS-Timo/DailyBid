@@ -11,7 +11,7 @@ interface AuthLayoutProps {
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <Main>
-      <Flex justifyContent="center" alignItems="center" height="100vh">
+      <Flex justifyContent="center" alignItems="center" h="100vh">
         <Container maxW="100%" display="flex" justifyContent="center">
           {children}
         </Container>
