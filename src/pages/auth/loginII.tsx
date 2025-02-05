@@ -6,9 +6,11 @@ import {
   Heading,
   Text,
   Box,
+  Image,
   Link,
   IconButton,
   useClipboard,
+  useColorMode,
   useToast,
 } from '@chakra-ui/react'
 import { DerEncodedPublicKey } from '@dfinity/agent'
@@ -22,6 +24,10 @@ import {
 import { Select } from 'bymax-react-select'
 import { Helmet } from 'react-helmet-async'
 
+import LogoDark from '../../assets/img/logo/dailyBid_black.svg'
+import LogoLight from '../../assets/img/logo/dailyBid_white.svg'
+import IILogo from '../../assets/img/logo/ii-logo.png'
+import TelegramLogo from '../../assets/img/logo/telegram-logo.png'
 import customStyles from '../../common/styles'
 import useDPasteApi from '../../hooks/useDpasteApi'
 import { Option } from '../../types'
@@ -52,6 +58,8 @@ const LoginII: React.FC = () => {
   const { onCopy: onCopyDeepLink } = useClipboard(deepLink)
   const { onCopy: onCopyAltLink } = useClipboard(alternativeLink)
 
+  const { colorMode } = useColorMode()
+
   const toast = useToast({
     duration: 10000,
     position: 'top-right',
@@ -72,12 +80,14 @@ const LoginII: React.FC = () => {
   }
 
   const selectOptions = [
-    { id: '1', value: '1', label: '1h' },
-    { id: '3', value: '3', label: '3h' },
-    { id: '12', value: '12', label: '12h' },
-    { id: '24', value: '24', label: '1d' },
-    { id: '168', value: '168', label: '7d' },
-    { id: '720', value: '720', label: '30d' },
+    { id: '1', value: '0.0833', label: '5m' },
+    { id: '2', value: '0.25', label: '15m' },
+    { id: '3', value: '1', label: '1h' },
+    { id: '4', value: '3', label: '3h' },
+    { id: '5', value: '12', label: '12h' },
+    { id: '6', value: '24', label: '1d' },
+    { id: '7', value: '168', label: '7d' },
+    { id: '8', value: '720', label: '30d' },
   ]
 
   const handleLoginDurationOptionChange = (
@@ -174,7 +184,7 @@ const LoginII: React.FC = () => {
 
         window.onblur = () => {
           window.onfocus = () => {
-            setTimeout(() => window.close(), 1000)
+            //setTimeout(() => window.close(), 1000)
           }
         }
       } else {
@@ -192,7 +202,7 @@ const LoginII: React.FC = () => {
 
   return (
     <Box textAlign="center" width="100%">
-      <Helmet title="DailyBid - Internet Identity Login" />
+      <Helmet title="DailyBid login for Telegram mini app" />
       <Heading as="h1" size="2xl" fontWeight="bold" mb={8}>
         Internet Identity
       </Heading>
@@ -202,7 +212,7 @@ const LoginII: React.FC = () => {
         alignItems="flex-start"
         mb={8}
         maxWidth="900px"
-        minH="315px"
+        height="400px"
         width="100%"
         margin="auto"
         top="0"
@@ -381,13 +391,23 @@ const LoginII: React.FC = () => {
       </Box>
 
       {userPrincipal ? (
-        <Text fontSize="lg" fontWeight="normal" mb={8} mt={4}>
-          You have been redirected to Telegram. If the redirection did not work
-          try to open one of the links above in a browser manually.
-        </Text>
+        <>
+          <Text fontSize="lg" fontWeight="normal" mb={8}>
+            You have been redirected to Telegram. Click here to close this tab:
+          </Text>
+
+          <Button colorScheme="blue" size="lg" onClick={() => window.close()}>
+            Close
+          </Button>
+
+          <Text fontSize="lg" fontWeight="normal" mt={8}>
+            If the redirection did not work try to open one of the links above
+            manually in a browser.
+          </Text>
+        </>
       ) : (
         <>
-          <Text fontSize="lg" fontWeight="normal" mb={8} mt={4}>
+          <Text fontSize="lg" fontWeight="normal" mb={8}>
             Click the button below to log in with Internet Identity.
           </Text>
 
@@ -396,6 +416,32 @@ const LoginII: React.FC = () => {
           </Button>
         </>
       )}
+
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        width="100%"
+        margin="auto"
+        mt={8}
+        padding="16px"
+        overflowX="auto"
+        whiteSpace="nowrap"
+      >
+        <Image
+          src={IILogo}
+          alt="Internet Identity"
+          height="64px"
+          width="250px"
+        />
+        <Image
+          src={colorMode === 'dark' ? LogoLight : LogoDark}
+          alt="DailyBid"
+          boxSize="140px"
+          ml={4}
+        />
+        <Image src={TelegramLogo} alt="Telegram" boxSize="55px" ml={4} />
+      </Box>
     </Box>
   )
 }
