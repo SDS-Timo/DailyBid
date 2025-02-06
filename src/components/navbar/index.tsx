@@ -55,17 +55,24 @@ const NavbarComponent: React.FC = () => {
 
   useEffect(() => {
     const urlParams = new URL(window.location.href)
-    const delegationCode =
-      urlParams.searchParams.get('tgWebAppStartParam') || ''
+
+    const queryString = urlParams.searchParams.get('tgWebAppStartParam') || ''
+
+    const [delegationCode, keyValue] = queryString.split('_')
+
+    const aesKey = keyValue?.startsWith('key-') ? keyValue.split('-')[1] : ''
+    const genAesKeyUint8Array = new Uint8Array(Buffer.from(aesKey, 'hex'))
 
     // Telegram mini app - Internet Identity delegation login
     const processDelegation = async (delegationCode: string) => {
       const delegationJSON = await readPrivateSnippetFromDpaste(delegationCode)
 
-      if (delegationJSON) {
+      const delegationDecrypted = decrypt(delegationJSON, genAesKeyUint8Array)
+
+      if (delegationDecrypted) {
         try {
           const delegationChain = DelegationChain.fromJSON(
-            JSON.parse(delegationJSON),
+            JSON.parse(delegationDecrypted),
           )
 
           const identityJSON = localStorage.getItem('identity')

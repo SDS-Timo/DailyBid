@@ -33,6 +33,7 @@ import useDPasteApi from '../../hooks/useDpasteApi'
 import { Option } from '../../types'
 import { getInternetIdentityDerivationOrigin } from '../../utils/canisterUtils'
 import { hexToByteArray } from '../../utils/convertionsUtils'
+import { generateAESKey, encrypt } from '../../utils/cryptoUtils'
 
 let appPublicKey: Ed25519PublicKey | null = null
 
@@ -44,6 +45,7 @@ function getSessionKeyFromQuery(): string {
 const LoginII: React.FC = () => {
   const [userPrincipal, setUserPrincipal] = useState('')
   const [delegationCode, setDelegationCode] = useState('')
+  const [aesKey, setAesKey] = useState('')
   const [selectedTime, setSelectedTime] = useState<Option | null>({
     id: '720',
     value: '720',
@@ -55,8 +57,10 @@ const LoginII: React.FC = () => {
   const deepLink = `${process.env.ENV_TELEGRAM_DEEP_LINK}&startapp=${delegationCode}`
   const alternativeLink = `${process.env.ENV_TELEGRAM_ALTERNATIVE_LINK}?startapp=${delegationCode}`
 
-  const { onCopy: onCopyDeepLink } = useClipboard(deepLink)
-  const { onCopy: onCopyAltLink } = useClipboard(alternativeLink)
+  const { onCopy: onCopyDeepLink } = useClipboard(`${deepLink}_key-${aesKey}`)
+  const { onCopy: onCopyAltLink } = useClipboard(
+    `${alternativeLink}_key-${aesKey}`,
+  )
 
   const { colorMode } = useColorMode()
 
@@ -172,13 +176,23 @@ const LoginII: React.FC = () => {
       if (delegationChain) {
         const returnTo = process.env.ENV_TELEGRAM_DEEP_LINK
 
-        const delegationCodeDPaste = await saveToDpasteWithAuth(
-          JSON.stringify(delegationChain),
+        const genAesKey = await generateAESKey()
+        const genAesKeyUint8Array = new Uint8Array(
+          Buffer.from(genAesKey, 'hex'),
         )
+        setAesKey(genAesKey)
+
+        const delegationEncrypted = encrypt(
+          JSON.stringify(delegationChain),
+          genAesKeyUint8Array,
+        )
+
+        const delegationCodeDPaste =
+          await saveToDpasteWithAuth(delegationEncrypted)
 
         setDelegationCode(delegationCodeDPaste)
 
-        const miniAppUrl = `${returnTo}&startapp=${delegationCodeDPaste}`
+        const miniAppUrl = `${returnTo}&startapp=${delegationCodeDPaste}_key-${genAesKey}`
 
         window.location.href = miniAppUrl
 
@@ -201,7 +215,13 @@ const LoginII: React.FC = () => {
   }
 
   return (
-    <Box textAlign="center" width="100%">
+    <Box
+      textAlign="center"
+      width="100%"
+      height={{ base: '80vh', md: 'auto' }}
+      paddingTop={{ base: '16px', md: '0' }}
+      paddingBottom={{ base: '16px', md: '0' }}
+    >
       <Helmet title="DailyBid login for Telegram mini app" />
       <Heading as="h1" size="2xl" fontWeight="bold" mb={8}>
         Internet Identity
@@ -351,7 +371,7 @@ const LoginII: React.FC = () => {
                 mt={2}
               >
                 <Text fontSize="lg" fontWeight="normal">
-                  <Link href={deepLink} isExternal>
+                  <Link href={`${deepLink}_key-${aesKey}`} isExternal>
                     {deepLink}
                   </Link>
                   <IconButton
@@ -372,7 +392,7 @@ const LoginII: React.FC = () => {
                 mt={2}
               >
                 <Text fontSize="lg" fontWeight="normal">
-                  <Link href={alternativeLink} isExternal>
+                  <Link href={`${alternativeLink}_key-${aesKey}`} isExternal>
                     {alternativeLink}
                   </Link>
                   <IconButton
@@ -419,6 +439,7 @@ const LoginII: React.FC = () => {
 
       <Box
         display="flex"
+        flexDirection={{ base: 'column', md: 'row' }}
         justifyContent="center"
         alignItems="center"
         width="100%"
@@ -429,18 +450,26 @@ const LoginII: React.FC = () => {
         whiteSpace="nowrap"
       >
         <Image
+          src={colorMode === 'dark' ? LogoLight : LogoDark}
+          alt="DailyBid"
+          height="64px"
+          width="200px"
+          mb={{ base: 4, md: 0 }}
+        />
+        <Image
+          src={TelegramLogo}
+          alt="Telegram"
+          boxSize="55px"
+          ml={{ base: 0, md: 4 }}
+          mb={{ base: 4, md: 0 }}
+        />
+        <Image
           src={IILogo}
           alt="Internet Identity"
           height="64px"
           width="250px"
+          ml={{ base: 0, md: 4 }}
         />
-        <Image
-          src={colorMode === 'dark' ? LogoLight : LogoDark}
-          alt="DailyBid"
-          boxSize="140px"
-          ml={4}
-        />
-        <Image src={TelegramLogo} alt="Telegram" boxSize="55px" ml={4} />
       </Box>
     </Box>
   )
