@@ -21,7 +21,9 @@ import * as Yup from 'yup'
 import { RootState } from '../../../store'
 import { getInternetIdentityDerivationOrigin } from '../../../utils/canisterUtils'
 
-const DerivationOriginSettings: React.FC = () => {
+const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
+  isMenuOpen,
+}) => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
   const buttonBgColor = useColorModeValue('grey.500', 'grey.600')
   const fontColor = useColorModeValue('grey.25', 'grey.25')
@@ -104,10 +106,12 @@ const DerivationOriginSettings: React.FC = () => {
   })
 
   useEffect(() => {
-    const localStorageCanisterId = getInternetIdentityDerivationOrigin()
-    const { canisterId } = validateAndFormatInput(localStorageCanisterId)
-    formik.setFieldValue('canisterId', canisterId)
-  }, [])
+    if (isMenuOpen) {
+      const localStorageCanisterId = getInternetIdentityDerivationOrigin()
+      const { canisterId } = validateAndFormatInput(localStorageCanisterId)
+      formik.setFieldValue('canisterId', canisterId)
+    }
+  }, [isMenuOpen])
 
   return (
     <>

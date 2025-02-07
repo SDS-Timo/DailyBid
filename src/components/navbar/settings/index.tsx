@@ -14,6 +14,7 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
+  useDisclosure,
 } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
@@ -26,6 +27,8 @@ import RequireConfirmationSettings from './requireConfirmation'
 import { RootState } from '../../../store'
 
 const NavbarSettings: React.FC = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+
   const bgColor = useColorModeValue('grey.100', 'grey.900')
 
   const [isSelectOpenAutoClaim, setIsSelectOpenAutoClaim] = useState(false)
@@ -38,7 +41,7 @@ const NavbarSettings: React.FC = () => {
 
   return (
     <Flex alignItems="center" zIndex="10">
-      <Menu>
+      <Menu isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
         <MenuButton
           as={IconButton}
           aria-label="Settings"
@@ -152,7 +155,7 @@ const NavbarSettings: React.FC = () => {
                 </AccordionButton>
               </h2>
               <AccordionPanel pb={4}>
-                <DerivationOriginSettings />
+                <DerivationOriginSettings isMenuOpen={isOpen} />
               </AccordionPanel>
             </AccordionItem>
           </Accordion>

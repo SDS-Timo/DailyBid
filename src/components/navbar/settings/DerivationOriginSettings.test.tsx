@@ -42,13 +42,13 @@ jest.mock('@chakra-ui/react', () => {
 })
 
 describe('DerivationOriginSettings Component', () => {
-  const renderComponent = async () => {
+  const renderComponent = async (isOpen = true) => {
     process.env.ENV_AUTH_DERIVATION_ORIGIN = '5kqtj-oaaaa-aaaao-a3q5a-cai'
 
     render(
       <Provider store={store}>
         <ChakraProvider>
-          <DerivationOriginSettings />
+          <DerivationOriginSettings isMenuOpen={isOpen} />
         </ChakraProvider>
       </Provider>,
     )
