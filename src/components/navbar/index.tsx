@@ -81,14 +81,24 @@ const NavbarComponent: React.FC = () => {
             : null
 
           if (identity) {
-            const delegationIdentity = DelegationIdentity.fromDelegation(
-              identity,
-              delegationChain,
-            )
+            const publicKey = Buffer.from(
+              identity.getPublicKey().toDer(),
+            ).toString('hex')
 
-            const agent = getAgent(delegationIdentity)
+            const delegationChainPublicKey = Buffer.from(
+              delegationChain.delegations[1].delegation.pubkey,
+            ).toString('hex')
 
-            doLogin(agent, dispatch)
+            if (publicKey === delegationChainPublicKey) {
+              const delegationIdentity = DelegationIdentity.fromDelegation(
+                identity,
+                delegationChain,
+              )
+
+              const agent = getAgent(delegationIdentity)
+
+              doLogin(agent, dispatch)
+            }
           }
         } catch (error) {
           console.error('Failed to process delegation:', error)
