@@ -22,7 +22,10 @@ import useWindow from '../../hooks/useWindow'
 import { RootState } from '../../store'
 import { AppDispatch } from '../../store'
 import { getAgent, doLogin } from '../../utils/authUtils'
-import { mnemonicAuthenticate } from '../../utils/authUtils'
+import {
+  mnemonicAuthenticate,
+  retrieveStoredDelegationII,
+} from '../../utils/authUtils'
 import { decrypt } from '../../utils/cryptoUtils'
 import AccountComponent from '../account'
 
@@ -41,7 +44,7 @@ const NavbarComponent: React.FC = () => {
   const { readPrivateSnippetFromDpaste } = useDPasteApi()
 
   // Telegram mini app - Automatic login mnemonic
-  const validateAndLogin = async (mnemonicPhrase: string) => {
+  const processMnemonic = async (mnemonicPhrase: string) => {
     try {
       const sanitizePhrase = (phrase: string): string[] =>
         phrase.split(' ').filter((chunk) => chunk.trim() !== '')
@@ -53,70 +56,100 @@ const NavbarComponent: React.FC = () => {
     }
   }
 
-  useEffect(() => {
-    const urlParams = new URL(window.location.href)
+  // Telegram mini app - Internet Identity delegation login
+  const processDelegation = async (delegationCode: string, aesKey: string) => {
+    const delegationJSON = await readPrivateSnippetFromDpaste(delegationCode)
 
-    const queryString = urlParams.searchParams.get('tgWebAppStartParam') || ''
-
-    const [delegationCode, keyValue] = queryString.split('_')
-
-    const aesKey = keyValue?.startsWith('key-') ? keyValue.split('-')[1] : ''
     const genAesKeyUint8Array = new Uint8Array(Buffer.from(aesKey, 'hex'))
 
-    // Telegram mini app - Internet Identity delegation login
-    const processDelegation = async (delegationCode: string) => {
-      const delegationJSON = await readPrivateSnippetFromDpaste(delegationCode)
+    const delegationDecrypted = decrypt(delegationJSON, genAesKeyUint8Array)
 
-      const delegationDecrypted = decrypt(delegationJSON, genAesKeyUint8Array)
+    if (delegationDecrypted) {
+      try {
+        const delegationChain = DelegationChain.fromJSON(
+          JSON.parse(delegationDecrypted),
+        )
 
-      if (delegationDecrypted) {
-        try {
-          const delegationChain = DelegationChain.fromJSON(
-            JSON.parse(delegationDecrypted),
-          )
+        const identityJSON = localStorage.getItem('identity')
+        const identity = identityJSON
+          ? Ed25519KeyIdentity.fromJSON(identityJSON)
+          : null
 
-          const identityJSON = localStorage.getItem('identity')
-          const identity = identityJSON
-            ? Ed25519KeyIdentity.fromJSON(identityJSON)
-            : null
+        if (identity) {
+          const publicKey = Buffer.from(
+            identity.getPublicKey().toDer(),
+          ).toString('hex')
 
-          if (identity) {
-            const publicKey = Buffer.from(
-              identity.getPublicKey().toDer(),
-            ).toString('hex')
+          const delegationChainPublicKey = Buffer.from(
+            delegationChain.delegations[1].delegation.pubkey,
+          ).toString('hex')
 
-            const delegationChainPublicKey = Buffer.from(
-              delegationChain.delegations[1].delegation.pubkey,
-            ).toString('hex')
+          if (publicKey === delegationChainPublicKey) {
+            const delegationIdentity = DelegationIdentity.fromDelegation(
+              identity,
+              delegationChain,
+            )
 
-            if (publicKey === delegationChainPublicKey) {
-              const delegationIdentity = DelegationIdentity.fromDelegation(
-                identity,
-                delegationChain,
-              )
-
-              const agent = getAgent(delegationIdentity)
-
-              doLogin(agent, dispatch)
+            // Stores delegation and identity keys as hex-encoded strings for secure storage or transmission.
+            const delegationData = {
+              delegationChain: delegationChain.toJSON(),
+              identity: {
+                publicKey: Buffer.from(
+                  identity.getPublicKey().toDer(),
+                ).toString('hex'),
+                secretKey: Buffer.from(
+                  JSON.stringify(identity.toJSON()),
+                ).toString('hex'),
+              },
             }
+
+            localStorage.setItem(
+              'delegationIdentity',
+              JSON.stringify(delegationData),
+            )
+
+            const agent = getAgent(delegationIdentity)
+
+            doLogin(agent, dispatch)
           }
-        } catch (error) {
-          console.error('Failed to process delegation:', error)
         }
-      } else {
-        console.warn('Delegation parameter not found in the URL.')
+      } catch (error) {
+        console.error('Failed to process delegation:', error)
+      }
+    } else {
+      console.warn('Delegation parameter not found in the URL.')
+    }
+  }
+
+  useEffect(() => {
+    const processLogin = async () => {
+      const restoredDelegationII = retrieveStoredDelegationII()
+
+      const urlParams = new URL(window.location.href)
+
+      const queryString = urlParams.searchParams.get('tgWebAppStartParam') || ''
+
+      const [delegationCode, keyValue] = queryString.split('_')
+
+      const aesKey = keyValue?.startsWith('key-') ? keyValue.split('-')[1] : ''
+
+      if (isTelegram) {
+        if (delegationCode) {
+          processDelegation(delegationCode, aesKey)
+        } else if (restoredDelegationII) {
+          const agent = getAgent(restoredDelegationII)
+          doLogin(agent, dispatch)
+        } else {
+          const localStorageSaved = localStorage.getItem('mnemonicPhrase')
+          if (localStorageSaved) {
+            const seed = decrypt(localStorageSaved)
+            processMnemonic(seed)
+          }
+        }
       }
     }
 
-    if (isTelegram && delegationCode) {
-      processDelegation(delegationCode)
-    } else if (isTelegram) {
-      const localStorageSaved = localStorage.getItem('mnemonicPhrase')
-      if (localStorageSaved) {
-        const seed = decrypt(localStorageSaved)
-        validateAndLogin(seed)
-      }
-    }
+    processLogin()
   }, [isTelegram])
 
   return (

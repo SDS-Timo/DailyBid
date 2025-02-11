@@ -1,6 +1,10 @@
 import { HttpAgent, Identity } from '@dfinity/agent'
 import { AuthClient } from '@dfinity/auth-client'
-import { Ed25519KeyIdentity } from '@dfinity/identity'
+import {
+  Ed25519KeyIdentity,
+  DelegationChain,
+  DelegationIdentity,
+} from '@dfinity/identity'
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 
 import { getUserDepositAddress } from './convertionsUtils'
@@ -141,6 +145,62 @@ export async function identityAuthenticate(
   } catch (error) {
     console.error('Unexpected error during authentication process', error)
   }
+}
+
+/**
+ * Checks if the user is authenticated with Internet Identity (II) stored in indexedDB in a web browser.
+ * It initializes an `AuthClient` and verifies if an active session exists.
+ * @returns The authenticated identity if available, otherwise `false`.
+ */
+export const validateLoginIIBrowser = async () => {
+  const authClient = await AuthClient.create({
+    idleOptions: {
+      disableIdle: true,
+    },
+  })
+
+  const isAuthenticated = await authClient.isAuthenticated()
+  if (isAuthenticated) {
+    return authClient.getIdentity()
+  } else return false
+}
+
+/**
+ * Retrieves a stored Internet Identity delegation from `localStorage`.
+ * It reconstructs the `DelegationIdentity` using the stored identity secret key and delegation chain.
+ * @returns The reconstructed `DelegationIdentity` if valid, otherwise `false`.
+ */
+export const retrieveStoredDelegationII = () => {
+  const storedData = localStorage.getItem('delegationIdentity')
+
+  if (storedData) {
+    const parsedData = JSON.parse(storedData)
+
+    const identity = Ed25519KeyIdentity.fromJSON(
+      Buffer.from(parsedData.identity.secretKey, 'hex').toString(),
+    )
+
+    const delegationChain = DelegationChain.fromJSON(parsedData.delegationChain)
+
+    // Check if delegation is expired
+    const expirationTimestamp = BigInt(
+      delegationChain.delegations[1].delegation.expiration,
+    )
+
+    // Convert to nanoseconds
+    const currentTimestamp = BigInt(Date.now()) * BigInt(1_000_000)
+
+    if (currentTimestamp >= expirationTimestamp) return false
+
+    const delegationIdentity = DelegationIdentity.fromDelegation(
+      identity,
+      delegationChain,
+    )
+
+    return delegationIdentity
+  }
+
+  return false
 }
 
 /**

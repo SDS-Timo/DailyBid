@@ -46,6 +46,9 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
 
   const handleLogout = () => {
     dispatch(logout())
+    localStorage.removeItem('identity')
+    localStorage.removeItem('delegationIdentity')
+    localStorage.removeItem('mnemonicPhrase')
     onClose()
   }
 
