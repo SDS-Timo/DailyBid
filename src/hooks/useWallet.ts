@@ -403,6 +403,40 @@ const useWallet = () => {
     }
   }
 
+  /**
+   * Retrieves the Bitcoin deposit address for the user.
+   * @param userAgent - An instance of HttpAgent used for making authenticated requests.
+   * @returns - A promise that resolves to the Bitcoin deposit address as a string or null if an error occurs.
+   */
+  const getBtcDepositAddress = async (
+    userAgent: HttpAgent,
+  ): Promise<string | null> => {
+    try {
+      const serviceActor = getActor(userAgent)
+      const result = await serviceActor.btc_depositAddress([])
+      return result
+    } catch (error) {
+      console.error('Error retrieving Bitcoin deposit address:', error)
+      return null
+    }
+  }
+
+  /**
+   * Notifies the backend service to update the Bitcoin balance.
+   * @param userAgent - An instance of HttpAgent used for making authenticated requests.
+   * @returns - A promise that resolves to the response from the backend service or null if an error occurs.
+   */
+  const btcBalanceNotify = async (userAgent: HttpAgent) => {
+    try {
+      const serviceActor = getActor(userAgent)
+      const result = await serviceActor.btc_notify()
+      return result
+    } catch (error) {
+      console.error('Error notifying Bitcoin balance update: ', error)
+      return null
+    }
+  }
+
   return {
     getBalancesCredits,
     getBalance,
@@ -412,6 +446,8 @@ const useWallet = () => {
     getDepositAllowanceInfo,
     deposit,
     getUserPoints,
+    getBtcDepositAddress,
+    btcBalanceNotify,
   }
 }
 

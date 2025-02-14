@@ -65,6 +65,7 @@
     "@dfinity/ledger-icrc": "^2.5.0",
     "@emotion/react": "^11.11.4",
     "@reduxjs/toolkit": "^2.2.5",
+    "@research-ag/ckbtc-address-js": "^0.0.3",
     "aes-js": "^3.1.2",
     "big-integer": "^1.6.52",
     "bignumber.js": "^9.1.2",

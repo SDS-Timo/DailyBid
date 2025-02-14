@@ -84,6 +84,7 @@ export interface AuthState {
   isAuthenticated: boolean
   userPrincipal: string
   userDeposit: string
+  userBtcDepositAddress: string
   userPoints: number | null
 }
 export interface OpenOrdersState {

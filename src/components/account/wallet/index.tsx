@@ -19,7 +19,8 @@ import {
   useClipboard,
 } from '@chakra-ui/react'
 import { Principal } from '@dfinity/principal'
-import { FaWallet } from 'react-icons/fa'
+import { FaWallet, FaBitcoin } from 'react-icons/fa'
+import { TbReceiptBitcoin } from 'react-icons/tb'
 import { useSelector, useDispatch } from 'react-redux'
 
 import ActionTab from './actions/actionTab'
@@ -48,6 +49,7 @@ import { getSimpleToastDescription } from '../../../utils/uiUtils'
 import { formatWalletAddress } from '../../../utils/walletUtils'
 import {
   getErrorMessageNotifyDeposits,
+  getErrorMessageBtcNotifyDeposits,
   getErrorMessageWithdraw,
   getErrorMessageDeposit,
 } from '../../../utils/walletUtils'
@@ -74,18 +76,32 @@ const WalletContent: React.FC = () => {
   const userPrincipal = useSelector(
     (state: RootState) => state.auth.userPrincipal,
   )
+  const userBtcDeposit = useSelector(
+    (state: RootState) => state.auth.userBtcDepositAddress,
+  )
   const userDeposit = useSelector((state: RootState) => state.auth.userDeposit)
   const balances = useSelector((state: RootState) => state.balances.balances)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
 
   const userDepositAddress = formatWalletAddress(userDeposit)
-  const { onCopy } = useClipboard(userDeposit)
+  const userBtcDepositAddress = formatWalletAddress(userBtcDeposit)
+
+  const { onCopy: onCopyUserDeposit } = useClipboard(userDeposit)
+  const { onCopy: onCopyBtcAddress } = useClipboard(userBtcDeposit)
 
   const userDepositTooltip = (
     <>
       {`Wallet account. Transfer here or set as allowance spender:`}
       <br />
       {userDeposit}
+    </>
+  )
+
+  const userBtcDepositAddressTooltip = (
+    <>
+      {`Bitcoin account. Transfer here:`}
+      <br />
+      {userBtcDeposit}
     </>
   )
 
@@ -116,10 +132,20 @@ const WalletContent: React.FC = () => {
   }, [userAgent, tokens, dispatch])
 
   const copyToClipboardDepositAddress = () => {
-    onCopy()
+    onCopyUserDeposit()
     toast({
       title: 'Copied',
       description: 'Wallet account copied to clipboard',
+      status: 'success',
+      duration: 2000,
+    })
+  }
+
+  const copyToClipboardBtcDepositAddress = () => {
+    onCopyBtcAddress()
+    toast({
+      title: 'Copied',
+      description: 'Btc account address copied to clipboard',
       status: 'success',
       duration: 2000,
     })
@@ -211,6 +237,96 @@ const WalletContent: React.FC = () => {
       }
     })
   }, [claimTokensBalance])
+
+  const handleBtcNotify = useCallback(() => {
+    const startTime = Date.now()
+    const { btcBalanceNotify } = useWallet()
+
+    const toastId = toast({
+      title: `Checking new BTC deposits`,
+      description: 'Please wait',
+      status: 'loading',
+      duration: null,
+      isClosable: true,
+    })
+
+    btcBalanceNotify(userAgent)
+      .then(async (response: Result | null) => {
+        const endTime = Date.now()
+        const durationInSeconds = (endTime - startTime) / 1000
+        const base = 'BTC'
+
+        if (response && Object.keys(response).includes('Ok')) {
+          await fetchBalances()
+          const token = balances.find((balance) => balance.base === base)
+
+          const creditTotalRaw = response.Ok?.credit
+          const depositIncRaw = response.Ok?.deposit_inc
+          const creditIncRaw = response.Ok?.credit_inc
+
+          const { volumeInBase: creditTotal } = convertVolumeFromCanister(
+            Number(creditTotalRaw),
+            getDecimals(token),
+            0,
+          )
+
+          const { volumeInBase: depositInc } = convertVolumeFromCanister(
+            Number(depositIncRaw),
+            getDecimals(token),
+            0,
+          )
+
+          const { volumeInBase: creditInc } = convertVolumeFromCanister(
+            Number(creditIncRaw),
+            getDecimals(token),
+            0,
+          )
+
+          if (toastId) {
+            toast.update(toastId, {
+              title: `New ${base} deposits found: ${fixDecimal(depositInc, token?.decimals)}`,
+              description: getSimpleToastDescription(
+                `Credited: ${fixDecimal(creditInc, token?.decimals)} | Total: ${fixDecimal(creditTotal, token?.decimals)}`,
+                durationInSeconds,
+              ),
+              status: 'success',
+              isClosable: true,
+            })
+          }
+        } else {
+          if (toastId) {
+            toast.update(toastId, {
+              title: `No new ${base} deposits found`,
+              description: getSimpleToastDescription(
+                getErrorMessageBtcNotifyDeposits(response?.Err),
+                durationInSeconds,
+              ),
+              status: 'warning',
+              isClosable: true,
+            })
+          }
+        }
+      })
+      .catch((error) => {
+        const message = error.response ? error.response.data : error.message
+
+        const endTime = Date.now()
+        const durationInSeconds = (endTime - startTime) / 1000
+
+        if (toastId) {
+          toast.update(toastId, {
+            title: 'Notify deposit rejected',
+            description: getSimpleToastDescription(
+              `Error: ${message}`,
+              durationInSeconds,
+            ),
+            status: 'error',
+            isClosable: true,
+          })
+        }
+        console.error('Cancellation failed:', message)
+      })
+  }, [userAgent, toast])
 
   const handleNotify = useCallback(
     (principal: string | undefined, base: string) => {
@@ -580,6 +696,42 @@ const WalletContent: React.FC = () => {
               <Text>Claim Deposit</Text>
             </Button>
           </Tooltip>
+        </Flex>
+      </Flex>
+      <Flex align="center" justifyContent="space-between">
+        <Flex align="center">
+          <Icon as={FaBitcoin} boxSize={4} mr={2} />
+          <Tooltip
+            label={userBtcDepositAddressTooltip}
+            aria-label={userBtcDeposit}
+          >
+            <Text
+              onClick={copyToClipboardBtcDepositAddress}
+              cursor="pointer"
+              p={1}
+              border="1px solid transparent"
+              borderRadius="md"
+              _hover={{
+                borderColor: bgColorHover,
+                borderRadius: 'md',
+              }}
+            >
+              {userBtcDepositAddress}
+            </Text>
+          </Tooltip>
+        </Flex>
+        <Flex align="center">
+          <Button
+            onClick={handleBtcNotify}
+            variant="unstyled"
+            p={0}
+            m={0}
+            display="flex"
+            alignItems="center"
+          >
+            <Icon as={TbReceiptBitcoin} boxSize={5} mr={2} />
+            <Text>Claim Bitcoin Deposit</Text>
+          </Button>
         </Flex>
       </Flex>
       <Tabs

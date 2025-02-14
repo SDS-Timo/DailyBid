@@ -1,3 +1,9 @@
+import { Principal } from '@dfinity/principal'
+import {
+  CKBTC_MINTER_MAINNET_XPUBKEY,
+  Minter,
+} from '@research-ag/ckbtc-address-js'
+
 import { Result } from '../types'
 
 /**
@@ -10,6 +16,31 @@ export const getErrorMessageNotifyDeposits = (error: Result): string => {
   const errorMessages: { [key: string]: string } = {
     NotAvailable: '',
     CallLedgerError: 'Call Ledger Error',
+  }
+
+  for (const key in error) {
+    if (error[key] !== undefined && key in errorMessages) {
+      return errorMessages[key]
+    }
+  }
+  return 'Something went wrong'
+}
+
+/**
+ * Gets a user-friendly error message for a btc notify deposit error.
+ *
+ * @param error - An object representing the notify deposit error.
+ * @returns A string with the corresponding error message.
+ */
+export const getErrorMessageBtcNotifyDeposits = (error: Result): string => {
+  const errorMessages: { [key: string]: string } = {
+    NotAvailable: '',
+    CallLedgerError: 'Call Ledger Error',
+    GenericError: 'Generic Error',
+    TemporarilyUnavailable: 'Temporarily Unavailable',
+    AlreadyProcessing: 'Already Processing',
+    NotMinted: 'Not Minted',
+    NoNewUtxos: 'No New Utxos',
   }
 
   for (const key in error) {
@@ -83,4 +114,28 @@ export function formatWalletAddress(address: string): string {
     return address
   }
   return `${address.slice(0, 5)}...${address.slice(-3)}`
+}
+
+/**
+ * Generates a deposit address for BTC using a specific minter and user principal.
+ *
+ * @param userPrincipal - The user's principal as a string.
+ * @returns - The generated deposit address.
+ */
+export const generateBtcDepositAddress = (userPrincipal: string): string => {
+  const ckBtcMinter = new Minter(CKBTC_MINTER_MAINNET_XPUBKEY)
+
+  const userToSubaccount = (user: Principal): Uint8Array => {
+    const arr = Array.from(user.toUint8Array())
+    arr.unshift(arr.length)
+    while (arr.length < 32) {
+      arr.unshift(0)
+    }
+    return new Uint8Array(arr)
+  }
+
+  return ckBtcMinter.depositAddr({
+    owner: `${process.env.CANISTER_ID_ICRC_AUCTION}`,
+    subaccount: userToSubaccount(Principal.fromText(userPrincipal)),
+  })
 }

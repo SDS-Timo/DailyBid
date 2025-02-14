@@ -10,11 +10,13 @@ import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 import { getUserDepositAddress } from './convertionsUtils'
 import { AppDispatch } from '../store'
 import { getInternetIdentityDerivationOrigin } from './canisterUtils'
+import { generateBtcDepositAddress } from './walletUtils'
 import {
   setUserAgent,
   setIsAuthenticated,
   setUserPrincipal,
   setUserDeposit,
+  setUserBtcDepositAddress,
 } from '../store/auth'
 
 /**
@@ -62,6 +64,9 @@ export async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
   const principal = await myAgent.getPrincipal()
   dispatch(setUserPrincipal(principal.toText()))
   dispatch(setUserDeposit(getUserDepositAddress(principal.toText())))
+  dispatch(
+    setUserBtcDepositAddress(generateBtcDepositAddress(principal.toText())),
+  )
 }
 
 /**
