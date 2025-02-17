@@ -41,21 +41,26 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
     const canisterIdRegex =
       /^[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}$/
     const fullUrlRegex =
-      /^https:\/\/([a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3})\.icp0\.io(?:\/.*)?$/
+      /^https:\/\/([a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3})\.icp0\.io(\/.*)?$/
 
     if (canisterIdRegex.test(input)) {
       return { url: `https://${input}.icp0.io`, canisterId: input }
-    } else if (fullUrlRegex.test(input)) {
-      const match = input.match(fullUrlRegex)
+    }
+
+    const match = input.match(fullUrlRegex)
+    if (match) {
+      const canisterId = match[1]
+      const hasPath = !!match[2]
+
       return {
         url: input,
-        canisterId: match && match[1] ? match[1] : '',
+        canisterId: hasPath ? input : canisterId,
       }
-    } else {
-      throw new Error(
-        'Invalid input. Please provide a valid canister ID or a full URL.',
-      )
     }
+
+    throw new Error(
+      'Invalid input. Please provide a valid canister ID or a full URL.',
+    )
   }, [])
 
   const initialValues = {
