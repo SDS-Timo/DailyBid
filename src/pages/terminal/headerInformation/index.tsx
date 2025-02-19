@@ -20,9 +20,11 @@ import { useSelector, useDispatch } from 'react-redux'
 import AutoClaimTimer from './autoClaim'
 import usePriceHistory from '../../../hooks/usePriceHistory'
 import { RootState, AppDispatch } from '../../../store'
+import { logout } from '../../../store/auth'
 import { setIsRefreshUserData } from '../../../store/orders'
 import { setIsRefreshPrices } from '../../../store/prices'
 import { NextSession } from '../../../types'
+import { checkUserAgentDelegation } from '../../../utils/authUtils'
 
 const HeaderInformation = () => {
   const bgColor = useColorModeValue('grey.100', 'grey.900')
@@ -173,6 +175,13 @@ const HeaderInformation = () => {
 
       if (timeDifference > 1000) {
         const timeToWait = timeDifference - 1000
+
+        if (!checkUserAgentDelegation(userAgent)) {
+          dispatch(logout())
+          localStorage.removeItem('identity')
+          localStorage.removeItem('delegationIdentity')
+          localStorage.removeItem('mnemonicPhrase')
+        }
 
         dispatch(setIsRefreshUserData())
         dispatch(setIsRefreshPrices())

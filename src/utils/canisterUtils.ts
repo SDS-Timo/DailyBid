@@ -1,5 +1,12 @@
-import { Actor, ActorSubclass, HttpAgent } from '@dfinity/agent'
+import {
+  Actor,
+  ActorSubclass,
+  HttpAgent,
+  AnonymousIdentity,
+} from '@dfinity/agent'
 
+import { checkUserAgentDelegation } from './authUtils'
+import { getAgent } from './authUtils'
 import { _SERVICE as Icrc84Actor } from '../../declarations/icrc1_auction/icrc1_auction.did'
 import { idlFactory as Icrc84IDLFactory } from '../../declarations/icrc1_auction/icrc1_auction.did'
 
@@ -17,11 +24,23 @@ export function getActor(
   userAgent: HttpAgent,
   canisterId: string | null = null,
 ): ActorSubclass<Icrc84Actor> {
-  if (!actorCache || userAgentCache !== userAgent || canisterId) {
-    const auctionCanisterId = getAuctionCanisterId()
-    userAgentCache = userAgent
+  const isDelegationValid = checkUserAgentDelegation(userAgent)
+  const principal = canisterId || getAuctionCanisterId()
 
-    const principal = canisterId ? canisterId : auctionCanisterId
+  if (!isDelegationValid) {
+    const anonymousIdentity = getAgent(new AnonymousIdentity())
+    userAgentCache = anonymousIdentity
+
+    actorCache = Actor.createActor<Icrc84Actor>(Icrc84IDLFactory, {
+      agent: anonymousIdentity,
+      canisterId: principal,
+    })
+
+    return actorCache
+  }
+
+  if (!actorCache || userAgentCache !== userAgent) {
+    userAgentCache = userAgent
 
     actorCache = Actor.createActor<Icrc84Actor>(Icrc84IDLFactory, {
       agent: userAgent,

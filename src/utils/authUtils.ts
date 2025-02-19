@@ -4,6 +4,7 @@ import {
   Ed25519KeyIdentity,
   DelegationChain,
   DelegationIdentity,
+  isDelegationValid,
 } from '@dfinity/identity'
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 
@@ -34,6 +35,42 @@ export function getAgent(identity: Identity) {
   })
 
   return myAgent
+}
+
+/**
+ * Checks if the provided `HttpAgent` is authenticated using Internet Identity (Login II)
+ * and whether the delegation is still valid.
+ * @param userAgent - The HttpAgent instance to check.
+ * @returns - Returns `true` if authenticated with a valid delegation or another method,
+ *                    `false` if the delegation has expired.
+ */
+export const checkUserAgentDelegation = (userAgent: HttpAgent): boolean => {
+  try {
+    // Retrieve the identity from the HttpAgent
+    const identity = (userAgent as any).config?.identity
+
+    // If no identity exists, assume authentication was done through another method
+    if (!identity) {
+      return true // Authenticated with another method (e.g., Seed, Mnemonic, NFID, etc.)
+    }
+
+    // Check if the identity is a DelegationIdentity (indicating Login II authentication)
+    if (identity instanceof DelegationIdentity) {
+      const delegationChain = identity.getDelegation()
+
+      // Validate the delegation
+      if (isDelegationValid(delegationChain)) {
+        return true // Valid delegation
+      } else {
+        return false // Expired delegation
+      }
+    }
+
+    return true // Authenticated with another method
+  } catch (error) {
+    console.error('Error checking delegation:', error)
+    return false
+  }
 }
 
 /**
@@ -187,15 +224,8 @@ export const retrieveStoredDelegationII = () => {
 
     const delegationChain = DelegationChain.fromJSON(parsedData.delegationChain)
 
-    // Check if delegation is expired
-    const expirationTimestamp = BigInt(
-      delegationChain.delegations[1].delegation.expiration,
-    )
-
-    // Convert to nanoseconds
-    const currentTimestamp = BigInt(Date.now()) * BigInt(1_000_000)
-
-    if (currentTimestamp >= expirationTimestamp) return false
+    const isValid = isDelegationValid(delegationChain)
+    if (!isValid) return false
 
     const delegationIdentity = DelegationIdentity.fromDelegation(
       identity,
