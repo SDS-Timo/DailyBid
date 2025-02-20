@@ -8,6 +8,7 @@ import {
   Box,
   Image,
   Link,
+  Checkbox,
   IconButton,
   useClipboard,
   useColorMode,
@@ -45,11 +46,12 @@ function getSessionKeyFromQuery(): string {
 const LoginII: React.FC = () => {
   const [userPrincipal, setUserPrincipal] = useState('')
   const [delegationCode, setDelegationCode] = useState('')
+  const [showDetails, setShowDetails] = useState(false)
   const [aesKey, setAesKey] = useState('')
   const [selectedTime, setSelectedTime] = useState<Option | null>({
     id: '720',
     value: '720',
-    label: '30d',
+    label: '30 days',
   })
 
   const { saveToDpasteWithAuth } = useDPasteApi()
@@ -84,14 +86,14 @@ const LoginII: React.FC = () => {
   }
 
   const selectOptions = [
-    { id: '1', value: '0.0833', label: '5m' },
-    { id: '2', value: '0.25', label: '15m' },
-    { id: '3', value: '1', label: '1h' },
-    { id: '4', value: '3', label: '3h' },
-    { id: '5', value: '12', label: '12h' },
-    { id: '6', value: '24', label: '1d' },
-    { id: '7', value: '168', label: '7d' },
-    { id: '8', value: '720', label: '30d' },
+    { id: '1', value: '0.0833', label: '5 minutes' },
+    { id: '2', value: '0.25', label: '15 minutes' },
+    { id: '3', value: '1', label: '1 hour' },
+    { id: '4', value: '3', label: '3 hours' },
+    { id: '5', value: '12', label: '12 hours' },
+    { id: '6', value: '24', label: '1 day' },
+    { id: '7', value: '168', label: '7 days' },
+    { id: '8', value: '720', label: '30 days' },
   ]
 
   const handleLoginDurationOptionChange = (
@@ -218,202 +220,45 @@ const LoginII: React.FC = () => {
     <Box
       textAlign="center"
       width="100%"
-      height={{ base: '80vh', md: 'auto' }}
+      height={{ base: '80vh', md: '90vh' }}
       paddingTop={{ base: '16px', md: '0' }}
       paddingBottom={{ base: '16px', md: '0' }}
     >
       <Helmet title="DailyBid login for Telegram mini app" />
-      <Heading as="h1" size="2xl" fontWeight="bold" mb={8}>
+      <Heading as="h1" size="2xl" fontWeight="bold" mb={6}>
         Internet Identity
       </Heading>
+
+      <Heading as="h1" size="2xl" fontWeight="bold">
+        Login for mini dApps
+      </Heading>
+
       <Box
         display="flex"
+        flexDirection="column"
         justifyContent="center"
-        alignItems="flex-start"
-        mb={8}
-        maxWidth="900px"
-        height="400px"
+        alignItems="center"
         width="100%"
         margin="auto"
-        top="0"
-        left="0"
-        right="0"
-        padding="16px"
-        overflowX="auto"
-        whiteSpace="nowrap"
+        mt={6}
+        mb={6}
       >
-        <Box
-          textAlign="right"
-          pr={4}
-          minWidth="150px"
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-        >
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="right"
-            minH="58px"
-          >
-            <Text fontSize="lg" fontWeight="normal">
-              Duration (TTL):
-            </Text>
-          </Box>
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="right"
-            mt={2}
-          >
-            <Text fontSize="lg" fontWeight="normal">
-              Derivation Origin:
-            </Text>
-          </Box>
-          {userPrincipal && (
-            <>
-              <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                alignItems="right"
-                mt={2}
-              >
-                <Text fontSize="lg" fontWeight="normal">
-                  User Principal:
-                </Text>
-              </Box>
-              <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                alignItems="right"
-                mt={2}
-              >
-                <Text fontSize="lg" fontWeight="normal">
-                  Deep Link:
-                </Text>
-              </Box>
-              <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                alignItems="right"
-                mt={3}
-              >
-                <Text fontSize="lg" fontWeight="normal">
-                  Alternative Link:
-                </Text>
-              </Box>
-            </>
-          )}
-        </Box>
-
-        <Box
-          textAlign="left"
-          pl={4}
-          minWidth="250px"
-          display="flex"
-          flexDirection="column"
-        >
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="left"
-            maxW={300}
-          >
-            <Select
-              id="loginDuration"
-              value={selectedTime}
-              isMulti={false}
-              isClearable={false}
-              isLocked={!!userPrincipal}
-              options={selectOptions}
-              placeholder="Select the login duration"
-              noOptionsMessage="No data"
-              onChange={handleLoginDurationOptionChange}
-              styles={customStyles as any}
-            />
-          </Box>
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="left"
-            mt={2}
-          >
-            <Text fontSize="lg" fontWeight="normal">
-              {getInternetIdentityDerivationOrigin()}
-            </Text>
-          </Box>
-
-          {userPrincipal && (
-            <>
-              <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                alignItems="left"
-                mt={2}
-              >
-                <Text fontSize="lg" fontWeight="normal">
-                  {userPrincipal}
-                </Text>
-              </Box>
-              <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                alignItems="left"
-                mt={2}
-              >
-                <Text fontSize="lg" fontWeight="normal">
-                  <Link href={`${deepLink}_key-${aesKey}`} isExternal>
-                    {deepLink}
-                  </Link>
-                  <IconButton
-                    aria-label="Copy link"
-                    icon={<CopyIcon />}
-                    size="sm"
-                    onClick={() => handleCopy('deepLink')}
-                    ml={1}
-                    variant="ghost"
-                  />
-                </Text>
-              </Box>
-              <Box
-                display="flex"
-                flexDirection="column"
-                justifyContent="center"
-                alignItems="left"
-                mt={2}
-              >
-                <Text fontSize="lg" fontWeight="normal">
-                  <Link href={`${alternativeLink}_key-${aesKey}`} isExternal>
-                    {alternativeLink}
-                  </Link>
-                  <IconButton
-                    aria-label="Copy link"
-                    icon={<CopyIcon />}
-                    size="sm"
-                    onClick={() => handleCopy('alternativeLink')}
-                    ml={1}
-                    variant="ghost"
-                  />
-                </Text>
-              </Box>
-            </>
-          )}
-        </Box>
+        <Image
+          src={colorMode === 'dark' ? LogoLight : LogoDark}
+          alt="DailyBid"
+          height="64px"
+          width="200px"
+        />
       </Box>
 
-      {userPrincipal ? (
+      {userPrincipal && (
         <>
           <Text fontSize="lg" fontWeight="normal" mb={8}>
-            You have been redirected to Telegram. Click here to close this tab:
+            You have been redirected to Telegram. Click{' '}
+            <Link as="button" onClick={() => window.close()} color="inherit">
+              here
+            </Link>{' '}
+            to close this tab:
           </Text>
 
           <Button colorScheme="blue" size="lg" onClick={() => window.close()}>
@@ -421,20 +266,245 @@ const LoginII: React.FC = () => {
           </Button>
 
           <Text fontSize="lg" fontWeight="normal" mt={8}>
-            If the redirection did not work try to open one of the links above
-            manually in a browser.
+            If the redirection did not work you can try to click{' '}
+            <Link href={`${deepLink}_key-${aesKey}`} color="inherit">
+              here
+            </Link>{' '}
+            or{' '}
+            <Link href={`${alternativeLink}_key-${aesKey}`} color="inherit">
+              here
+            </Link>
+            .
           </Text>
         </>
-      ) : (
+      )}
+
+      {!userPrincipal && (
         <>
-          <Text fontSize="lg" fontWeight="normal" mb={8}>
-            Click the button below to log in with Internet Identity.
-          </Text>
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            width="auto"
+            mb={8}
+          >
+            <Box justifyContent="center" alignItems="center" width="300px">
+              <Select
+                id="loginDuration"
+                value={selectedTime}
+                isMulti={false}
+                isClearable={false}
+                isLocked={!!userPrincipal}
+                options={selectOptions}
+                placeholder="Stay logged in for"
+                noOptionsMessage="No data"
+                onChange={handleLoginDurationOptionChange}
+                styles={customStyles as any}
+              />
+            </Box>
+          </Box>
 
           <Button colorScheme="blue" size="lg" onClick={handleClick}>
             Login
           </Button>
         </>
+      )}
+
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        width="100%"
+        margin="auto"
+        mt={10}
+      >
+        <Checkbox
+          isChecked={showDetails}
+          onChange={(e) => setShowDetails(e.target.checked)}
+          colorScheme="blue"
+        >
+          Show details
+        </Checkbox>
+      </Box>
+
+      {showDetails && userPrincipal && (
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          width="auto"
+          mt={8}
+        >
+          <Box justifyContent="center" alignItems="center" width="300px">
+            <Select
+              id="loginDuration"
+              value={selectedTime}
+              isMulti={false}
+              isClearable={false}
+              isLocked={!!userPrincipal}
+              options={selectOptions}
+              placeholder="Stay logged in for"
+              noOptionsMessage="No data"
+              onChange={handleLoginDurationOptionChange}
+              styles={customStyles as any}
+            />
+          </Box>
+        </Box>
+      )}
+
+      {showDetails && (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="flex-start"
+          maxWidth="900px"
+          width="100%"
+          margin="auto"
+          top="0"
+          left="0"
+          right="0"
+          padding="16px"
+          overflowX="auto"
+          whiteSpace="nowrap"
+        >
+          <Box
+            textAlign="right"
+            pr={4}
+            minWidth="150px"
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+          >
+            <Box
+              display="flex"
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="right"
+              mt={2}
+            >
+              <Text fontSize="lg" fontWeight="normal">
+                Derivation Origin:
+              </Text>
+            </Box>
+            {userPrincipal && (
+              <>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="right"
+                  mt={2}
+                >
+                  <Text fontSize="lg" fontWeight="normal">
+                    User Principal:
+                  </Text>
+                </Box>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="right"
+                  mt={2}
+                >
+                  <Text fontSize="lg" fontWeight="normal">
+                    Deep Link:
+                  </Text>
+                </Box>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="right"
+                  mt={3}
+                >
+                  <Text fontSize="lg" fontWeight="normal">
+                    Alternative Link:
+                  </Text>
+                </Box>
+              </>
+            )}
+          </Box>
+
+          <Box
+            textAlign="left"
+            pl={4}
+            minWidth="250px"
+            display="flex"
+            flexDirection="column"
+          >
+            <Box
+              display="flex"
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="left"
+              mt={2}
+            >
+              <Text fontSize="lg" fontWeight="normal">
+                {getInternetIdentityDerivationOrigin()}
+              </Text>
+            </Box>
+
+            {userPrincipal && (
+              <>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="left"
+                  mt={2}
+                >
+                  <Text fontSize="lg" fontWeight="normal">
+                    {userPrincipal}
+                  </Text>
+                </Box>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="left"
+                  mt={2}
+                >
+                  <Text fontSize="lg" fontWeight="normal">
+                    <Link href={`${deepLink}_key-${aesKey}`} isExternal>
+                      {deepLink}
+                    </Link>
+                    <IconButton
+                      aria-label="Copy link"
+                      icon={<CopyIcon />}
+                      size="sm"
+                      onClick={() => handleCopy('deepLink')}
+                      ml={1}
+                      variant="ghost"
+                    />
+                  </Text>
+                </Box>
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="left"
+                  mt={2}
+                >
+                  <Text fontSize="lg" fontWeight="normal">
+                    <Link href={`${alternativeLink}_key-${aesKey}`} isExternal>
+                      {alternativeLink}
+                    </Link>
+                    <IconButton
+                      aria-label="Copy link"
+                      icon={<CopyIcon />}
+                      size="sm"
+                      onClick={() => handleCopy('alternativeLink')}
+                      ml={1}
+                      variant="ghost"
+                    />
+                  </Text>
+                </Box>
+              </>
+            )}
+          </Box>
+        </Box>
       )}
 
       <Box
