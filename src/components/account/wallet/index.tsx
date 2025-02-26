@@ -20,7 +20,6 @@ import {
 } from '@chakra-ui/react'
 import { Principal } from '@dfinity/principal'
 import { FaWallet, FaBitcoin } from 'react-icons/fa'
-import { TbReceiptBitcoin } from 'react-icons/tb'
 import { useSelector, useDispatch } from 'react-redux'
 
 import ActionTab from './actions/actionTab'
@@ -49,7 +48,6 @@ import { getSimpleToastDescription } from '../../../utils/uiUtils'
 import { formatWalletAddress } from '../../../utils/walletUtils'
 import {
   getErrorMessageNotifyDeposits,
-  getErrorMessageBtcNotifyDeposits,
   getErrorMessageWithdraw,
   getErrorMessageDeposit,
 } from '../../../utils/walletUtils'
@@ -82,6 +80,9 @@ const WalletContent: React.FC = () => {
   const userDeposit = useSelector((state: RootState) => state.auth.userDeposit)
   const balances = useSelector((state: RootState) => state.balances.balances)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
+  const newBtcUtxo = useSelector(
+    (state: RootState) => state.balances.newBtcUtxo,
+  )
 
   const userDepositAddress = formatWalletAddress(userDeposit)
   const userBtcDepositAddress = formatWalletAddress(userBtcDeposit)
@@ -200,14 +201,37 @@ const WalletContent: React.FC = () => {
     setClaimTokensBalance(tokensBalance)
     const filteredClaims = claims.filter((claim) => claim !== null)
 
-    if (filteredClaims.length > 0) {
+    if (filteredClaims.length > 0 || newBtcUtxo.length > 0) {
       setClaimTooltipText(
         <>
-          {`Claim Direct Deposits`}
-          <br />
-          {filteredClaims.map((claim, index) => (
-            <div key={index}>{claim}</div>
-          ))}
+          {filteredClaims.length > 0 ? (
+            <>
+              {`Claim Direct Deposits`}
+              <br />
+              {filteredClaims.map((claim, index) => (
+                <div key={index}>{claim}</div>
+              ))}
+            </>
+          ) : (
+            <>
+              {`Claim Direct Deposits`}
+              <br />
+              {`No direct deposits available`}
+            </>
+          )}
+
+          {newBtcUtxo.length > 0 && (
+            <>
+              <br />
+              {`Pending`}
+              <br />
+              {newBtcUtxo.map((utxo, index) => (
+                <div key={index}>
+                  {`${utxo.amount} BTC ${utxo.confirmations}/6 confirmations`}
+                </div>
+              ))}
+            </>
+          )}
         </>,
       )
     } else {
@@ -219,7 +243,7 @@ const WalletContent: React.FC = () => {
         </>,
       )
     }
-  }, [balances, userAgent, userPrincipal])
+  }, [balances, newBtcUtxo, userAgent, userPrincipal])
 
   const handleMultipleTokenClaims = useCallback(() => {
     claimTokensBalance.map((token) => {
@@ -237,96 +261,6 @@ const WalletContent: React.FC = () => {
       }
     })
   }, [claimTokensBalance])
-
-  const handleBtcNotify = useCallback(() => {
-    const startTime = Date.now()
-    const { btcBalanceNotify } = useWallet()
-
-    const toastId = toast({
-      title: `Checking new BTC deposits`,
-      description: 'Please wait',
-      status: 'loading',
-      duration: null,
-      isClosable: true,
-    })
-
-    btcBalanceNotify(userAgent)
-      .then(async (response: Result | null) => {
-        const endTime = Date.now()
-        const durationInSeconds = (endTime - startTime) / 1000
-        const base = 'BTC'
-
-        if (response && Object.keys(response).includes('Ok')) {
-          await fetchBalances()
-          const token = balances.find((balance) => balance.base === base)
-
-          const creditTotalRaw = response.Ok?.credit
-          const depositIncRaw = response.Ok?.deposit_inc
-          const creditIncRaw = response.Ok?.credit_inc
-
-          const { volumeInBase: creditTotal } = convertVolumeFromCanister(
-            Number(creditTotalRaw),
-            getDecimals(token),
-            0,
-          )
-
-          const { volumeInBase: depositInc } = convertVolumeFromCanister(
-            Number(depositIncRaw),
-            getDecimals(token),
-            0,
-          )
-
-          const { volumeInBase: creditInc } = convertVolumeFromCanister(
-            Number(creditIncRaw),
-            getDecimals(token),
-            0,
-          )
-
-          if (toastId) {
-            toast.update(toastId, {
-              title: `New ${base} deposits found: ${fixDecimal(depositInc, token?.decimals)}`,
-              description: getSimpleToastDescription(
-                `Credited: ${fixDecimal(creditInc, token?.decimals)} | Total: ${fixDecimal(creditTotal, token?.decimals)}`,
-                durationInSeconds,
-              ),
-              status: 'success',
-              isClosable: true,
-            })
-          }
-        } else {
-          if (toastId) {
-            toast.update(toastId, {
-              title: `No new ${base} deposits found`,
-              description: getSimpleToastDescription(
-                getErrorMessageBtcNotifyDeposits(response?.Err),
-                durationInSeconds,
-              ),
-              status: 'warning',
-              isClosable: true,
-            })
-          }
-        }
-      })
-      .catch((error) => {
-        const message = error.response ? error.response.data : error.message
-
-        const endTime = Date.now()
-        const durationInSeconds = (endTime - startTime) / 1000
-
-        if (toastId) {
-          toast.update(toastId, {
-            title: 'Notify deposit rejected',
-            description: getSimpleToastDescription(
-              `Error: ${message}`,
-              durationInSeconds,
-            ),
-            status: 'error',
-            isClosable: true,
-          })
-        }
-        console.error('Cancellation failed:', message)
-      })
-  }, [userAgent, toast])
 
   const handleNotify = useCallback(
     (principal: string | undefined, base: string) => {
@@ -719,19 +653,6 @@ const WalletContent: React.FC = () => {
               {userBtcDepositAddress}
             </Text>
           </Tooltip>
-        </Flex>
-        <Flex align="center">
-          <Button
-            onClick={handleBtcNotify}
-            variant="unstyled"
-            p={0}
-            m={0}
-            display="flex"
-            alignItems="center"
-          >
-            <Icon as={TbReceiptBitcoin} boxSize={5} mr={2} />
-            <Text>Claim Bitcoin Deposit</Text>
-          </Button>
         </Flex>
       </Flex>
       <Tabs

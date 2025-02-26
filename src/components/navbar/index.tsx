@@ -8,6 +8,7 @@ import {
 } from '@dfinity/identity'
 import { useSelector, useDispatch } from 'react-redux'
 
+import MempoolWebSocketComponent from './btcAddress'
 import NavbarHelp from './help'
 import NavbarInfo from './info'
 /* import NavbarLanguages from './language' */
@@ -171,6 +172,7 @@ const NavbarComponent: React.FC = () => {
         />
       </Box>
       <Flex flexDirection="row" alignItems="center" ml="auto">
+        <MempoolWebSocketComponent />
         {isAuthenticated && <NavbarUser />}
         {/* <NavbarLanguages /> */}
         <NavbarTheme />

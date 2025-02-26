@@ -27,31 +27,6 @@ export const getErrorMessageNotifyDeposits = (error: Result): string => {
 }
 
 /**
- * Gets a user-friendly error message for a btc notify deposit error.
- *
- * @param error - An object representing the notify deposit error.
- * @returns A string with the corresponding error message.
- */
-export const getErrorMessageBtcNotifyDeposits = (error: Result): string => {
-  const errorMessages: { [key: string]: string } = {
-    NotAvailable: '',
-    CallLedgerError: 'Call Ledger Error',
-    GenericError: 'Generic Error',
-    TemporarilyUnavailable: 'Temporarily Unavailable',
-    AlreadyProcessing: 'Already Processing',
-    NotMinted: 'Not Minted',
-    NoNewUtxos: 'No New Utxos',
-  }
-
-  for (const key in error) {
-    if (error[key] !== undefined && key in errorMessages) {
-      return errorMessages[key]
-    }
-  }
-  return 'Something went wrong'
-}
-
-/**
  * Gets a user-friendly error message for a withdraw error.
  *
  * @param error - An object representing the withdraw error.

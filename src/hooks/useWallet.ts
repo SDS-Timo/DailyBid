@@ -421,22 +421,6 @@ const useWallet = () => {
     }
   }
 
-  /**
-   * Notifies the backend service to update the Bitcoin balance.
-   * @param userAgent - An instance of HttpAgent used for making authenticated requests.
-   * @returns - A promise that resolves to the response from the backend service or null if an error occurs.
-   */
-  const btcBalanceNotify = async (userAgent: HttpAgent) => {
-    try {
-      const serviceActor = getActor(userAgent)
-      const result = await serviceActor.btc_notify()
-      return result
-    } catch (error) {
-      console.error('Error notifying Bitcoin balance update: ', error)
-      return null
-    }
-  }
-
   return {
     getBalancesCredits,
     getBalance,
@@ -447,7 +431,6 @@ const useWallet = () => {
     deposit,
     getUserPoints,
     getBtcDepositAddress,
-    btcBalanceNotify,
   }
 }
 
