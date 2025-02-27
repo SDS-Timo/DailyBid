@@ -19,6 +19,7 @@ import {
   useClipboard,
 } from '@chakra-ui/react'
 import { Principal } from '@dfinity/principal'
+import { format } from 'date-fns'
 import { FaWallet, FaBitcoin } from 'react-icons/fa'
 import { useSelector, useDispatch } from 'react-redux'
 
@@ -206,7 +207,7 @@ const WalletContent: React.FC = () => {
         <>
           {filteredClaims.length > 0 ? (
             <>
-              {`Claim Direct Deposits`}
+              {`Claim Direct Deposits:`}
               <br />
               {filteredClaims.map((claim, index) => (
                 <div key={index}>{claim}</div>
@@ -214,7 +215,7 @@ const WalletContent: React.FC = () => {
             </>
           ) : (
             <>
-              {`Claim Direct Deposits`}
+              {`Claim Direct Deposits:`}
               <br />
               {`No direct deposits available`}
             </>
@@ -222,13 +223,31 @@ const WalletContent: React.FC = () => {
 
           {newBtcUtxo.length > 0 && (
             <>
-              <br />
-              {`Pending`}
+              <div
+                style={{
+                  width: '100%',
+                  borderBottom: '1px solid',
+                  margin: '8px 0',
+                  textAlign: 'center',
+                  borderColor: 'black',
+                }}
+              ></div>
+              {`Pending:`}
               <br />
               {newBtcUtxo.map((utxo, index) => (
-                <div key={index}>
-                  {`${utxo.amount} BTC ${utxo.confirmations}/6 confirmations`}
-                </div>
+                <span key={index}>
+                  <a
+                    href={`https://mempool.space/tx/${utxo.txid}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      all: 'unset',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {`${utxo.amount} BTC ${utxo.block_time ? format(new Date(utxo.block_time * 1000), 'HH:mm:ss') : ''} (${utxo.confirmations}/6)`}
+                  </a>
+                </span>
               ))}
             </>
           )}
@@ -237,7 +256,7 @@ const WalletContent: React.FC = () => {
     } else {
       setClaimTooltipText(
         <>
-          {`Claim Direct Deposits`}
+          {`Claim Direct Deposits:`}
           <br />
           {`No deposits available`}
         </>,
@@ -612,7 +631,11 @@ const WalletContent: React.FC = () => {
           </Tooltip>
         </Flex>
         <Flex align="center">
-          <Tooltip label={claimTooltipText} aria-label="Claim Deposit">
+          <Tooltip
+            label={claimTooltipText}
+            aria-label="Claim Deposit"
+            closeDelay={10000}
+          >
             <Button
               onClick={handleMultipleTokenClaims}
               onMouseEnter={handleAllTrackedDeposits}
