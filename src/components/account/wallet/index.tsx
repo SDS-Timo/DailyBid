@@ -19,7 +19,6 @@ import {
   useClipboard,
 } from '@chakra-ui/react'
 import { Principal } from '@dfinity/principal'
-import { format } from 'date-fns'
 import { FaWallet, FaBitcoin } from 'react-icons/fa'
 import { useSelector, useDispatch } from 'react-redux'
 
@@ -51,10 +50,12 @@ import {
   getErrorMessageNotifyDeposits,
   getErrorMessageWithdraw,
   getErrorMessageDeposit,
+  getMemPoolUtxos,
 } from '../../../utils/walletUtils'
 
 const WalletContent: React.FC = () => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
+  const borderColor = useColorModeValue('grey.700', 'grey.25')
   const { colorMode } = useColorMode()
   const toast = useToast({
     duration: 10000,
@@ -81,9 +82,7 @@ const WalletContent: React.FC = () => {
   const userDeposit = useSelector((state: RootState) => state.auth.userDeposit)
   const balances = useSelector((state: RootState) => state.balances.balances)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
-  const newBtcUtxo = useSelector(
-    (state: RootState) => state.balances.newBtcUtxo,
-  )
+  const ckBtcUtxo = useSelector((state: RootState) => state.balances.ckBtcUtxo)
 
   const userDepositAddress = formatWalletAddress(userDeposit)
   const userBtcDepositAddress = formatWalletAddress(userBtcDeposit)
@@ -93,7 +92,7 @@ const WalletContent: React.FC = () => {
 
   const userDepositTooltip = (
     <>
-      {`Wallet account. Transfer here or set as allowance spender:`}
+      {`ICRC-1 Tokens. Transfer here or set as allowance spender:`}
       <br />
       {userDeposit}
     </>
@@ -101,7 +100,7 @@ const WalletContent: React.FC = () => {
 
   const userBtcDepositAddressTooltip = (
     <>
-      {`Bitcoin account. Transfer here:`}
+      {`Bitcoin. Transfer here:`}
       <br />
       {userBtcDeposit}
     </>
@@ -202,6 +201,8 @@ const WalletContent: React.FC = () => {
     setClaimTokensBalance(tokensBalance)
     const filteredClaims = claims.filter((claim) => claim !== null)
 
+    const newBtcUtxo = await getMemPoolUtxos(userBtcDeposit, ckBtcUtxo, tokens)
+    console.log('newBtcUtxo list: ', newBtcUtxo)
     if (filteredClaims.length > 0 || newBtcUtxo.length > 0) {
       setClaimTooltipText(
         <>
@@ -229,7 +230,7 @@ const WalletContent: React.FC = () => {
                   borderBottom: '1px solid',
                   margin: '8px 0',
                   textAlign: 'center',
-                  borderColor: 'black',
+                  borderColor: `${borderColor}`,
                 }}
               ></div>
               {`Pending:`}
@@ -243,9 +244,13 @@ const WalletContent: React.FC = () => {
                     style={{
                       all: 'unset',
                       cursor: 'pointer',
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      pointerEvents: 'all',
                     }}
                   >
-                    {`${utxo.amount} BTC ${utxo.block_time ? format(new Date(utxo.block_time * 1000), 'HH:mm:ss') : ''} (${utxo.confirmations}/6)`}
+                    {`${utxo.amount} BTC (${utxo.confirmations}/6)`}
                   </a>
                 </span>
               ))}
@@ -262,7 +267,15 @@ const WalletContent: React.FC = () => {
         </>,
       )
     }
-  }, [balances, newBtcUtxo, userAgent, userPrincipal])
+  }, [
+    balances,
+    userAgent,
+    ckBtcUtxo,
+    userPrincipal,
+    userBtcDeposit,
+    tokens,
+    getMemPoolUtxos,
+  ])
 
   const handleMultipleTokenClaims = useCallback(() => {
     claimTokensBalance.map((token) => {
@@ -614,6 +627,7 @@ const WalletContent: React.FC = () => {
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
           <Icon as={FaWallet} boxSize={4} mr={2} />
+
           <Tooltip label={userDepositTooltip} aria-label={userDeposit}>
             <Text
               onClick={copyToClipboardDepositAddress}
@@ -634,7 +648,7 @@ const WalletContent: React.FC = () => {
           <Tooltip
             label={claimTooltipText}
             aria-label="Claim Deposit"
-            closeDelay={10000}
+            closeDelay={5000}
           >
             <Button
               onClick={handleMultipleTokenClaims}

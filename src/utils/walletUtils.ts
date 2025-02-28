@@ -4,7 +4,9 @@ import {
   Minter,
 } from '@research-ag/ckbtc-address-js'
 
-import { Result } from '../types'
+import useMempool from '../hooks/useMempoolApi'
+import { Result, NewBtcUtxo } from '../types'
+import { convertVolumeFromCanister } from './calculationsUtils'
 
 /**
  * Gets a user-friendly error message for a notify deposit error.
@@ -113,4 +115,73 @@ export const generateBtcDepositAddress = (userPrincipal: string): string => {
     owner: `${process.env.CANISTER_ID_ICRC_AUCTION}`,
     subaccount: userToSubaccount(Principal.fromText(userPrincipal)),
   })
+}
+
+/**
+ * Calculates the number of confirmations for a list of UTXOs.
+ *
+ * @param utxos - An array of UTXOs to calculate confirmations for.
+ * @returns A new array of UTXOs with updated confirmation counts.
+ */
+const calculateUtxoConfirmations = async (utxos: any[]): Promise<any[]> => {
+  try {
+    const { getCurrentBlockHeight } = useMempool()
+    const currentBlockHeight = await getCurrentBlockHeight()
+    if (!currentBlockHeight)
+      throw new Error('Failed to fetch current block height.')
+
+    return utxos.map((utxo) => ({
+      ...utxo,
+      confirmations: utxo.status.confirmed
+        ? currentBlockHeight - utxo.status.block_height + 1
+        : 0,
+    }))
+  } catch (err) {
+    console.error('Error calculating UTXO confirmations:', err)
+    return utxos
+  }
+}
+
+/**
+ * Retrieves the UTXOs for a user from the mempool.
+ *
+ * @param userBtcDeposit - The user's BTC deposit address.
+ * @param ckBtcUtxo - The user's known UTXOs.
+ * @param tokens - A list of token metadata for conversion.
+ * @returns A list of new UTXOs from the mempool with confirmations.
+ */
+export const getMemPoolUtxos = async (
+  userBtcDeposit: string,
+  ckBtcUtxo: any[],
+  tokens: any[],
+): Promise<NewBtcUtxo[]> => {
+  try {
+    if (!userBtcDeposit) return []
+
+    const { getMempoolAdressUtxo } = useMempool()
+    const mempoolUtxos = await getMempoolAdressUtxo(userBtcDeposit)
+    if (mempoolUtxos.length === 0) return []
+
+    const mempoolUtxosWithConfirmations =
+      await calculateUtxoConfirmations(mempoolUtxos)
+    const knownTxids = new Set(ckBtcUtxo.map((utxo: any) => utxo.txid))
+
+    return mempoolUtxosWithConfirmations
+      .filter((utxo) => !knownTxids.has(utxo.txid))
+      .map((utxo) => ({
+        height: utxo.status.block_height,
+        block_time: utxo.status.block_time,
+        txid: utxo.txid,
+        amount: convertVolumeFromCanister(
+          Number(utxo.value),
+          tokens.find((t) => t.base === 'BTC')?.decimals || 8,
+          0,
+        ).volumeInBase,
+        confirmations: utxo.confirmations || 0,
+      }))
+      .sort((a, b) => b.confirmations - a.confirmations)
+  } catch (error) {
+    console.error('Error fetching new UTXOs from mempool:', error)
+    return []
+  }
 }

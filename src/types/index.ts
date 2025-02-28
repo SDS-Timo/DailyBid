@@ -103,7 +103,6 @@ export interface BalancesState {
   isRefreshBalances: boolean
   balances: TokenDataItem[] | []
   ckBtcUtxo: CkBtcUtxo[]
-  newBtcUtxo: NewBtcUtxo[]
 }
 export interface SettingsState {
   orderQuoteVolumeMinimum: number
