@@ -22,6 +22,7 @@ const MempoolWebSocketComponent: React.FC = () => {
 
   const { getCkBtcMinter, ckBtcMinterUpdateBalance } = useCkBtcMinter()
 
+  const isFetchingRef = useRef<boolean>(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchCkBtcUtxos = useCallback(async () => {
@@ -37,6 +38,13 @@ const MempoolWebSocketComponent: React.FC = () => {
 
   const fetchUtxos = useCallback(async () => {
     try {
+      if (isFetchingRef.current) {
+        console.log('Timer blocked by isFetching')
+        return
+      }
+
+      isFetchingRef.current = true
+
       const newBtcUtxo = await getMemPoolUtxos(
         userBtcDeposit,
         ckBtcUtxo,
@@ -54,7 +62,7 @@ const MempoolWebSocketComponent: React.FC = () => {
             new Date(blockTime * 1000),
           )
 
-          if (timeElapsed > 60) {
+          if (timeElapsed > 60 && userPrincipal) {
             const update_balance_result = await ckBtcMinterUpdateBalance(
               userAgent,
               userPrincipal,
@@ -68,6 +76,9 @@ const MempoolWebSocketComponent: React.FC = () => {
       }
     } catch (error) {
       console.error('Error processing UTXOs:', error)
+    } finally {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      isFetchingRef.current = false
     }
   }, [
     fetchCkBtcUtxos,
@@ -77,6 +88,7 @@ const MempoolWebSocketComponent: React.FC = () => {
     userAgent,
     userPrincipal,
     userBtcDeposit,
+    tokens,
   ])
 
   useEffect(() => {
