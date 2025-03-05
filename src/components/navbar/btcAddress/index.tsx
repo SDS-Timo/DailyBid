@@ -8,7 +8,7 @@ import { RootState, AppDispatch } from '../../../store'
 import { setCkBtcUtxo } from '../../../store/balances'
 import { getMemPoolUtxos } from '../../../utils/walletUtils'
 
-const MempoolWebSocketComponent: React.FC = () => {
+const BtcDepositComponent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { userAgent } = useSelector((state: RootState) => state.auth)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
@@ -44,7 +44,7 @@ const MempoolWebSocketComponent: React.FC = () => {
       }
 
       isFetchingRef.current = true
-
+      console.log('ckBtcUtxo timer: ', ckBtcUtxo)
       const newBtcUtxo = await getMemPoolUtxos(
         userBtcDeposit,
         ckBtcUtxo,
@@ -93,7 +93,7 @@ const MempoolWebSocketComponent: React.FC = () => {
         clearInterval(intervalRef.current)
       }
     }
-  }, [userBtcDeposit])
+  }, [userBtcDeposit, ckBtcUtxo])
 
   useEffect(() => {
     if (userPrincipal) fetchCkBtcUtxos()
@@ -106,4 +106,4 @@ const MempoolWebSocketComponent: React.FC = () => {
   return null
 }
 
-export default MempoolWebSocketComponent
+export default BtcDepositComponent
