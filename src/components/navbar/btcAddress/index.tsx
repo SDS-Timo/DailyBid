@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { differenceInSeconds } from 'date-fns'
 import { useSelector, useDispatch } from 'react-redux'
@@ -25,7 +25,7 @@ const MempoolWebSocketComponent: React.FC = () => {
   const isFetchingRef = useRef<boolean>(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const fetchCkBtcUtxos = useCallback(async () => {
+  const fetchCkBtcUtxos = async () => {
     try {
       if (userPrincipal) {
         const list = await getCkBtcMinter(userAgent, userPrincipal)
@@ -34,9 +34,9 @@ const MempoolWebSocketComponent: React.FC = () => {
     } catch (error) {
       console.error('Error processing CkBtc Minter UTXOs:', error)
     }
-  }, [getCkBtcMinter, userAgent, userPrincipal])
+  }
 
-  const fetchUtxos = useCallback(async () => {
+  const fetchUtxos = async () => {
     try {
       if (isFetchingRef.current) {
         console.log('Timer blocked by isFetching')
@@ -63,14 +63,13 @@ const MempoolWebSocketComponent: React.FC = () => {
           )
 
           if (timeElapsed > 60 && userPrincipal) {
-            const update_balance_result = await ckBtcMinterUpdateBalance(
+            const response = await ckBtcMinterUpdateBalance(
               userAgent,
               userPrincipal,
             )
-            const get_known_utxos_result = await fetchCkBtcUtxos()
+            console.log('update_balance_response: ', response)
 
-            console.log('update_balance_result: ', update_balance_result)
-            console.log('get_known_utxos_result: ', get_known_utxos_result)
+            await fetchCkBtcUtxos()
           }
         }
       }
@@ -80,16 +79,7 @@ const MempoolWebSocketComponent: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, 100))
       isFetchingRef.current = false
     }
-  }, [
-    fetchCkBtcUtxos,
-    ckBtcMinterUpdateBalance,
-    getMemPoolUtxos,
-    ckBtcUtxo,
-    userAgent,
-    userPrincipal,
-    userBtcDeposit,
-    tokens,
-  ])
+  }
 
   useEffect(() => {
     fetchUtxos()
@@ -110,7 +100,7 @@ const MempoolWebSocketComponent: React.FC = () => {
   }, [userPrincipal])
 
   useEffect(() => {
-    console.log('get_known_utxos list: ', ckBtcUtxo)
+    if (userPrincipal) console.log('get_known_utxos list: ', ckBtcUtxo)
   }, [ckBtcUtxo])
 
   return null
