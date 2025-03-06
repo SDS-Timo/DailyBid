@@ -29,6 +29,9 @@ const BtcDepositComponent: React.FC = () => {
     try {
       if (userPrincipal) {
         const list = await getCkBtcMinter(userAgent, userPrincipal)
+
+        isFetchingRef.current = false
+
         dispatch(setCkBtcUtxo(list))
       }
     } catch (error) {
@@ -68,8 +71,6 @@ const BtcDepositComponent: React.FC = () => {
               userPrincipal,
             )
             console.log('update_balance_response: ', response)
-
-            isFetchingRef.current = false
 
             await fetchCkBtcUtxos()
           }
