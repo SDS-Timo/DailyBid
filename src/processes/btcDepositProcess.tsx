@@ -1,15 +1,13 @@
 import { useEffect, useRef } from 'react'
 
 import { differenceInSeconds } from 'date-fns'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
-import useCkBtcMinter from '../../../hooks/useCkBtcMinter'
-import { RootState, AppDispatch } from '../../../store'
-import { setCkBtcUtxo } from '../../../store/balances'
-import { getMemPoolUtxos } from '../../../utils/walletUtils'
+import useCkBtcMinter from '../hooks/useCkBtcMinter'
+import { RootState } from '../store'
+import { getMemPoolUtxos } from '../utils/walletUtils'
 
 const BtcDepositComponent: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
   const { userAgent } = useSelector((state: RootState) => state.auth)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
   const userPrincipal = useSelector(
@@ -18,7 +16,6 @@ const BtcDepositComponent: React.FC = () => {
   const userBtcDeposit = useSelector(
     (state: RootState) => state.auth.userBtcDepositAddress,
   )
-  const ckBtcUtxo = useSelector((state: RootState) => state.balances.ckBtcUtxo)
 
   const { getCkBtcMinter, ckBtcMinterUpdateBalance } = useCkBtcMinter()
 
@@ -30,9 +27,12 @@ const BtcDepositComponent: React.FC = () => {
       if (userPrincipal) {
         const list = await getCkBtcMinter(userAgent, userPrincipal)
 
-        isFetchingRef.current = false
-
-        dispatch(setCkBtcUtxo(list))
+        localStorage.setItem(
+          'ckBtcUtxo',
+          JSON.stringify(list, (key, value) =>
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
+        )
       }
     } catch (error) {
       console.error('Error processing CkBtc Minter UTXOs:', error)
@@ -47,6 +47,15 @@ const BtcDepositComponent: React.FC = () => {
       }
 
       isFetchingRef.current = true
+
+      const ckBtcUtxo = JSON.parse(
+        localStorage.getItem('ckBtcUtxo') || '[]',
+        (key, value) =>
+          typeof value === 'string' && /^\d+$/.test(value)
+            ? BigInt(value)
+            : value,
+      )
+
       console.log('ckBtcUtxo timer: ', ckBtcUtxo)
       const newBtcUtxo = await getMemPoolUtxos(
         userBtcDeposit,
@@ -94,15 +103,14 @@ const BtcDepositComponent: React.FC = () => {
         clearInterval(intervalRef.current)
       }
     }
-  }, [userBtcDeposit, ckBtcUtxo])
+  }, [userBtcDeposit])
 
   useEffect(() => {
-    if (userPrincipal) fetchCkBtcUtxos()
+    if (userPrincipal) {
+      localStorage.removeItem('ckBtcUtxo')
+      fetchCkBtcUtxos()
+    }
   }, [userPrincipal])
-
-  useEffect(() => {
-    if (userPrincipal) console.log('get_known_utxos list: ', ckBtcUtxo)
-  }, [ckBtcUtxo])
 
   return null
 }
