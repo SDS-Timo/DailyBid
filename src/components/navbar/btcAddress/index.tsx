@@ -69,6 +69,8 @@ const BtcDepositComponent: React.FC = () => {
             )
             console.log('update_balance_response: ', response)
 
+            isFetchingRef.current = false
+
             await fetchCkBtcUtxos()
           }
         }
@@ -82,8 +84,6 @@ const BtcDepositComponent: React.FC = () => {
   }
 
   useEffect(() => {
-    fetchUtxos()
-
     intervalRef.current = setInterval(() => {
       fetchUtxos()
     }, 60000)
