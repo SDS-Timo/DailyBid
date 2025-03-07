@@ -101,8 +101,8 @@ export interface ActionsState {
 }
 export interface BalancesState {
   isRefreshBalances: boolean
+  isWithdrawStarted: boolean
   balances: TokenDataItem[] | []
-  ckBtcUtxo: CkBtcUtxo[]
 }
 export interface SettingsState {
   orderQuoteVolumeMinimum: number
@@ -137,11 +137,6 @@ export interface NextSession {
   nextSession: string
   datetime: number
   counter: string
-}
-export interface CkBtcUtxo {
-  amount: number
-  height: number
-  txid: string
 }
 export interface NewBtcUtxo {
   amount: number

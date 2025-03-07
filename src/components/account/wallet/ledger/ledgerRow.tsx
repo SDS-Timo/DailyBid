@@ -9,14 +9,13 @@ import { capitalizeFirstLetter } from '../../../../utils/stringsUtils'
 interface LedgerRowProps {
   data: TokenDataItem
   symbol: string
-  timezone: string // Adiciona o timezone selecionado como prop
+  timezone: string
 }
 
 const formatDateTime = (datetime: string, timezone: string) => {
   const date = new Date(datetime)
   const offset = parseInt(timezone.replace('UTC', ''), 10) || 0
 
-  // Calcula o horário ajustado para o deslocamento UTC em milissegundos
   const adjustedDate = new Date(date.getTime() + offset * 60 * 60 * 1000)
 
   return {
@@ -76,7 +75,7 @@ const determineVolume = (data: TokenDataItem, symbol: string) => {
 }
 
 const LedgerRow: React.FC<LedgerRowProps> = ({ data, symbol, timezone }) => {
-  const { date, time } = formatDateTime(data.datetime, timezone) // Usa o timezone para formatação
+  const { date, time } = formatDateTime(data.datetime, timezone)
   const color = determineColor(data, symbol)
   const volumeText = determineVolume(data, symbol)
   const priceText = data.price.toLocaleString('en-US', {

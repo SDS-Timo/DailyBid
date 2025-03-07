@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { TokenDataItem, BalancesState, CkBtcUtxo } from '../../types'
+import { TokenDataItem, BalancesState } from '../../types'
 
 const initialState: BalancesState = {
   isRefreshBalances: false,
+  isWithdrawStarted: false,
   balances: [],
-  ckBtcUtxo: [],
 }
 
 const balancesSlice = createSlice({
@@ -15,16 +15,16 @@ const balancesSlice = createSlice({
     setIsRefreshBalances: (state) => {
       state.isRefreshBalances = !state.isRefreshBalances
     },
+    setIsWithdrawStarted: (state) => {
+      state.isWithdrawStarted = !state.isWithdrawStarted
+    },
     setBalances: (state, action: PayloadAction<TokenDataItem[] | []>) => {
       state.balances = action.payload
-    },
-    setCkBtcUtxo: (state, action: PayloadAction<CkBtcUtxo[] | []>) => {
-      state.ckBtcUtxo = action.payload
     },
   },
 })
 
-export const { setIsRefreshBalances, setBalances, setCkBtcUtxo } =
+export const { setIsRefreshBalances, setIsWithdrawStarted, setBalances } =
   balancesSlice.actions
 
 export default balancesSlice.reducer

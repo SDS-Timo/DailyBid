@@ -53,7 +53,7 @@ export const getErrorMessageWithdraw = (error: Result): string => {
 /**
  * Gets a user-friendly error message for a deposit error.
  *
- * @param error - An object representing the withdraw error.
+ * @param error - An object representing the deposit error.
  * @returns A string with the corresponding error message.
  */
 export const getErrorMessageDeposit = (error: Result): string => {
@@ -76,6 +76,38 @@ export const getErrorMessageDeposit = (error: Result): string => {
     }
   }
 
+  return 'Something went wrong'
+}
+
+/**
+ * Gets a user-friendly error message for a withdraw error.
+ *
+ * @param error - An object representing the withdraw error.
+ * @returns A string with the corresponding error message.
+ */
+export const getErrorMessageBtcWithdraw = (error: Result): string => {
+  const errorMessages: { [key: string]: string } = {
+    MalformedAddress: 'Mal formed Address',
+    GenericError: 'Generic Error',
+    TemporarilyUnavailable: 'Temporarily Unavailable',
+    InsufficientAllowance: 'Insufficient Allowance',
+    AlreadyProcessing: 'Already Processing',
+    Duplicate: 'Duplicate',
+    InsufficientCredit: 'Insufficient Credit',
+    BadFee: 'Bad Fee',
+    AmountTooLow: 'Amount Too Low',
+    AllowanceChanged: 'Allowance Changed',
+    CreatedInFuture: 'Created In Future',
+    TooOld: 'Too Old',
+    Expired: 'Expired',
+    InsufficientFunds: 'Insufficient Funds',
+  }
+
+  for (const key in error) {
+    if (error[key] !== undefined && key in errorMessages) {
+      return errorMessages[key]
+    }
+  }
   return 'Something went wrong'
 }
 
@@ -164,6 +196,7 @@ export const getMemPoolUtxos = async (
 
     const mempoolUtxosWithConfirmations =
       await calculateUtxoConfirmations(mempoolUtxos)
+
     const knownTxids = new Set(ckBtcUtxo.map((utxo: any) => utxo.txid))
 
     return mempoolUtxosWithConfirmations

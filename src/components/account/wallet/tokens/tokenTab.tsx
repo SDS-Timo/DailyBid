@@ -22,6 +22,7 @@ interface TokenTabProps {
     amount: number,
     account: string | undefined,
     token: TokenMetadata,
+    network: string | null,
   ) => void
   handleDeposit: (
     amount: number,

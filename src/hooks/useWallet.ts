@@ -421,6 +421,59 @@ const useWallet = () => {
     }
   }
 
+  /**
+   * Initiates a Bitcoin withdrawal transaction using the ICRC-84 protocol.
+   * @param userAgent - An instance of HttpAgent for making authenticated requests.
+   * @param to - The recipient's Bitcoin address.
+   * @param amount - The amount to withdraw.
+   * @returns The result of the withdrawal transaction or null if an error occurs.
+   */
+  const btcWithdrawCredit = async (
+    userAgent: HttpAgent,
+    to: string,
+    amount: number,
+  ) => {
+    try {
+      if (!to || !amount) return null
+
+      const serviceActor = getActor(userAgent)
+      const result = await serviceActor.btc_withdraw({
+        amount: BigInt(amount),
+        to,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error btc withdraw credit:', error)
+      return null
+    }
+  }
+
+  /**
+   * Retrieves the status of a Bitcoin withdrawal transaction.
+   * @param userAgent - An instance of HttpAgent for making authenticated requests.
+   * @param blockIndex - The block index of the withdrawal transaction.
+   * @returns The status of the withdrawal transaction or null if an error occurs.
+   */
+  const btcWithdrawStatus = async (
+    userAgent: HttpAgent,
+    blockIndex: bigint,
+  ) => {
+    try {
+      if (!blockIndex) return null
+
+      const serviceActor = getActor(userAgent)
+      const result = await serviceActor.btc_withdrawal_status({
+        block_index: blockIndex,
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error btc withdraw status:', error)
+      return null
+    }
+  }
+
   return {
     getBalancesCredits,
     getBalance,
@@ -431,6 +484,8 @@ const useWallet = () => {
     deposit,
     getUserPoints,
     getBtcDepositAddress,
+    btcWithdrawCredit,
+    btcWithdrawStatus,
   }
 }
 

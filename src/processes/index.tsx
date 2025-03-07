@@ -1,9 +1,10 @@
 import BtcDepositProcess from './btcDepositProcess'
-//import BtcWithdrawStatus from './btcWithdrawStatus'
+import BtcWithdrawStatus from './btcWithdrawStatus'
 
 const Processes: React.FC = () => (
   <>
     <BtcDepositProcess />
+    <BtcWithdrawStatus />
   </>
 )
 

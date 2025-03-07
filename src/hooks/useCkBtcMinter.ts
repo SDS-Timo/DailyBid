@@ -1,6 +1,7 @@
 import { HttpAgent } from '@dfinity/agent'
 import { Principal } from '@dfinity/principal'
 
+import { convertVolumeFromCanister } from '../utils/calculationsUtils'
 import { getActorCkBtcMinter } from '../utils/canisterCkBtcMinterUtils'
 import { getAuctionCanisterId } from '../utils/canisterUtils'
 import {
@@ -21,6 +22,7 @@ const useCkBtcMinter = () => {
   const getCkBtcMinter = async (
     userAgent: HttpAgent,
     userPrincipal: string,
+    tokens: any[],
   ): Promise<any> => {
     try {
       // Initialize the ckBTC Minter service actor
@@ -45,7 +47,11 @@ const useCkBtcMinter = () => {
           .reverse()
           .map((byte) => byte.toString(16).padStart(2, '0'))
           .join(''),
-        amount: utxo.value,
+        amount: convertVolumeFromCanister(
+          Number(utxo.value),
+          tokens.find((t) => t.base === 'BTC')?.decimals || 8,
+          0,
+        ).volumeInBase,
       }))
     } catch (error) {
       console.error('Error fetching UTXOs from ckBTC Minter:', error)

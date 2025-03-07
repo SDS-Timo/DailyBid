@@ -49,6 +49,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
     localStorage.removeItem('identity')
     localStorage.removeItem('delegationIdentity')
     localStorage.removeItem('mnemonicPhrase')
+    localStorage.removeItem('ckBtcUtxo')
     onClose()
   }
 

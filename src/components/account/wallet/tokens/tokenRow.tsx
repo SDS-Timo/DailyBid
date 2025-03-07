@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 
 import {
   Flex,
+  Box,
   Image,
   Tooltip,
   Text,
@@ -27,13 +28,15 @@ import {
   useDisclosure,
 } from '@chakra-ui/react'
 import { HttpAgent } from '@dfinity/agent'
+import { Select } from 'bymax-react-select'
 import { useFormik } from 'formik'
 import { LuDownload, LuUpload } from 'react-icons/lu'
 import { RiHandCoinLine } from 'react-icons/ri'
 import * as Yup from 'yup'
 
+import customStyles from '../../../../common/styles'
 import useWallet from '../../../../hooks/useWallet'
-import { TokenDataItem, TokenMetadata } from '../../../../types'
+import { TokenDataItem, TokenMetadata, Option } from '../../../../types'
 import {
   fixDecimal,
   convertVolumeFromCanister,
@@ -49,6 +52,7 @@ interface TokenRowProps {
     amount: number,
     account: string | undefined,
     token: TokenMetadata,
+    network: string | null,
   ) => void
   handleDeposit: (
     amount: number,
@@ -84,6 +88,9 @@ const TokenRow: React.FC<TokenRowProps> = ({
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   const [action, setAction] = useState('')
+  const [btcNetworkOption, setBtcNetworkOption] = useState<
+    Option | Option[] | null
+  >(null)
   const [depositAllowance, setDepositAllowance] = useState<string | null>(null)
   const [maxDepositAllowance, setMaxDepositAllowance] = useState<string | null>(
     null,
@@ -112,6 +119,21 @@ const TokenRow: React.FC<TokenRowProps> = ({
     },
   )
 
+  const networkOptions = useMemo(
+    () => [
+      { value: 'bitcoin', label: 'Native Bitcoin', id: '1' },
+      { value: 'ckbtc', label: 'ckBTC', id: '2' },
+    ],
+    [],
+  )
+
+  const btcNetwork =
+    Array.isArray(btcNetworkOption) && btcNetworkOption.length > 0
+      ? btcNetworkOption[0]
+      : (btcNetworkOption as Option)
+
+  const network = token?.symbol === 'BTC' ? btcNetwork?.value : null
+
   const toast = useToast({
     duration: 2000,
     position: 'top-right',
@@ -135,6 +157,8 @@ const TokenRow: React.FC<TokenRowProps> = ({
   const initialValues = {
     amount: '',
     account: '',
+    network: '',
+    symbol: token.symbol,
     action: action,
     submit: false,
   }
@@ -154,6 +178,10 @@ const TokenRow: React.FC<TokenRowProps> = ({
           schema.max(Number(maxDepositAllowance) || 0, 'Not enough funds'),
       }),
     account: Yup.string().required('Account is a required field').typeError(''),
+    network: Yup.string().when('symbol', {
+      is: 'BTC',
+      then: (schema) => schema.required('Network is required field'),
+    }),
   })
 
   const formik = useFormik({
@@ -163,7 +191,13 @@ const TokenRow: React.FC<TokenRowProps> = ({
       if (Number(values.amount) > 0) {
         if (action === 'withdraw') {
           if (isWithdrawConfirmationEnabled()) onOpen()
-          else handleWithdraw(Number(values.amount), values.account, token)
+          else
+            handleWithdraw(
+              Number(values.amount),
+              values.account,
+              token,
+              network,
+            )
         } else if (action === 'deposit') {
           handleDeposit(Number(values.amount), values.account, token)
         }
@@ -171,9 +205,25 @@ const TokenRow: React.FC<TokenRowProps> = ({
     },
   })
 
+  const handleBtcNetworkChange = useCallback(
+    (option: Option | Option[] | null) => {
+      setBtcNetworkOption(option)
+      formik.setFieldValue(
+        'network',
+        Array.isArray(option) ? option[0]?.value : option?.value,
+      )
+    },
+    [],
+  )
+
   const handleWithdrawConfirm = () => {
     onClose()
-    handleWithdraw(Number(formik.values.amount), formik.values.account, token)
+    handleWithdraw(
+      Number(formik.values.amount),
+      formik.values.account,
+      token,
+      network,
+    )
   }
 
   const getBalanceOf = useCallback(
@@ -427,6 +477,35 @@ const TokenRow: React.FC<TokenRowProps> = ({
 
             <AccordionPanel pb={4}>
               <Flex direction="column" gap={4}>
+                {token.symbol === 'BTC' && (
+                  <Box hidden>
+                    <Select
+                      id="network"
+                      value={btcNetwork?.label ? btcNetwork : null}
+                      isMulti={false}
+                      isClearable={true}
+                      options={networkOptions}
+                      isInvalid={
+                        !!formik.errors.network && formik.touched.network
+                      }
+                      placeholder={
+                        networkOptions?.length <= 0
+                          ? 'Loading...'
+                          : 'Select a network'
+                      }
+                      noOptionsMessage="No network found"
+                      isLoading={networkOptions?.length <= 0}
+                      loadingMessage="Loading..."
+                      onChange={handleBtcNetworkChange}
+                      styles={customStyles as any}
+                    />
+                    {!!formik.errors.network && formik.touched.network && (
+                      <Text color="red.500" fontSize="12px">
+                        {formik.errors.network}
+                      </Text>
+                    )}
+                  </Box>
+                )}
                 <Flex direction="column">
                   <FormControl variant="floating">
                     <Input

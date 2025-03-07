@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 
+import { useToast } from '@chakra-ui/react'
 import { differenceInSeconds } from 'date-fns'
 import { useSelector } from 'react-redux'
 
@@ -17,15 +18,50 @@ const BtcDepositComponent: React.FC = () => {
     (state: RootState) => state.auth.userBtcDepositAddress,
   )
 
+  const toast = useToast({
+    duration: 10000,
+    position: 'top-right',
+    isClosable: true,
+  })
+
   const { getCkBtcMinter, ckBtcMinterUpdateBalance } = useCkBtcMinter()
 
   const isFetchingRef = useRef<boolean>(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const previousCkBtcUtxoRef = useRef<Set<string>>(new Set())
+  const previousNewBtcUtxoRef = useRef<Set<string>>(new Set())
+
+  const detectNewTxids = (
+    previousRef: React.MutableRefObject<Set<string>>,
+    currentList: { txid: string; amount: number }[],
+    title: string,
+    getDescription: (newTxids: { txid: string; amount: number }[]) => string,
+    status: 'info' | 'warning' | 'success' | 'error' | 'loading' | undefined,
+  ) => {
+    const previousSet = previousRef.current
+
+    const newTxids = currentList.filter((tx) => !previousSet.has(tx.txid))
+
+    if (newTxids.length > 0) {
+      toast({
+        title,
+        description: getDescription(newTxids),
+        status,
+        duration: 10000,
+        isClosable: true,
+      })
+
+      previousRef.current = new Set([
+        ...previousSet,
+        ...newTxids.map((tx) => tx.txid),
+      ])
+    }
+  }
 
   const fetchCkBtcUtxos = async () => {
     try {
       if (userPrincipal) {
-        const list = await getCkBtcMinter(userAgent, userPrincipal)
+        const list = await getCkBtcMinter(userAgent, userPrincipal, tokens)
 
         localStorage.setItem(
           'ckBtcUtxo',
@@ -64,6 +100,24 @@ const BtcDepositComponent: React.FC = () => {
       )
       console.log('newBtcUtxo timer: ', newBtcUtxo)
 
+      detectNewTxids(
+        previousNewBtcUtxoRef,
+        newBtcUtxo,
+        'New BTC deposit found',
+        (newTxids) =>
+          `${newTxids.reduce((sum, tx) => sum + Number(tx.amount), 0)} BTC pending`,
+        'success',
+      )
+
+      detectNewTxids(
+        previousCkBtcUtxoRef,
+        ckBtcUtxo,
+        'BTC deposit done',
+        (newTxids) =>
+          `${newTxids.reduce((sum, tx) => sum + Number(tx.amount), 0)} BTC received`,
+        'success',
+      )
+
       for (const utxo of newBtcUtxo) {
         const blockTime = utxo.block_time
         const confirmationCount = utxo.confirmations || 0
@@ -94,9 +148,13 @@ const BtcDepositComponent: React.FC = () => {
   }
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
+    if (userBtcDeposit) {
       fetchUtxos()
-    }, 60000)
+
+      intervalRef.current = setInterval(() => {
+        fetchUtxos()
+      }, 60000)
+    }
 
     return () => {
       if (intervalRef.current) {
@@ -107,10 +165,13 @@ const BtcDepositComponent: React.FC = () => {
 
   useEffect(() => {
     if (userPrincipal) {
-      localStorage.removeItem('ckBtcUtxo')
       fetchCkBtcUtxos()
     }
   }, [userPrincipal])
+
+  useEffect(() => {
+    localStorage.removeItem('ckBtcUtxo')
+  }, [])
 
   return null
 }

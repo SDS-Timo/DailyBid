@@ -30,7 +30,7 @@ import WalletIconLight from '../../../assets/img/common/wallet-white.svg'
 import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
 import { setUserPoints } from '../../../store/auth'
-import { setBalances } from '../../../store/balances'
+import { setBalances, setIsWithdrawStarted } from '../../../store/balances'
 import {
   Result,
   TokenDataItem,
@@ -50,6 +50,7 @@ import {
   getErrorMessageNotifyDeposits,
   getErrorMessageWithdraw,
   getErrorMessageDeposit,
+  getErrorMessageBtcWithdraw,
   getMemPoolUtxos,
 } from '../../../utils/walletUtils'
 
@@ -82,7 +83,6 @@ const WalletContent: React.FC = () => {
   const userDeposit = useSelector((state: RootState) => state.auth.userDeposit)
   const balances = useSelector((state: RootState) => state.balances.balances)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
-  const ckBtcUtxo = useSelector((state: RootState) => state.balances.ckBtcUtxo)
 
   const userDepositAddress = formatWalletAddress(userDeposit)
   const userBtcDepositAddress = formatWalletAddress(userBtcDeposit)
@@ -201,6 +201,14 @@ const WalletContent: React.FC = () => {
     setClaimTokensBalance(tokensBalance)
     const filteredClaims = claims.filter((claim) => claim !== null)
 
+    const ckBtcUtxo = JSON.parse(
+      localStorage.getItem('ckBtcUtxo') || '[]',
+      (key, value) =>
+        typeof value === 'string' && /^\d+$/.test(value)
+          ? BigInt(value)
+          : value,
+    )
+
     const newBtcUtxo = await getMemPoolUtxos(userBtcDeposit, ckBtcUtxo, tokens)
     console.log('newBtcUtxo list: ', newBtcUtxo)
     if (filteredClaims.length > 0 || newBtcUtxo.length > 0) {
@@ -270,7 +278,6 @@ const WalletContent: React.FC = () => {
   }, [
     balances,
     userAgent,
-    ckBtcUtxo,
     userPrincipal,
     userBtcDeposit,
     tokens,
@@ -398,7 +405,12 @@ const WalletContent: React.FC = () => {
   )
 
   const handleWithdraw = useCallback(
-    (amount: number, account: string | undefined, token: TokenMetadata) => {
+    (
+      amount: number,
+      account: string | undefined,
+      token: TokenMetadata,
+      network: string | null,
+    ) => {
       const startTime = Date.now()
 
       const withdrawStatus = (base: string, withdrawStatus: string) => {
@@ -423,80 +435,199 @@ const WalletContent: React.FC = () => {
         isClosable: true,
       })
 
-      const { withdrawCredit } = useWallet()
-      withdrawCredit(userAgent, `${token.principal}`, account, Number(volume))
-        .then((response: Result | null) => {
-          const endTime = Date.now()
-          const durationInSeconds = (endTime - startTime) / 1000
+      if (network === 'bitcoin') {
+        const newBlockIndex = BigInt(2)
 
-          if (response && Object.keys(response).includes('Ok')) {
-            fetchBalances()
-            withdrawStatus(token.base, 'success')
+        localStorage.setItem(
+          'blockIndex',
+          JSON.stringify([newBlockIndex], (key, value) =>
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
+        )
+        dispatch(setIsWithdrawStarted())
 
-            const { volumeInBase } = convertVolumeFromCanister(
-              Number(response.Ok?.amount),
-              Number(token.decimals),
-              0,
-            )
+        const { btcWithdrawCredit } = useWallet()
+        btcWithdrawCredit(userAgent, `${account}`, Number(volume))
+          .then((response: Result | null) => {
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
 
-            if (toastId) {
-              toast.update(toastId, {
-                title: `Withdraw ${token.base} Success`,
-                description: getSimpleToastDescription(
-                  `Amount: ${fixDecimal(volumeInBase, token.decimals)} | Txid: ${response.Ok?.txid}`,
-                  durationInSeconds,
-                ),
-                status: 'success',
-                isClosable: true,
-              })
+            if (response && Object.keys(response).includes('Ok')) {
+              withdrawStatus(token.base, 'success')
+
+              const { volumeInBase } = convertVolumeFromCanister(
+                Number(response.Ok?.amount),
+                Number(token.decimals),
+                0,
+              )
+
+              const blockIndexStorage = JSON.parse(
+                localStorage.getItem('blockIndex') || '[]',
+                (key, value) =>
+                  typeof value === 'string' && /^\d+$/.test(value)
+                    ? BigInt(value)
+                    : value,
+              )
+
+              const newBlockIndex = BigInt(response.Ok?.block_index)
+
+              if (
+                !Array.isArray(blockIndexStorage) ||
+                blockIndexStorage.length === 0
+              ) {
+                localStorage.setItem(
+                  'blockIndex',
+                  JSON.stringify([newBlockIndex], (key, value) =>
+                    typeof value === 'bigint' ? value.toString() : value,
+                  ),
+                )
+              } else {
+                blockIndexStorage.push(newBlockIndex)
+
+                localStorage.setItem(
+                  'blockIndex',
+                  JSON.stringify(blockIndexStorage, (key, value) =>
+                    typeof value === 'bigint' ? value.toString() : value,
+                  ),
+                )
+              }
+
+              dispatch(setIsWithdrawStarted())
+
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw Native ${token.base} Started`,
+                  description: getSimpleToastDescription(
+                    `Amount: ${fixDecimal(volumeInBase, token.decimals)} | Txid: ${response.Ok?.block_index}`,
+                    durationInSeconds,
+                  ),
+                  status: 'success',
+                  isClosable: true,
+                })
+              }
+            } else if (response && Object.keys(response).includes('Err')) {
+              withdrawStatus(token.base, 'error')
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw Native ${token.base} rejected`,
+                  description: getSimpleToastDescription(
+                    getErrorMessageBtcWithdraw(response.Err),
+                    durationInSeconds,
+                  ),
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
+            } else {
+              withdrawStatus(token.base, 'error')
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw Native ${token.base} rejected`,
+                  description: getSimpleToastDescription(
+                    'Something went wrong',
+                    durationInSeconds,
+                  ),
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
             }
-          } else if (response && Object.keys(response).includes('Err')) {
+          })
+          .catch((error) => {
+            const message = error.response ? error.response.data : error.message
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
             withdrawStatus(token.base, 'error')
             if (toastId) {
               toast.update(toastId, {
-                title: `Withdraw ${token.base} rejected`,
+                title: 'Withdraw Native BTC rejected',
                 description: getSimpleToastDescription(
-                  getErrorMessageWithdraw(response.Err),
+                  `Error: ${message}`,
                   durationInSeconds,
                 ),
                 status: 'error',
                 isClosable: true,
               })
             }
-          } else {
+            console.error('Withdraw failed:', message)
+          })
+      } else {
+        const { withdrawCredit } = useWallet()
+        withdrawCredit(userAgent, `${token.principal}`, account, Number(volume))
+          .then((response: Result | null) => {
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
+            if (response && Object.keys(response).includes('Ok')) {
+              fetchBalances()
+              withdrawStatus(token.base, 'success')
+
+              const { volumeInBase } = convertVolumeFromCanister(
+                Number(response.Ok?.amount),
+                Number(token.decimals),
+                0,
+              )
+
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw ${token.base} Success`,
+                  description: getSimpleToastDescription(
+                    `Amount: ${fixDecimal(volumeInBase, token.decimals)} | Txid: ${response.Ok?.txid}`,
+                    durationInSeconds,
+                  ),
+                  status: 'success',
+                  isClosable: true,
+                })
+              }
+            } else if (response && Object.keys(response).includes('Err')) {
+              withdrawStatus(token.base, 'error')
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw ${token.base} rejected`,
+                  description: getSimpleToastDescription(
+                    getErrorMessageWithdraw(response.Err),
+                    durationInSeconds,
+                  ),
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
+            } else {
+              withdrawStatus(token.base, 'error')
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw ${token.base} rejected`,
+                  description: getSimpleToastDescription(
+                    'Something went wrong',
+                    durationInSeconds,
+                  ),
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
+            }
+          })
+          .catch((error) => {
+            const message = error.response ? error.response.data : error.message
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
             withdrawStatus(token.base, 'error')
             if (toastId) {
               toast.update(toastId, {
-                title: `Withdraw ${token.base} rejected`,
+                title: 'Withdraw rejected',
                 description: getSimpleToastDescription(
-                  'Something went wrong',
+                  `Error: ${message}`,
                   durationInSeconds,
                 ),
                 status: 'error',
                 isClosable: true,
               })
             }
-          }
-        })
-        .catch((error) => {
-          const message = error.response ? error.response.data : error.message
-          const endTime = Date.now()
-          const durationInSeconds = (endTime - startTime) / 1000
-
-          withdrawStatus(token.base, 'error')
-          if (toastId) {
-            toast.update(toastId, {
-              title: 'Withdraw rejected',
-              description: getSimpleToastDescription(
-                `Error: ${message}`,
-                durationInSeconds,
-              ),
-              status: 'error',
-              isClosable: true,
-            })
-          }
-          console.error('Withdraw failed:', message)
-        })
+            console.error('Withdraw failed:', message)
+          })
+      }
     },
     [fetchBalances, toast, userAgent],
   )
