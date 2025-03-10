@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { useToast } from '@chakra-ui/react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 import useWallet from '../hooks/useWallet'
-import { RootState } from '../store'
+import { RootState, AppDispatch } from '../store'
+import { setBalances } from '../store/balances'
 
 const BtcWithdrawStatusComponent: React.FC = () => {
   const { userAgent } = useSelector((state: RootState) => state.auth)
+  const tokens = useSelector((state: RootState) => state.tokens.tokens)
   const userPrincipal = useSelector(
     (state: RootState) => state.auth.userPrincipal,
   )
   const isWithdrawStarted = useSelector(
     (state: RootState) => state.balances.isWithdrawStarted,
   )
-
-  const { btcWithdrawStatus } = useWallet()
+  const dispatch = useDispatch<AppDispatch>()
+  const { btcWithdrawStatus, getBalancesCredits } = useWallet()
 
   const toast = useToast({
     duration: 10000,
@@ -29,6 +31,15 @@ const BtcWithdrawStatusComponent: React.FC = () => {
   const [, setStatusList] = useState<{ blockIndex: bigint; status: string }[]>(
     [],
   )
+  const [pendingToasts, setPendingToasts] = useState<
+    { blockIndex: bigint; status: string }[]
+  >([])
+
+  const fetchBalances = async () => {
+    const balancesCredits = await getBalancesCredits(userAgent, tokens)
+
+    dispatch(setBalances(balancesCredits))
+  }
 
   const fetchBtcWithdrawStatus = async () => {
     try {
@@ -49,11 +60,18 @@ const BtcWithdrawStatusComponent: React.FC = () => {
 
       if (blockIndexStorage.length === 0) {
         console.log('No block indexes found in storage')
+
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
+        }
         return
       }
 
       const statusPromises = blockIndexStorage.map(async (blockIndex) => {
         const statusResponse = await btcWithdrawStatus(userAgent, blockIndex)
+
+        console.log('btcWithdrawStatusResponse', statusResponse)
 
         if (!statusResponse || typeof statusResponse !== 'object') {
           return { blockIndex, status: 'Unknown', txid: null }
@@ -76,6 +94,7 @@ const BtcWithdrawStatusComponent: React.FC = () => {
 
       setStatusList((prevStatusList) => {
         const updatedStatusList = [...prevStatusList]
+        const newToasts: { blockIndex: bigint; status: string }[] = []
 
         results.forEach(({ blockIndex, status }) => {
           const existingEntry = updatedStatusList.find(
@@ -89,18 +108,9 @@ const BtcWithdrawStatusComponent: React.FC = () => {
               updatedStatusList.push({ blockIndex, status })
             }
 
-            const isSubmitted = status.includes('"Submitted"')
-            toast({
-              title: isSubmitted
-                ? 'BTC withdraw done'
-                : 'BTC withdraw in progress',
-              description: status,
-              status: isSubmitted ? 'success' : 'loading',
-              duration: 10000,
-              isClosable: true,
-            })
+            newToasts.push({ blockIndex, status })
 
-            if (isSubmitted) {
+            if (status.includes('Submitted')) {
               const updatedBlockIndexStorage = blockIndexStorage.filter(
                 (index) => index !== blockIndex,
               )
@@ -112,14 +122,12 @@ const BtcWithdrawStatusComponent: React.FC = () => {
                 ),
               )
 
-              if (intervalRef.current) {
-                clearInterval(intervalRef.current)
-                intervalRef.current = null
-              }
+              fetchBalances()
             }
           }
         })
 
+        setPendingToasts(newToasts)
         return updatedStatusList
       })
     } catch (error) {
@@ -129,6 +137,22 @@ const BtcWithdrawStatusComponent: React.FC = () => {
       isFetchingRef.current = false
     }
   }
+
+  useEffect(() => {
+    if (pendingToasts.length > 0) {
+      pendingToasts.forEach(({ status }) => {
+        const isSubmitted = status.includes('Submitted')
+        toast({
+          title: isSubmitted ? 'BTC withdraw done' : 'BTC withdraw in progress',
+          description: status,
+          status: isSubmitted ? 'success' : 'loading',
+          duration: 10000,
+          isClosable: true,
+        })
+      })
+      setPendingToasts([])
+    }
+  }, [pendingToasts])
 
   useEffect(() => {
     if (userPrincipal) {

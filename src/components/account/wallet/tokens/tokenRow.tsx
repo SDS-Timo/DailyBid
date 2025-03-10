@@ -121,7 +121,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
 
   const networkOptions = useMemo(
     () => [
-      { value: 'bitcoin', label: 'Native Bitcoin', id: '1' },
+      { value: 'bitcoin', label: 'BTC (experimental)', id: '1' },
       { value: 'ckbtc', label: 'ckBTC', id: '2' },
     ],
     [],
@@ -368,6 +368,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
     if (token.withdrawStatus === 'success') {
       formik.setStatus({ success: true })
       formik.resetForm({ values: initialValues })
+      handleBtcNetworkChange(null)
     } else if (token.withdrawStatus === 'error') {
       formik.setStatus({ success: false })
     }
@@ -478,7 +479,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
             <AccordionPanel pb={4}>
               <Flex direction="column" gap={4}>
                 {token.symbol === 'BTC' && (
-                  <Box hidden>
+                  <Box>
                     <Select
                       id="network"
                       value={btcNetwork?.label ? btcNetwork : null}

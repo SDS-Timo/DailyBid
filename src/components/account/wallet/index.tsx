@@ -436,16 +436,6 @@ const WalletContent: React.FC = () => {
       })
 
       if (network === 'bitcoin') {
-        const newBlockIndex = BigInt(2)
-
-        localStorage.setItem(
-          'blockIndex',
-          JSON.stringify([newBlockIndex], (key, value) =>
-            typeof value === 'bigint' ? value.toString() : value,
-          ),
-        )
-        dispatch(setIsWithdrawStarted())
-
         const { btcWithdrawCredit } = useWallet()
         btcWithdrawCredit(userAgent, `${account}`, Number(volume))
           .then((response: Result | null) => {
@@ -455,11 +445,7 @@ const WalletContent: React.FC = () => {
             if (response && Object.keys(response).includes('Ok')) {
               withdrawStatus(token.base, 'success')
 
-              const { volumeInBase } = convertVolumeFromCanister(
-                Number(response.Ok?.amount),
-                Number(token.decimals),
-                0,
-              )
+              console.log('btcWithdrawCreditResponse', response)
 
               const blockIndexStorage = JSON.parse(
                 localStorage.getItem('blockIndex') || '[]',
@@ -498,7 +484,7 @@ const WalletContent: React.FC = () => {
                 toast.update(toastId, {
                   title: `Withdraw Native ${token.base} Started`,
                   description: getSimpleToastDescription(
-                    `Amount: ${fixDecimal(volumeInBase, token.decimals)} | Txid: ${response.Ok?.block_index}`,
+                    `Amount: ${fixDecimal(amount, token.decimals)} | Txid: ${response.Ok?.block_index}`,
                     durationInSeconds,
                   ),
                   status: 'success',
