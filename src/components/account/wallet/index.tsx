@@ -44,7 +44,10 @@ import {
   fixDecimal,
 } from '../../../utils/calculationsUtils'
 import { getToken } from '../../../utils/tokenUtils'
-import { getSimpleToastDescription } from '../../../utils/uiUtils'
+import {
+  getSimpleToastDescription,
+  getDoubleLineToastDescription,
+} from '../../../utils/uiUtils'
 import { formatWalletAddress } from '../../../utils/walletUtils'
 import {
   getErrorMessageNotifyDeposits,
@@ -443,6 +446,7 @@ const WalletContent: React.FC = () => {
             const durationInSeconds = (endTime - startTime) / 1000
 
             if (response && Object.keys(response).includes('Ok')) {
+              fetchBalances()
               withdrawStatus(token.base, 'success')
 
               console.log('btcWithdrawCreditResponse', response)
@@ -483,8 +487,9 @@ const WalletContent: React.FC = () => {
               if (toastId) {
                 toast.update(toastId, {
                   title: `Withdraw Native ${token.base} Started`,
-                  description: getSimpleToastDescription(
+                  description: getDoubleLineToastDescription(
                     `Amount: ${fixDecimal(amount, token.decimals)} | Txid: ${response.Ok?.block_index}`,
+                    `To: ${account}`,
                     durationInSeconds,
                   ),
                   status: 'success',

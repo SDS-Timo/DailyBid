@@ -1,23 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { useToast } from '@chakra-ui/react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import useWallet from '../hooks/useWallet'
-import { RootState, AppDispatch } from '../store'
-import { setBalances } from '../store/balances'
+import { RootState } from '../store'
+import { getToastDescriptionWithLink } from '../utils/uiUtils'
 
 const BtcWithdrawStatusComponent: React.FC = () => {
   const { userAgent } = useSelector((state: RootState) => state.auth)
-  const tokens = useSelector((state: RootState) => state.tokens.tokens)
   const userPrincipal = useSelector(
     (state: RootState) => state.auth.userPrincipal,
   )
   const isWithdrawStarted = useSelector(
     (state: RootState) => state.balances.isWithdrawStarted,
   )
-  const dispatch = useDispatch<AppDispatch>()
-  const { btcWithdrawStatus, getBalancesCredits } = useWallet()
+  const { btcWithdrawStatus } = useWallet()
 
   const toast = useToast({
     duration: 10000,
@@ -28,18 +26,12 @@ const BtcWithdrawStatusComponent: React.FC = () => {
   const isFetchingRef = useRef<boolean>(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const [, setStatusList] = useState<{ blockIndex: bigint; status: string }[]>(
-    [],
-  )
-  const [pendingToasts, setPendingToasts] = useState<
-    { blockIndex: bigint; status: string }[]
+  const [, setStatusList] = useState<
+    { blockIndex: bigint; status: string; txid: string | null }[]
   >([])
-
-  const fetchBalances = async () => {
-    const balancesCredits = await getBalancesCredits(userAgent, tokens)
-
-    dispatch(setBalances(balancesCredits))
-  }
+  const [pendingToasts, setPendingToasts] = useState<
+    { blockIndex: bigint; status: string; txid: string | null }[]
+  >([])
 
   const fetchBtcWithdrawStatus = async () => {
     try {
@@ -82,9 +74,10 @@ const BtcWithdrawStatusComponent: React.FC = () => {
 
         const txid =
           statusValue && 'txid' in statusValue
-            ? Array.isArray(statusValue.txid)
-              ? statusValue.txid.join('')
-              : statusValue.txid.toString()
+            ? Array.from(statusValue.txid as Uint8Array)
+                .reverse()
+                .map((byte: number) => byte.toString(16).padStart(2, '0'))
+                .join('')
             : null
 
         return { blockIndex, status: statusKey, txid }
@@ -94,9 +87,13 @@ const BtcWithdrawStatusComponent: React.FC = () => {
 
       setStatusList((prevStatusList) => {
         const updatedStatusList = [...prevStatusList]
-        const newToasts: { blockIndex: bigint; status: string }[] = []
+        const newToasts: {
+          blockIndex: bigint
+          status: string
+          txid: string | null
+        }[] = []
 
-        results.forEach(({ blockIndex, status }) => {
+        results.forEach(({ blockIndex, status, txid }) => {
           const existingEntry = updatedStatusList.find(
             (entry) => entry.blockIndex === blockIndex,
           )
@@ -105,10 +102,10 @@ const BtcWithdrawStatusComponent: React.FC = () => {
             if (existingEntry) {
               existingEntry.status = status
             } else {
-              updatedStatusList.push({ blockIndex, status })
+              updatedStatusList.push({ blockIndex, status, txid })
             }
 
-            newToasts.push({ blockIndex, status })
+            newToasts.push({ blockIndex, status, txid })
 
             if (status.includes('Submitted')) {
               const updatedBlockIndexStorage = blockIndexStorage.filter(
@@ -121,8 +118,6 @@ const BtcWithdrawStatusComponent: React.FC = () => {
                   typeof value === 'bigint' ? value.toString() : value,
                 ),
               )
-
-              fetchBalances()
             }
           }
         })
@@ -140,15 +135,26 @@ const BtcWithdrawStatusComponent: React.FC = () => {
 
   useEffect(() => {
     if (pendingToasts.length > 0) {
-      pendingToasts.forEach(({ status }) => {
+      pendingToasts.forEach(({ status, txid }) => {
         const isSubmitted = status.includes('Submitted')
-        toast({
-          title: isSubmitted ? 'BTC withdraw done' : 'BTC withdraw in progress',
-          description: status,
-          status: isSubmitted ? 'success' : 'loading',
-          duration: 10000,
-          isClosable: true,
-        })
+        const isPending = status.includes('Pending')
+        if (isSubmitted || isPending) {
+          toast({
+            title: isSubmitted
+              ? 'BTC withdraw done'
+              : 'BTC withdraw in progress',
+            description: txid
+              ? getToastDescriptionWithLink(
+                  status,
+                  `View transaction`,
+                  `https://mempool.space/tx/${txid}`,
+                )
+              : status,
+            status: isSubmitted ? 'success' : 'loading',
+            duration: 10000,
+            isClosable: true,
+          })
+        }
       })
       setPendingToasts([])
     }
@@ -171,6 +177,7 @@ const BtcWithdrawStatusComponent: React.FC = () => {
           blockIndexStorage.map((blockIndex) => ({
             blockIndex,
             status: 'Pending',
+            txid: null,
           })),
         )
 
