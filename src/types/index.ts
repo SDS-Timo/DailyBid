@@ -85,6 +85,7 @@ export interface AuthState {
   userPrincipal: string
   userDeposit: string
   userBtcDepositAddress: string
+  userIcpLegacyAccount: string
   userPoints: number | null
 }
 export interface OpenOrdersState {

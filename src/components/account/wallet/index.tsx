@@ -25,6 +25,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import ActionTab from './actions/actionTab'
 import LedgerTab from './ledger/ledgerTab'
 import TokenTab from './tokens/tokenTab'
+import IcpMonoIcon from '../../../assets/img/coins/icp_mono.svg'
 import WalletIconDark from '../../../assets/img/common/wallet-black.svg'
 import WalletIconLight from '../../../assets/img/common/wallet-white.svg'
 import useWallet from '../../../hooks/useWallet'
@@ -83,15 +84,21 @@ const WalletContent: React.FC = () => {
   const userBtcDeposit = useSelector(
     (state: RootState) => state.auth.userBtcDepositAddress,
   )
+  const userIcpLegacyAccount = useSelector(
+    (state: RootState) => state.auth.userIcpLegacyAccount,
+  )
+
   const userDeposit = useSelector((state: RootState) => state.auth.userDeposit)
   const balances = useSelector((state: RootState) => state.balances.balances)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
 
   const userDepositAddress = formatWalletAddress(userDeposit)
   const userBtcDepositAddress = formatWalletAddress(userBtcDeposit)
+  const userIcpLegacyAccountAddress = formatWalletAddress(userIcpLegacyAccount)
 
   const { onCopy: onCopyUserDeposit } = useClipboard(userDeposit)
   const { onCopy: onCopyBtcAddress } = useClipboard(userBtcDeposit)
+  const { onCopy: onCopyIcpLegacyAddress } = useClipboard(userIcpLegacyAccount)
 
   const userDepositTooltip = (
     <>
@@ -106,6 +113,14 @@ const WalletContent: React.FC = () => {
       {`Bitcoin. Transfer here:`}
       <br />
       {userBtcDeposit}
+    </>
+  )
+
+  const userIcpLegacyAccountAddressTooltip = (
+    <>
+      {`ICP Legacy. Transfer here:`}
+      <br />
+      {userIcpLegacyAccount}
     </>
   )
 
@@ -149,7 +164,17 @@ const WalletContent: React.FC = () => {
     onCopyBtcAddress()
     toast({
       title: 'Copied',
-      description: 'Btc account address copied to clipboard',
+      description: 'BTC account address copied to clipboard',
+      status: 'success',
+      duration: 2000,
+    })
+  }
+
+  const copyToClipboardIcpLegacyAccountAddress = () => {
+    onCopyIcpLegacyAddress()
+    toast({
+      title: 'Copied',
+      description: 'ICP Legacy account address copied to clipboard',
       status: 'success',
       duration: 2000,
     })
@@ -810,6 +835,29 @@ const WalletContent: React.FC = () => {
               }}
             >
               {userBtcDepositAddress}
+            </Text>
+          </Tooltip>
+        </Flex>
+      </Flex>
+      <Flex align="center" justifyContent="space-between">
+        <Flex align="center">
+          <Image src={IcpMonoIcon} alt="ICP" boxSize="16px" mr={2} />
+          <Tooltip
+            label={userIcpLegacyAccountAddressTooltip}
+            aria-label={userIcpLegacyAccount}
+          >
+            <Text
+              onClick={copyToClipboardIcpLegacyAccountAddress}
+              cursor="pointer"
+              p={1}
+              border="1px solid transparent"
+              borderRadius="md"
+              _hover={{
+                borderColor: bgColorHover,
+                borderRadius: 'md',
+              }}
+            >
+              {userIcpLegacyAccountAddress}
             </Text>
           </Tooltip>
         </Flex>

@@ -8,7 +8,11 @@ import {
 } from '@dfinity/identity'
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1'
 
-import { getUserDepositAddress } from './convertionsUtils'
+import {
+  getUserDepositAddress,
+  getAccountIdentifier,
+  getSubAccountFromPrincipal,
+} from './convertionsUtils'
 import { AppDispatch } from '../store'
 import { getInternetIdentityDerivationOrigin } from './canisterUtils'
 import { generateBtcDepositAddress } from './walletUtils'
@@ -18,6 +22,7 @@ import {
   setUserPrincipal,
   setUserDeposit,
   setUserBtcDepositAddress,
+  setUserIcpLegacyAccount,
 } from '../store/auth'
 
 /**
@@ -99,11 +104,20 @@ export async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
   dispatch(setIsAuthenticated(true))
 
   const principal = await myAgent.getPrincipal()
+  const hexSubAccountId = getSubAccountFromPrincipal(
+    principal.toText(),
+  ).subAccountId
+  const userIcpLegacyAccount = getAccountIdentifier(
+    `${process.env.CANISTER_ID_ICRC_AUCTION}`,
+    `${hexSubAccountId}`,
+  )
+
   dispatch(setUserPrincipal(principal.toText()))
   dispatch(setUserDeposit(getUserDepositAddress(principal.toText())))
   dispatch(
     setUserBtcDepositAddress(generateBtcDepositAddress(principal.toText())),
   )
+  dispatch(setUserIcpLegacyAccount(userIcpLegacyAccount))
 }
 
 /**

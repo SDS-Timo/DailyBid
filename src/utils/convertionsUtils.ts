@@ -1,5 +1,6 @@
 import { Buffer } from 'buffer'
 
+import { AccountIdentifier, SubAccount } from '@dfinity/ledger-icp'
 import { encodeIcrcAccount, decodeIcrcAccount } from '@dfinity/ledger-icrc'
 import { Principal } from '@dfinity/principal'
 import bigInt from 'big-integer'
@@ -116,6 +117,38 @@ export function getUserDepositAddress(principal: string) {
   })
 
   return depositAccount
+}
+
+export async function getLegacyAccountIdentifier(
+  principal: string,
+): Promise<string> {
+  const principalBytes = Principal.fromText(principal).toUint8Array()
+  const subaccount = new Uint8Array(32)
+
+  const data = new Uint8Array(principalBytes.length + subaccount.length)
+  data.set(principalBytes, 0)
+  data.set(subaccount, principalBytes.length)
+
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+export const getAccountIdentifier = (principal: string, subaccount: string) => {
+  let subacc: SubAccount | undefined = undefined
+
+  try {
+    subacc = SubAccount.fromBytes(hexToUint8Array(subaccount)) as SubAccount
+  } catch (error) {
+    subacc = undefined
+  }
+
+  return AccountIdentifier.fromPrincipal({
+    principal: Principal.fromText(principal),
+    subAccount: subacc,
+  }).toHex()
 }
 
 /**
