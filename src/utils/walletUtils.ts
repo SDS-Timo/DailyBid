@@ -7,6 +7,10 @@ import {
 import useMempool from '../hooks/useMempoolApi'
 import { Result, NewBtcUtxo } from '../types'
 import { convertVolumeFromCanister } from './calculationsUtils'
+import {
+  getSubAccountFromPrincipal,
+  convertHexSubAccountToDecimals,
+} from './convertionsUtils'
 
 /**
  * Gets a user-friendly error message for a notify deposit error.
@@ -112,7 +116,7 @@ export const getErrorMessageBtcWithdraw = (error: Result): string => {
 }
 
 /**
- * Formats a wallet address by displaying the first 4 characters,
+ * Formats a wallet address by displaying the first 5 characters,
  * followed by ellipsis (...), and the last 3 characters.
  *
  * @param address - The wallet address to format.
@@ -147,6 +151,28 @@ export const generateBtcDepositAddress = (userPrincipal: string): string => {
     owner: `${process.env.CANISTER_ID_ICRC_AUCTION}`,
     subaccount: userToSubaccount(Principal.fromText(userPrincipal)),
   })
+}
+
+/**
+ * Generates a command string to deposit cycles into a canister on the Internet Computer.
+ *
+ * @param canisterId - The target canister ID to receive the cycles.
+ * @param userPrincipal - The user's principal ID.
+ * @param hexSubAccountId - Optional hexadecimal subaccount ID. If not provided, it will be derived from the user's principal.
+ * @returns - The formatted command string for executing the deposit via `dfx`.
+ */
+export function depositCyclesCommandString(
+  canisterId: string,
+  userPrincipal: string,
+  hexSubAccountId?: string | null,
+) {
+  const subAccountId = hexSubAccountId
+    ? hexSubAccountId
+    : getSubAccountFromPrincipal(userPrincipal).subAccountId
+
+  const subAccountDecimals = convertHexSubAccountToDecimals(subAccountId)
+  const commandString = `dfx canister --ic call um5iw-rqaaa-aaaaq-qaaba-cai deposit '(record {to = record {owner = principal "${canisterId}"; subaccount = opt vec {${subAccountDecimals}}}})' --with-cycles 0.1T --wallet $(dfx identity get-wallet --ic)`
+  return commandString
 }
 
 /**

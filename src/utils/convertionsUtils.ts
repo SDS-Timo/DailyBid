@@ -100,6 +100,37 @@ export function getSubAccountFromPrincipal(principal: string) {
 }
 
 /**
+ * Converts a hexadecimal string into a 32-byte array of decimal values (0-255).
+ * Ensures the result is always 32 bytes, left-padded with 0s if necessary.
+ * @param hex - The hexadecimal string to convert.
+ * @returns - A string of 32 decimal values separated by `;`.
+ */
+export function convertHexSubAccountToDecimals(hex: string): string {
+  if (hex.startsWith('0x')) {
+    hex = hex.slice(2) // Remove "0x" prefix if present
+  }
+
+  // Ensure the hex string length is even
+  if (hex.length % 2 !== 0) {
+    throw new Error('Hex string must have an even number of characters')
+  }
+
+  // Convert hex to byte array
+  const decimalArray: number[] = []
+  for (let i = 0; i < hex.length; i += 2) {
+    decimalArray.push(parseInt(hex.substring(i, i + 2), 16))
+  }
+
+  // Ensure result is always 32 bytes, left-padding with 0s if necessary
+  while (decimalArray.length < 32) {
+    decimalArray.unshift(0)
+  }
+
+  // Return as a semicolon-separated string
+  return decimalArray.join(';')
+}
+
+/**
  * Converts a Principal string into a deposit account information.
  * @param principal - The string representation of the Principal.
  * @returns An object containing the deposit account string.
@@ -119,23 +150,15 @@ export function getUserDepositAddress(principal: string) {
   return depositAccount
 }
 
-export async function getLegacyAccountIdentifier(
-  principal: string,
-): Promise<string> {
-  const principalBytes = Principal.fromText(principal).toUint8Array()
-  const subaccount = new Uint8Array(32)
-
-  const data = new Uint8Array(principalBytes.length + subaccount.length)
-  data.set(principalBytes, 0)
-  data.set(subaccount, principalBytes.length)
-
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
+/**
+ * Generates an account identifier in hexadecimal format from a given principal and subaccount.
+ * If the subaccount is invalid, it defaults to `undefined`.
+ * @param principal - The principal identifier in string format.
+ * @param subaccount - A hexadecimal string representing the subaccount.
+ * @returns - The account identifier in hexadecimal format (ICP Legacy).
+ *
+ * @throws - If the `subaccount` is not a valid hexadecimal string, it defaults to `undefined`.
+ */
 export const getAccountIdentifier = (principal: string, subaccount: string) => {
   let subacc: SubAccount | undefined = undefined
 

@@ -16,6 +16,11 @@ const initialState = {
 }
 const store = mockStore(initialState)
 
+jest.mock('@research-ag/ckbtc-address-js', () => ({
+  Minter: jest.fn(),
+  CKBTC_MINTER_MAINNET_XPUBKEY: 'mock-xpubkey',
+}))
+
 jest.mock('../../../utils/authUtils', () => ({
   getAgent: jest.fn(() => ({
     fetchRootKey: jest.fn(),

@@ -19,7 +19,7 @@ import * as Yup from 'yup'
 
 import useTokens from '../../../hooks/useTokens'
 import { RootState, AppDispatch } from '../../../store'
-import { setUserDeposit } from '../../../store/auth'
+import { setUserDeposit, setUserDepositCycles } from '../../../store/auth'
 import { setIsRefreshUserData } from '../../../store/orders'
 import { setIsRefreshPrices } from '../../../store/prices'
 import {
@@ -30,6 +30,7 @@ import {
 import { Option } from '../../../types'
 import { getActor, getAuctionCanisterId } from '../../../utils/canisterUtils'
 import { getUserDepositAddress } from '../../../utils/convertionsUtils'
+import { depositCyclesCommandString } from '../../../utils/walletUtils'
 
 const CanisterIdSettings: React.FC = () => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
@@ -114,6 +115,13 @@ const CanisterIdSettings: React.FC = () => {
 
         const principal = await userAgent.getPrincipal()
         dispatch(setUserDeposit(getUserDepositAddress(principal.toText())))
+
+        const depositCyclescommandText = depositCyclesCommandString(
+          values.canisterId,
+          principal.toText(),
+          null,
+        )
+        dispatch(setUserDepositCycles(depositCyclescommandText))
 
         setStatus({ success: true })
         setSubmitting(false)

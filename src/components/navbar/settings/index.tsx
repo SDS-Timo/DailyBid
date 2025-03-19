@@ -18,6 +18,7 @@ import {
 } from '@chakra-ui/react'
 import { useSelector } from 'react-redux'
 
+import AdvancedSettings from './advanced'
 import AutoClaimSettings from './autoClaimSettings'
 import CanisterIdSettings from './canisterIdSettings'
 import DerivationOriginSettings from './derivationOriginSettings'
@@ -86,6 +87,20 @@ const NavbarSettings: React.FC = () => {
               </h2>
               <AccordionPanel pb={4}>
                 <CanisterIdSettings />
+              </AccordionPanel>
+            </AccordionItem>
+
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Flex flex="1" textAlign="left">
+                    Advanced
+                  </Flex>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                <AdvancedSettings />
               </AccordionPanel>
             </AccordionItem>
 

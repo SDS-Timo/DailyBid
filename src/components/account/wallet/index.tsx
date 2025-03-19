@@ -19,12 +19,14 @@ import {
   useClipboard,
 } from '@chakra-ui/react'
 import { Principal } from '@dfinity/principal'
-import { FaWallet, FaBitcoin } from 'react-icons/fa'
+import { useTranslation } from 'react-i18next'
+import { FaBitcoin } from 'react-icons/fa'
 import { useSelector, useDispatch } from 'react-redux'
 
 import ActionTab from './actions/actionTab'
 import LedgerTab from './ledger/ledgerTab'
 import TokenTab from './tokens/tokenTab'
+import Cycles from '../../../assets/img/coins/cycles.svg'
 import IcpMonoIcon from '../../../assets/img/coins/icp_mono.svg'
 import WalletIconDark from '../../../assets/img/common/wallet-black.svg'
 import WalletIconLight from '../../../assets/img/common/wallet-white.svg'
@@ -62,6 +64,7 @@ const WalletContent: React.FC = () => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
   const borderColor = useColorModeValue('grey.700', 'grey.25')
   const { colorMode } = useColorMode()
+  const { t } = useTranslation()
   const toast = useToast({
     duration: 10000,
     position: 'top-right',
@@ -70,6 +73,8 @@ const WalletContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const [selectedTab, setSelectedTab] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [depositCyclesConfirmation, setDepositCyclesConfirmation] =
+    useState(false)
   const [localBalances, setLocalBalances] = useState<TokenDataItem[]>([])
   const [claimTokensBalance, setClaimTokensBalance] = useState<
     ClaimTokenBalance[]
@@ -87,6 +92,9 @@ const WalletContent: React.FC = () => {
   const userIcpLegacyAccount = useSelector(
     (state: RootState) => state.auth.userIcpLegacyAccount,
   )
+  const userDepositCycles = useSelector(
+    (state: RootState) => state.auth.userDepositCycles,
+  )
 
   const userDeposit = useSelector((state: RootState) => state.auth.userDeposit)
   const balances = useSelector((state: RootState) => state.balances.balances)
@@ -99,10 +107,11 @@ const WalletContent: React.FC = () => {
   const { onCopy: onCopyUserDeposit } = useClipboard(userDeposit)
   const { onCopy: onCopyBtcAddress } = useClipboard(userBtcDeposit)
   const { onCopy: onCopyIcpLegacyAddress } = useClipboard(userIcpLegacyAccount)
+  const { onCopy: onCopyUserDepositCycles } = useClipboard(userDepositCycles)
 
   const userDepositTooltip = (
     <>
-      {`ICRC-1 Tokens. Transfer here or set as allowance spender:`}
+      {t(`ICRC-1 Tokens. Transfer here or set as allowance spender:`)}
       <br />
       {userDeposit}
     </>
@@ -110,7 +119,7 @@ const WalletContent: React.FC = () => {
 
   const userBtcDepositAddressTooltip = (
     <>
-      {`Bitcoin. Transfer here:`}
+      {t(`Bitcoin. Transfer here:`)}
       <br />
       {userBtcDeposit}
     </>
@@ -118,7 +127,7 @@ const WalletContent: React.FC = () => {
 
   const userIcpLegacyAccountAddressTooltip = (
     <>
-      {`ICP Legacy. Transfer here:`}
+      {t(`ICP Legacy. Transfer here:`)}
       <br />
       {userIcpLegacyAccount}
     </>
@@ -131,6 +140,7 @@ const WalletContent: React.FC = () => {
       {`Please wait...`}
     </>
   )
+
   const [claimTooltipText, setClaimTooltipText] = useState(
     claimTooltipTextStandard,
   )
@@ -175,6 +185,16 @@ const WalletContent: React.FC = () => {
     toast({
       title: 'Copied',
       description: 'ICP Legacy account address copied to clipboard',
+      status: 'success',
+      duration: 2000,
+    })
+  }
+
+  const copyToClipboardUserDepositCycles = () => {
+    onCopyUserDepositCycles()
+    toast({
+      title: 'Copied',
+      description: 'Deposit cycles command copied to clipboard',
       status: 'success',
       duration: 2000,
     })
@@ -769,11 +789,16 @@ const WalletContent: React.FC = () => {
     setLocalBalances(balances)
   }, [balances])
 
+  useEffect(() => {
+    const saved = localStorage.getItem('depositCyclesConfirmation')
+    setDepositCyclesConfirmation(saved === 'true')
+  }, [])
+
   return (
     <VStack spacing={1} align="stretch">
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
-          <Icon as={FaWallet} boxSize={4} mr={2} />
+          <Image src={IcpMonoIcon} alt="ICP" boxSize="16px" mr={2} />
 
           <Tooltip label={userDepositTooltip} aria-label={userDeposit}>
             <Text
@@ -838,6 +863,26 @@ const WalletContent: React.FC = () => {
             </Text>
           </Tooltip>
         </Flex>
+        {depositCyclesConfirmation && (
+          <Flex align="center" mr={-1}>
+            <Image src={Cycles} boxSize={4} mr={1} />
+            <Tooltip label={userDepositCycles} aria-label="User Deposit Cycles">
+              <Text
+                onClick={copyToClipboardUserDepositCycles}
+                cursor="pointer"
+                p={1}
+                border="1px solid transparent"
+                borderRadius="md"
+                _hover={{
+                  borderColor: bgColorHover,
+                  borderRadius: 'md',
+                }}
+              >
+                Deposit Cycles
+              </Text>
+            </Tooltip>
+          </Flex>
+        )}
       </Flex>
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
@@ -862,6 +907,7 @@ const WalletContent: React.FC = () => {
           </Tooltip>
         </Flex>
       </Flex>
+
       <Tabs
         index={selectedTab}
         onChange={(index) => setSelectedTab(index)}
