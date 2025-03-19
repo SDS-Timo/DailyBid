@@ -4,7 +4,6 @@ import { Box, Table, Thead, Tbody, Tr, Th } from '@chakra-ui/react'
 import { useSelector, useDispatch } from 'react-redux'
 
 import InfoRow from './infoRow'
-import useCryptoPriceApi from '../../../../hooks/useCryptoPricesApi'
 import useDexscreenerPricesApi from '../../../../hooks/useDexscreenerPricesApi'
 import useMetalPriceApi from '../../../../hooks/useMetalPricesApi'
 import { RootState, AppDispatch } from '../../../../store'
@@ -20,27 +19,39 @@ const Info: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>()
 
+  const OSMOSIS_TOKENS =
+    process.env.ENV_CRYPTO_DEXSCREENER_API_OSMOSIS_TOKENS || ''
   const ICP_TOKENS = process.env.ENV_CRYPTO_DEXSCREENER_API_ICP_TOKENS || ''
 
   const fetchPrices = useCallback(async () => {
     setLoading(true)
     const { getMetalPriceApi } = useMetalPriceApi()
-    const { getCryptoPricesApi } = useCryptoPriceApi()
     const { getDexscreenerPricesData } = useDexscreenerPricesApi()
 
     try {
       const [
         fetchedMetalPrices,
-        fetchedCryptoPrices,
-        fetchedDexscreenerPrices,
+        fetchedDexscreenerPricesOsmosis,
+        fetchedDexscreenerPricesIcp,
       ] = await Promise.all([
         getMetalPriceApi(userAgent),
-        getCryptoPricesApi(),
+        getDexscreenerPricesData(OSMOSIS_TOKENS),
         getDexscreenerPricesData(ICP_TOKENS),
       ])
 
-      const filteredDexscreenerPrices = Object.values(
-        fetchedDexscreenerPrices as Record<string, any>,
+      const filteredDexscreenerPricesOsmosis = Object.values(
+        fetchedDexscreenerPricesOsmosis as Record<string, any>,
+      ).map(
+        ({ name, value, timestamp, baseToken }): TokenApi => ({
+          symbol: baseToken.symbol,
+          name,
+          value: parseFloat(value),
+          timestamp: BigInt(timestamp),
+        }),
+      )
+
+      const filteredDexscreenerPricesIcp = Object.values(
+        fetchedDexscreenerPricesIcp as Record<string, any>,
       ).map(
         ({ name, value, timestamp, baseToken }): TokenApi => ({
           symbol: baseToken.symbol,
@@ -51,8 +62,8 @@ const Info: React.FC = () => {
       )
 
       const mergedData = [
-        ...fetchedCryptoPrices,
-        ...filteredDexscreenerPrices,
+        ...filteredDexscreenerPricesOsmosis,
+        ...filteredDexscreenerPricesIcp,
         ...fetchedMetalPrices,
       ]
 
