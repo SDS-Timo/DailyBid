@@ -46,6 +46,7 @@ const IdentityComponent: React.FC<IdentityComponentProps> = ({
       localStorage.setItem('identity', JSON.stringify(identity.toJSON()))
 
       window.Telegram.WebApp.openLink(
+        //window.open(
         `${process.env.ENV_LOGIN_II_PROXY_PAGE_LINK}?sessionKey=${publicKey}`,
       )
     } else {

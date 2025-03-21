@@ -151,7 +151,7 @@ const BtcWithdrawStatusComponent: React.FC = () => {
                 )
               : status,
             status: isSubmitted ? 'success' : 'loading',
-            duration: 10000,
+            duration: isSubmitted ? null : 10000,
             isClosable: true,
           })
         }

@@ -109,6 +109,28 @@ const LoginII: React.FC = () => {
     }
   }
 
+  type DelegationChain = {
+    delegations: any[]
+  }
+
+  const updateDelegations = (
+    data: DelegationChain,
+    newDelegation: any[],
+  ): DelegationChain => {
+    return {
+      ...data,
+      delegations: [...data.delegations, ...newDelegation],
+    }
+  }
+  const removeDelegationAtIndex = (data: any, indexToRemove: number): any => {
+    return {
+      ...data,
+      delegations: data.delegations.filter(
+        (_: any, index: number) => index !== indexToRemove,
+      ),
+    }
+  }
+
   const handleClick = async () => {
     let delegationChain
 
@@ -176,7 +198,55 @@ const LoginII: React.FC = () => {
       }
 
       if (delegationChain) {
+        const delegationChainConverted = JSON.parse(
+          JSON.stringify(delegationChain),
+        )
+
+        const delegationRemoved = removeDelegationAtIndex(
+          delegationChainConverted,
+          1,
+        )
+
+        const pubkey = delegationChainConverted.delegations[1].delegation.pubkey
+
+        const signature = delegationChainConverted.delegations[1].signature
+
+        const param = `${delegationChain.delegations[1].delegation.expiration}_${pubkey}_${signature}`
+
+        const newDelegation = {
+          delegation: {
+            expiration: '11',
+            pubkey,
+          },
+          signature,
+        }
+
+        const delegationsUpdated = updateDelegations(delegationRemoved, [
+          newDelegation,
+        ])
+
+        console.log('delegationsUpdated', delegationsUpdated)
+
+        console.log('delegationChain', delegationChain)
+
+        console.log('delegationChain String', JSON.stringify(delegationChain))
+
+        console.log(
+          'delegationChain String Parse',
+          JSON.parse(JSON.stringify(delegationChain)),
+        )
+
+        console.log('delegation removed', delegationRemoved)
+
+        console.log(
+          'delegation removed string',
+          JSON.stringify(delegationRemoved),
+        )
+
+        console.log('param', param)
+
         const returnTo = process.env.ENV_TELEGRAM_DEEP_LINK
+        //const returnTo = 'https://alpha.daily-bid.com?'
 
         const genAesKey = await generateAESKey()
         const genAesKeyUint8Array = new Uint8Array(
@@ -194,7 +264,8 @@ const LoginII: React.FC = () => {
 
         setDelegationCode(delegationCodeDPaste)
 
-        const miniAppUrl = `${returnTo}&startapp=${delegationCodeDPaste}_key-${genAesKey}`
+        const miniAppUrl = `${returnTo}&startapp=${delegationCodeDPaste}_key-${genAesKey}_${param}`
+        //const miniAppUrl = `${returnTo}startapp=${delegationCodeDPaste}_key-${genAesKey}_${param}`
 
         window.location.href = miniAppUrl
 
