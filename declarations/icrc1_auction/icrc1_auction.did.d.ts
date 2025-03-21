@@ -95,7 +95,7 @@ export type DepositResult =
         | { BadFee: { expected_fee: bigint } }
     }
 export type DirectCyclesWithdrawResult =
-  | { Ok: { amount: bigint } }
+  | { Ok: { txid: bigint; amount: bigint } }
   | {
       Err:
         | {

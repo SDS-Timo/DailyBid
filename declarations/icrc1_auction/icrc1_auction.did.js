@@ -162,7 +162,7 @@ export const idlFactory = ({ IDL }) => {
     Err: CancelOrderError,
   })
   const DirectCyclesWithdrawResult = IDL.Variant({
-    Ok: IDL.Record({ amount: IDL.Nat }),
+    Ok: IDL.Record({ txid: IDL.Nat, amount: IDL.Nat }),
     Err: IDL.Variant({
       FailedToWithdraw: IDL.Record({
         rejection_code: IDL.Variant({
