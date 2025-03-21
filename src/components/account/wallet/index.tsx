@@ -136,9 +136,9 @@ const WalletContent: React.FC = () => {
 
   const claimTooltipTextStandard = (
     <>
-      {`Claim Direct Deposit`}
+      {t(`Claim Direct Deposit`)}
       <br />
-      {`Please wait...`}
+      {t(`Please wait...`)}
     </>
   )
 
@@ -164,8 +164,8 @@ const WalletContent: React.FC = () => {
   const copyToClipboardDepositAddress = () => {
     onCopyUserDeposit()
     toast({
-      title: 'Copied',
-      description: 'Wallet account copied to clipboard',
+      title: t('Copied'),
+      description: t('Wallet account copied to clipboard'),
       status: 'success',
       duration: 2000,
     })
@@ -174,8 +174,8 @@ const WalletContent: React.FC = () => {
   const copyToClipboardBtcDepositAddress = () => {
     onCopyBtcAddress()
     toast({
-      title: 'Copied',
-      description: 'BTC account address copied to clipboard',
+      title: t('Copied'),
+      description: t('BTC account address copied to clipboard'),
       status: 'success',
       duration: 2000,
     })
@@ -184,8 +184,8 @@ const WalletContent: React.FC = () => {
   const copyToClipboardIcpLegacyAccountAddress = () => {
     onCopyIcpLegacyAddress()
     toast({
-      title: 'Copied',
-      description: 'ICP Legacy account address copied to clipboard',
+      title: t('Copied'),
+      description: t('ICP Legacy account address copied to clipboard'),
       status: 'success',
       duration: 2000,
     })
@@ -194,8 +194,8 @@ const WalletContent: React.FC = () => {
   const copyToClipboardUserDepositCycles = () => {
     onCopyUserDepositCycles()
     toast({
-      title: 'Copied',
-      description: 'Deposit cycles command copied to clipboard',
+      title: t('Copied'),
+      description: t('Deposit cycles command copied to clipboard'),
       status: 'success',
       duration: 2000,
     })
@@ -240,7 +240,7 @@ const WalletContent: React.FC = () => {
               base: token?.base,
               available,
             })
-            return `${fixDecimal(available, token.decimals)} ${token.base} available`
+            return `${fixDecimal(available, token.decimals)} ${token.base} ${t('available')}`
           }
         }
         return null
@@ -265,7 +265,7 @@ const WalletContent: React.FC = () => {
         <>
           {filteredClaims.length > 0 ? (
             <>
-              {`Claim Direct Deposits:`}
+              {t(`Claim Direct Deposits:`)}
               <br />
               {filteredClaims.map((claim, index) => (
                 <div key={index}>{claim}</div>
@@ -273,9 +273,9 @@ const WalletContent: React.FC = () => {
             </>
           ) : (
             <>
-              {`Claim Direct Deposits:`}
+              {t(`Claim Direct Deposits:`)}
               <br />
-              {`No direct deposits available`}
+              {t(`No direct deposits available`)}
             </>
           )}
 
@@ -290,7 +290,7 @@ const WalletContent: React.FC = () => {
                   borderColor: `${borderColor}`,
                 }}
               ></div>
-              {`Pending:`}
+              {t(`Pending:`)}
               <br />
               {newBtcUtxo.map((utxo, index) => (
                 <span key={index}>
@@ -318,9 +318,9 @@ const WalletContent: React.FC = () => {
     } else {
       setClaimTooltipText(
         <>
-          {`Claim Direct Deposits:`}
+          {t(`Claim Direct Deposits:`)}
           <br />
-          {`No deposits available`}
+          {t(`No deposits available`)}
         </>,
       )
     }
@@ -339,7 +339,9 @@ const WalletContent: React.FC = () => {
 
       if (token.available < Number(tokenInfo.fee)) {
         toast({
-          title: `The amount ${token.base} detected is below the minimum`,
+          title: t('The amount {{token}} detected is below the minimum', {
+            token: token.base,
+          }),
           description: '',
           status: 'warning',
           isClosable: true,
@@ -365,8 +367,8 @@ const WalletContent: React.FC = () => {
       loadingNotify(base, true)
 
       const toastId = toast({
-        title: `Checking new ${base} deposits`,
-        description: 'Please wait',
+        title: t('Checking new {{token}} deposits', { token: base }),
+        description: t('Please wait...'),
         status: 'loading',
         duration: null,
         isClosable: true,
@@ -405,9 +407,9 @@ const WalletContent: React.FC = () => {
 
             if (toastId) {
               toast.update(toastId, {
-                title: `New ${base} deposits found: ${fixDecimal(depositInc, token?.decimals)}`,
+                title: `${t('New {{token}} deposits found:', { token: base })} ${fixDecimal(depositInc, token?.decimals)}`,
                 description: getSimpleToastDescription(
-                  `Credited: ${fixDecimal(creditInc, token?.decimals)} | Total: ${fixDecimal(creditTotal, token?.decimals)}`,
+                  `${t('Credited:')} ${fixDecimal(creditInc, token?.decimals)} | ${t('Total:')} ${fixDecimal(creditTotal, token?.decimals)}`,
                   durationInSeconds,
                 ),
                 status: 'success',
@@ -417,7 +419,7 @@ const WalletContent: React.FC = () => {
           } else {
             if (toastId) {
               toast.update(toastId, {
-                title: `No new ${base} deposits found`,
+                title: t('No new {{token}} deposits found', { token: base }),
                 description: getSimpleToastDescription(
                   getErrorMessageNotifyDeposits(response.Err),
                   durationInSeconds,
@@ -437,9 +439,9 @@ const WalletContent: React.FC = () => {
 
           if (toastId) {
             toast.update(toastId, {
-              title: 'Notify deposit rejected',
+              title: t('Notify deposit rejected'),
               description: getSimpleToastDescription(
-                `Error: ${message}`,
+                `${t('Error')}: ${message}`,
                 durationInSeconds,
               ),
               status: 'error',
@@ -477,8 +479,8 @@ const WalletContent: React.FC = () => {
       )
 
       const toastId = toast({
-        title: `Withdraw ${token.base} pending`,
-        description: 'Please wait',
+        title: t(`Withdraw {{token}} pending`, { token: token.base }),
+        description: t('Please wait...'),
         status: 'loading',
         duration: null,
         isClosable: true,
@@ -503,9 +505,9 @@ const WalletContent: React.FC = () => {
 
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw ${token.base} Success`,
+                  title: t(`Withdraw {{token}} Success`, { token: token.base }),
                   description: getSimpleToastDescription(
-                    `Amount: ${fixDecimal(volumeInBase, token.decimals)}`,
+                    `${t('Amount')}: ${fixDecimal(volumeInBase, token.decimals)} | Txid: ${response.Ok?.txid}`,
                     durationInSeconds,
                   ),
                   status: 'success',
@@ -516,7 +518,9 @@ const WalletContent: React.FC = () => {
               withdrawStatus(token.base, 'error')
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw ${token.base} rejected`,
+                  title: t(`Withdraw {{token}} rejected`, {
+                    token: token.base,
+                  }),
                   description: getSimpleToastDescription(
                     getErrorMessageCyclesWithdraw(response.Err),
                     durationInSeconds,
@@ -529,9 +533,11 @@ const WalletContent: React.FC = () => {
               withdrawStatus(token.base, 'error')
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw ${token.base} rejected`,
+                  title: t(`Withdraw {{token}} rejected`, {
+                    token: token.base,
+                  }),
                   description: getSimpleToastDescription(
-                    'Something went wrong',
+                    t('Something went wrong'),
                     durationInSeconds,
                   ),
                   status: 'error',
@@ -548,9 +554,9 @@ const WalletContent: React.FC = () => {
             withdrawStatus(token.base, 'error')
             if (toastId) {
               toast.update(toastId, {
-                title: 'Withdraw rejected',
+                title: t('Withdraw rejected'),
                 description: getSimpleToastDescription(
-                  `Error: ${message}`,
+                  `${t('Error')}: ${message}`,
                   durationInSeconds,
                 ),
                 status: 'error',
@@ -607,10 +613,12 @@ const WalletContent: React.FC = () => {
 
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw Native ${token.base} Started`,
+                  title: t(`Withdraw Native {{token}} Started`, {
+                    token: token.base,
+                  }),
                   description: getDoubleLineToastDescription(
-                    `Amount: ${fixDecimal(amount, token.decimals)} | Txid: ${response.Ok?.block_index}`,
-                    `To: ${account}`,
+                    `${t('Amount')}: ${fixDecimal(amount, token.decimals)} | Txid: ${response.Ok?.block_index}`,
+                    `${t('To')}: ${account}`,
                     durationInSeconds,
                   ),
                   status: 'success',
@@ -621,7 +629,9 @@ const WalletContent: React.FC = () => {
               withdrawStatus(token.base, 'error')
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw Native ${token.base} rejected`,
+                  title: t(`Withdraw Native {{token}} rejected`, {
+                    token: token.base,
+                  }),
                   description: getSimpleToastDescription(
                     getErrorMessageBtcWithdraw(response.Err),
                     durationInSeconds,
@@ -634,9 +644,11 @@ const WalletContent: React.FC = () => {
               withdrawStatus(token.base, 'error')
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw Native ${token.base} rejected`,
+                  title: t(`Withdraw Native {{token}} rejected`, {
+                    token: token.base,
+                  }),
                   description: getSimpleToastDescription(
-                    'Something went wrong',
+                    t('Something went wrong'),
                     durationInSeconds,
                   ),
                   status: 'error',
@@ -653,9 +665,9 @@ const WalletContent: React.FC = () => {
             withdrawStatus(token.base, 'error')
             if (toastId) {
               toast.update(toastId, {
-                title: 'Withdraw Native BTC rejected',
+                title: t('Withdraw Native BTC rejected'),
                 description: getSimpleToastDescription(
-                  `Error: ${message}`,
+                  `${t('Error')}: ${message}`,
                   durationInSeconds,
                 ),
                 status: 'error',
@@ -683,9 +695,9 @@ const WalletContent: React.FC = () => {
 
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw ${token.base} Success`,
+                  title: t(`Withdraw {{token}} Success`, { token: token.base }),
                   description: getSimpleToastDescription(
-                    `Amount: ${fixDecimal(volumeInBase, token.decimals)} | Txid: ${response.Ok?.txid}`,
+                    `${t('Amount')}: ${fixDecimal(volumeInBase, token.decimals)} | Txid: ${response.Ok?.txid}`,
                     durationInSeconds,
                   ),
                   status: 'success',
@@ -696,7 +708,9 @@ const WalletContent: React.FC = () => {
               withdrawStatus(token.base, 'error')
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw ${token.base} rejected`,
+                  title: t(`Withdraw {{token}} rejected`, {
+                    token: token.base,
+                  }),
                   description: getSimpleToastDescription(
                     getErrorMessageWithdraw(response.Err),
                     durationInSeconds,
@@ -709,9 +723,11 @@ const WalletContent: React.FC = () => {
               withdrawStatus(token.base, 'error')
               if (toastId) {
                 toast.update(toastId, {
-                  title: `Withdraw ${token.base} rejected`,
+                  title: t(`Withdraw {{token}} rejected`, {
+                    token: token.base,
+                  }),
                   description: getSimpleToastDescription(
-                    'Something went wrong',
+                    t('Something went wrong'),
                     durationInSeconds,
                   ),
                   status: 'error',
@@ -728,9 +744,9 @@ const WalletContent: React.FC = () => {
             withdrawStatus(token.base, 'error')
             if (toastId) {
               toast.update(toastId, {
-                title: 'Withdraw rejected',
+                title: t('Withdraw rejected'),
                 description: getSimpleToastDescription(
-                  `Error: ${message}`,
+                  `${t('Error')}: ${message}`,
                   durationInSeconds,
                 ),
                 status: 'error',
@@ -763,8 +779,8 @@ const WalletContent: React.FC = () => {
       )
 
       const toastId = toast({
-        title: `Deposit ${token.base} pending`,
-        description: 'Please wait',
+        title: t(`Deposit {{token}} pending`, { token: token.base }),
+        description: t('Please wait...'),
         status: 'loading',
         duration: null,
         isClosable: true,
@@ -797,9 +813,9 @@ const WalletContent: React.FC = () => {
 
             if (toastId) {
               toast.update(toastId, {
-                title: `Deposit ${token.base} Success | Txid: ${response.Ok?.txid}`,
+                title: `${t('Deposit {{token}} Success', { token: token.base })} | Txid: ${response.Ok?.txid}`,
                 description: getSimpleToastDescription(
-                  `Amount: ${fixDecimal(creditInc, token.decimals)} | Total: ${fixDecimal(creditTotal, token.decimals)}`,
+                  `${t('Amount')}: ${fixDecimal(creditInc, token.decimals)} | ${t('Total')}: ${fixDecimal(creditTotal, token.decimals)}`,
                   durationInSeconds,
                 ),
                 status: 'success',
@@ -810,7 +826,7 @@ const WalletContent: React.FC = () => {
             depositStatus(token.base, 'error')
             if (toastId) {
               toast.update(toastId, {
-                title: `Deposit ${token.base} rejected`,
+                title: t(`Deposit {{token}} rejected`, { token: token.base }),
                 description: getSimpleToastDescription(
                   getErrorMessageDeposit(response.Err),
                   durationInSeconds,
@@ -823,9 +839,9 @@ const WalletContent: React.FC = () => {
             depositStatus(token.base, 'error')
             if (toastId) {
               toast.update(toastId, {
-                title: `Deposit ${token.base} rejected`,
+                title: t(`Deposit {{token}} rejected`, { token: token.base }),
                 description: getSimpleToastDescription(
-                  'Something went wrong',
+                  t('Something went wrong'),
                   durationInSeconds,
                 ),
                 status: 'error',
@@ -842,9 +858,9 @@ const WalletContent: React.FC = () => {
           depositStatus(token.base, 'error')
           if (toastId) {
             toast.update(toastId, {
-              title: 'Deposit rejected',
+              title: t('Deposit rejected'),
               description: getSimpleToastDescription(
-                `Error: ${message}`,
+                `${t('Error')}: ${message}`,
                 durationInSeconds,
               ),
               status: 'error',
@@ -912,7 +928,7 @@ const WalletContent: React.FC = () => {
                 boxSize={4}
                 mr={2}
               />
-              <Text>Claim Deposit</Text>
+              <Text>{t('Claim Deposit')}</Text>
             </Button>
           </Tooltip>
         </Flex>
@@ -954,7 +970,7 @@ const WalletContent: React.FC = () => {
                   borderRadius: 'md',
                 }}
               >
-                Deposit Cycles
+                {t('Deposit Cycles')}
               </Text>
             </Tooltip>
           </Flex>
@@ -995,28 +1011,28 @@ const WalletContent: React.FC = () => {
             _focus={{ boxShadow: 'none' }}
             _active={{ background: 'transparent' }}
           >
-            My Tokens
+            {t('My Tokens')}
           </Tab>
           <Tab
             _selected={{ borderBottom: '2px solid', borderColor: 'blue.500' }}
             _focus={{ boxShadow: 'none' }}
             _active={{ background: 'transparent' }}
           >
-            Tokens
+            {t('Tokens')}
           </Tab>
           <Tab
             _selected={{ borderBottom: '2px solid', borderColor: 'blue.500' }}
             _focus={{ boxShadow: 'none' }}
             _active={{ background: 'transparent' }}
           >
-            Transfers
+            {t('Transfers')}
           </Tab>
           <Tab
             _selected={{ borderBottom: '2px solid', borderColor: 'blue.500' }}
             _focus={{ boxShadow: 'none' }}
             _active={{ background: 'transparent' }}
           >
-            Reports
+            {t('Reports')}
           </Tab>
         </TabList>
         <TabPanels>
