@@ -161,6 +161,37 @@ export const idlFactory = ({ IDL }) => {
     Ok: CancellationResult,
     Err: CancelOrderError,
   })
+  const DirectCyclesWithdrawResult = IDL.Variant({
+    Ok: IDL.Record({ amount: IDL.Nat }),
+    Err: IDL.Variant({
+      FailedToWithdraw: IDL.Record({
+        rejection_code: IDL.Variant({
+          NoError: IDL.Null,
+          CanisterError: IDL.Null,
+          SysTransient: IDL.Null,
+          DestinationInvalid: IDL.Null,
+          Unknown: IDL.Null,
+          SysFatal: IDL.Null,
+          CanisterReject: IDL.Null,
+        }),
+        fee_block: IDL.Opt(IDL.Nat),
+        rejection_reason: IDL.Text,
+      }),
+      GenericError: IDL.Record({
+        message: IDL.Text,
+        error_code: IDL.Nat,
+      }),
+      TemporarilyUnavailable: IDL.Null,
+      Duplicate: IDL.Record({ duplicate_of: IDL.Nat }),
+      InsufficientCredit: IDL.Record({}),
+      BadFee: IDL.Record({ expected_fee: IDL.Nat }),
+      InvalidReceiver: IDL.Record({ receiver: IDL.Principal }),
+      CreatedInFuture: IDL.Record({ ledger_time: IDL.Nat64 }),
+      TooLowAmount: IDL.Record({}),
+      TooOld: IDL.Null,
+      InsufficientFunds: IDL.Record({ balance: IDL.Nat }),
+    }),
+  })
   const HttpRequest = IDL.Record({
     url: IDL.Text,
     method: IDL.Text,
@@ -343,7 +374,11 @@ export const idlFactory = ({ IDL }) => {
       [AuctionQueryResponse],
       ['query'],
     ),
-    btc_depositAddress: IDL.Func([IDL.Opt(IDL.Principal)], [IDL.Text], []),
+    btc_depositAddress: IDL.Func(
+      [IDL.Opt(IDL.Principal)],
+      [IDL.Text],
+      ['query'],
+    ),
     btc_notify: IDL.Func([], [BtcNotifyResult], []),
     btc_withdraw: IDL.Func(
       [IDL.Record({ to: IDL.Text, amount: IDL.Nat })],
@@ -363,6 +398,11 @@ export const idlFactory = ({ IDL }) => {
     cancelBids: IDL.Func(
       [IDL.Vec(OrderId), IDL.Opt(IDL.Nat)],
       [IDL.Vec(UpperResult_4)],
+      [],
+    ),
+    cycles_withdraw: IDL.Func(
+      [IDL.Record({ to: IDL.Principal, amount: IDL.Nat })],
+      [DirectCyclesWithdrawResult],
       [],
     ),
     getQuoteLedger: IDL.Func([], [IDL.Principal], ['query']),

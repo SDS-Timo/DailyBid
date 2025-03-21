@@ -57,6 +57,7 @@ import {
   getErrorMessageWithdraw,
   getErrorMessageDeposit,
   getErrorMessageBtcWithdraw,
+  getErrorMessageCyclesWithdraw,
   getMemPoolUtxos,
 } from '../../../utils/walletUtils'
 
@@ -483,7 +484,82 @@ const WalletContent: React.FC = () => {
         isClosable: true,
       })
 
-      if (network === 'bitcoin') {
+      if (network === 'cycles') {
+        const { cyclesWithdrawCredit } = useWallet()
+        cyclesWithdrawCredit(userAgent, `${account}`, Number(volume))
+          .then((response: Result | null) => {
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
+            if (response && Object.keys(response).includes('Ok')) {
+              fetchBalances()
+              withdrawStatus(token.base, 'success')
+
+              const { volumeInBase } = convertVolumeFromCanister(
+                Number(response.Ok?.amount),
+                Number(token.decimals),
+                0,
+              )
+
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw ${token.base} Success`,
+                  description: getSimpleToastDescription(
+                    `Amount: ${fixDecimal(volumeInBase, token.decimals)}`,
+                    durationInSeconds,
+                  ),
+                  status: 'success',
+                  isClosable: true,
+                })
+              }
+            } else if (response && Object.keys(response).includes('Err')) {
+              withdrawStatus(token.base, 'error')
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw ${token.base} rejected`,
+                  description: getSimpleToastDescription(
+                    getErrorMessageCyclesWithdraw(response.Err),
+                    durationInSeconds,
+                  ),
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
+            } else {
+              withdrawStatus(token.base, 'error')
+              if (toastId) {
+                toast.update(toastId, {
+                  title: `Withdraw ${token.base} rejected`,
+                  description: getSimpleToastDescription(
+                    'Something went wrong',
+                    durationInSeconds,
+                  ),
+                  status: 'error',
+                  isClosable: true,
+                })
+              }
+            }
+          })
+          .catch((error) => {
+            const message = error.response ? error.response.data : error.message
+            const endTime = Date.now()
+            const durationInSeconds = (endTime - startTime) / 1000
+
+            withdrawStatus(token.base, 'error')
+            if (toastId) {
+              toast.update(toastId, {
+                title: 'Withdraw rejected',
+                description: getSimpleToastDescription(
+                  `Error: ${message}`,
+                  durationInSeconds,
+                ),
+                status: 'error',
+                isClosable: true,
+              })
+            }
+            console.error('Withdraw failed:', message)
+          })
+      } else if (network === 'bitcoin') {
         const { btcWithdrawCredit } = useWallet()
         btcWithdrawCredit(userAgent, `${account}`, Number(volume))
           .then((response: Result | null) => {

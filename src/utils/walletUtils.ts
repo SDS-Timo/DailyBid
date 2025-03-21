@@ -116,6 +116,35 @@ export const getErrorMessageBtcWithdraw = (error: Result): string => {
 }
 
 /**
+ * Gets a user-friendly error message for a withdraw error.
+ *
+ * @param error - An object representing the withdraw error.
+ * @returns A string with the corresponding error message.
+ */
+export const getErrorMessageCyclesWithdraw = (error: Result): string => {
+  const errorMessages: { [key: string]: string } = {
+    FailedToWithdraw: 'Failed To Withdraw',
+    GenericError: 'Generic Error',
+    TemporarilyUnavailable: 'Temporarily Unavailable',
+    Duplicate: 'Duplicate',
+    InsufficientCredit: 'Insufficient Credit',
+    BadFee: 'Bad Fee',
+    InvalidReceiver: 'Invalid Receiver',
+    CreatedInFuture: 'Created In Future',
+    TooLowAmount: 'Too Low Amount',
+    TooOld: 'Too Old',
+    InsufficientFunds: 'Insufficient Funds',
+  }
+
+  for (const key in error) {
+    if (error[key] !== undefined && key in errorMessages) {
+      return errorMessages[key]
+    }
+  }
+  return 'Something went wrong'
+}
+
+/**
  * Formats a wallet address by displaying the first 5 characters,
  * followed by ellipsis (...), and the last 3 characters.
  *
@@ -171,7 +200,7 @@ export function depositCyclesCommandString(
     : getSubAccountFromPrincipal(userPrincipal).subAccountId
 
   const subAccountDecimals = convertHexSubAccountToDecimals(subAccountId)
-  const commandString = `dfx canister --ic call um5iw-rqaaa-aaaaq-qaaba-cai deposit '(record {to = record {owner = principal "${canisterId}"; subaccount = opt vec {${subAccountDecimals}}}})' --with-cycles 0.1T --wallet $(dfx identity get-wallet --ic)`
+  const commandString = `dfx canister --ic call um5iw-rqaaa-aaaaq-qaaba-cai deposit '(record {to = record {owner = principal "${canisterId}"; subaccount = opt vec {${subAccountDecimals}}}})' --wallet $(dfx identity get-wallet --ic) --with-cycles 0.1T`
   return commandString
 }
 

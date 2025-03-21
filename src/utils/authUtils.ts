@@ -14,8 +14,14 @@ import {
   getSubAccountFromPrincipal,
 } from './convertionsUtils'
 import { AppDispatch } from '../store'
-import { getInternetIdentityDerivationOrigin } from './canisterUtils'
-import { generateBtcDepositAddress } from './walletUtils'
+import {
+  getInternetIdentityDerivationOrigin,
+  getAuctionCanisterId,
+} from './canisterUtils'
+import {
+  generateBtcDepositAddress,
+  depositCyclesCommandString,
+} from './walletUtils'
 import {
   setUserAgent,
   setIsAuthenticated,
@@ -23,6 +29,7 @@ import {
   setUserDeposit,
   setUserBtcDepositAddress,
   setUserIcpLegacyAccount,
+  setUserDepositCycles,
 } from '../store/auth'
 
 /**
@@ -99,25 +106,36 @@ export function generatePublicKey() {
  * @param myAgent - The HTTP agent to be used for the login process.
  * @param dispatch - The dispatch function to trigger actions in the Redux store.
  */
+
 export async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
-  dispatch(setUserAgent(myAgent))
-  dispatch(setIsAuthenticated(true))
+  const canisterId = getAuctionCanisterId()
 
   const principal = await myAgent.getPrincipal()
+
   const hexSubAccountId = getSubAccountFromPrincipal(
     principal.toText(),
   ).subAccountId
+
   const userIcpLegacyAccount = getAccountIdentifier(
-    `${process.env.CANISTER_ID_ICRC_AUCTION}`,
+    `${canisterId}`,
     `${hexSubAccountId}`,
   )
 
+  const depositCyclescommandText = depositCyclesCommandString(
+    canisterId,
+    principal.toText(),
+    hexSubAccountId,
+  )
+
+  dispatch(setUserAgent(myAgent))
+  dispatch(setIsAuthenticated(true))
   dispatch(setUserPrincipal(principal.toText()))
   dispatch(setUserDeposit(getUserDepositAddress(principal.toText())))
   dispatch(
     setUserBtcDepositAddress(generateBtcDepositAddress(principal.toText())),
   )
   dispatch(setUserIcpLegacyAccount(userIcpLegacyAccount))
+  dispatch(setUserDepositCycles(depositCyclescommandText))
 }
 
 /**

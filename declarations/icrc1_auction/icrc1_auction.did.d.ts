@@ -94,6 +94,35 @@ export type DepositResult =
         | { CallLedgerError: { message: string } }
         | { BadFee: { expected_fee: bigint } }
     }
+export type DirectCyclesWithdrawResult =
+  | { Ok: { amount: bigint } }
+  | {
+      Err:
+        | {
+            FailedToWithdraw: {
+              rejection_code:
+                | { NoError: null }
+                | { CanisterError: null }
+                | { SysTransient: null }
+                | { DestinationInvalid: null }
+                | { Unknown: null }
+                | { SysFatal: null }
+                | { CanisterReject: null }
+              fee_block: [] | [bigint]
+              rejection_reason: string
+            }
+          }
+        | { GenericError: { message: string; error_code: bigint } }
+        | { TemporarilyUnavailable: null }
+        | { Duplicate: { duplicate_of: bigint } }
+        | { InsufficientCredit: object }
+        | { BadFee: { expected_fee: bigint } }
+        | { InvalidReceiver: { receiver: Principal } }
+        | { CreatedInFuture: { ledger_time: bigint } }
+        | { TooLowAmount: object }
+        | { TooOld: null }
+        | { InsufficientFunds: { balance: bigint } }
+    }
 export interface HttpRequest {
   url: string
   method: string
@@ -319,6 +348,10 @@ export interface _SERVICE {
   >
   cancelAsks: ActorMethod<[Array<OrderId>, [] | [bigint]], Array<UpperResult_4>>
   cancelBids: ActorMethod<[Array<OrderId>, [] | [bigint]], Array<UpperResult_4>>
+  cycles_withdraw: ActorMethod<
+    [{ to: Principal; amount: bigint }],
+    DirectCyclesWithdrawResult
+  >
   getQuoteLedger: ActorMethod<[], Principal>
   http_request: ActorMethod<[HttpRequest], HttpResponse>
   icrc84_deposit: ActorMethod<

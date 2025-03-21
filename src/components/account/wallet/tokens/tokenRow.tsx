@@ -88,9 +88,9 @@ const TokenRow: React.FC<TokenRowProps> = ({
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   const [action, setAction] = useState('')
-  const [btcNetworkOption, setBtcNetworkOption] = useState<
-    Option | Option[] | null
-  >(null)
+  const [networkOption, setNetworkOption] = useState<Option | Option[] | null>(
+    null,
+  )
   const [depositAllowance, setDepositAllowance] = useState<string | null>(null)
   const [maxDepositAllowance, setMaxDepositAllowance] = useState<string | null>(
     null,
@@ -119,7 +119,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
     },
   )
 
-  const networkOptions = useMemo(
+  const btcNetworkOptions = useMemo(
     () => [
       { value: 'bitcoin', label: 'BTC (experimental)', id: '1' },
       { value: 'ckbtc', label: 'ckBTC', id: '2' },
@@ -127,12 +127,30 @@ const TokenRow: React.FC<TokenRowProps> = ({
     [],
   )
 
-  const btcNetwork =
-    Array.isArray(btcNetworkOption) && btcNetworkOption.length > 0
-      ? btcNetworkOption[0]
-      : (btcNetworkOption as Option)
+  const cyclesNetworkOptions = useMemo(
+    () => [
+      { value: 'cycles', label: 'Canister top-up', id: '1' },
+      { value: 'tcycles', label: 'ICRC-1 (TCYCLES)', id: '2' },
+    ],
+    [],
+  )
 
-  const network = token?.symbol === 'BTC' ? btcNetwork?.value : null
+  const networkOptions =
+    token?.symbol === 'BTC'
+      ? btcNetworkOptions
+      : token?.symbol === 'TCYCLES'
+        ? cyclesNetworkOptions
+        : []
+
+  const networkSelected =
+    Array.isArray(networkOption) && networkOption.length > 0
+      ? networkOption[0]
+      : (networkOption as Option)
+
+  const network =
+    token?.symbol === 'BTC' || token?.symbol === 'TCYCLES'
+      ? networkSelected?.value
+      : null
 
   const toast = useToast({
     duration: 2000,
@@ -179,7 +197,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
       }),
     account: Yup.string().required('Account is a required field').typeError(''),
     network: Yup.string().when('symbol', {
-      is: 'BTC',
+      is: (symbol: string) => ['BTC', 'TCYCLES'].includes(symbol),
       then: (schema) => schema.required('Network is required field'),
     }),
   })
@@ -205,9 +223,9 @@ const TokenRow: React.FC<TokenRowProps> = ({
     },
   })
 
-  const handleBtcNetworkChange = useCallback(
+  const handleNetworkChange = useCallback(
     (option: Option | Option[] | null) => {
-      setBtcNetworkOption(option)
+      setNetworkOption(option)
       formik.setFieldValue(
         'network',
         Array.isArray(option) ? option[0]?.value : option?.value,
@@ -368,7 +386,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
     if (token.withdrawStatus === 'success') {
       formik.setStatus({ success: true })
       formik.resetForm({ values: initialValues })
-      handleBtcNetworkChange(null)
+      handleNetworkChange(null)
     } else if (token.withdrawStatus === 'error') {
       formik.setStatus({ success: false })
     }
@@ -478,11 +496,11 @@ const TokenRow: React.FC<TokenRowProps> = ({
 
             <AccordionPanel pb={4}>
               <Flex direction="column" gap={4}>
-                {token.symbol === 'BTC' && (
+                {(token.symbol === 'BTC' || token.symbol === 'TCYCLES') && (
                   <Box>
                     <Select
                       id="network"
-                      value={btcNetwork?.label ? btcNetwork : null}
+                      value={networkSelected?.label ? networkSelected : null}
                       isMulti={false}
                       isClearable={true}
                       options={networkOptions}
@@ -497,7 +515,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
                       noOptionsMessage="No network found"
                       isLoading={networkOptions?.length <= 0}
                       loadingMessage="Loading..."
-                      onChange={handleBtcNetworkChange}
+                      onChange={handleNetworkChange}
                       styles={customStyles as any}
                     />
                     {!!formik.errors.network && formik.touched.network && (
@@ -527,7 +545,9 @@ const TokenRow: React.FC<TokenRowProps> = ({
                     <FormLabel color="grey.500" fontSize="15px">
                       {action === 'deposit'
                         ? 'Source account'
-                        : 'Destination account'}
+                        : network === 'cycles'
+                          ? 'Canister Id'
+                          : 'Destination account'}
                     </FormLabel>
                     {depositAllowance && (
                       <Text color="grey.400" fontSize="12px">

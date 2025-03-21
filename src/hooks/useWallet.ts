@@ -474,6 +474,34 @@ const useWallet = () => {
     }
   }
 
+  /**
+   * Withdraws a specified amount of cycles to a given principal address using the provided HttpAgent.
+   * @param userAgent - The authenticated agent to interact with the canister.
+   * @param to - The principal ID of the recipient.
+   * @param amount - The amount of cycles to withdraw.
+   * @returns - A Promise resolving to the withdrawal result or null if an error occurs.
+   */
+  const cyclesWithdrawCredit = async (
+    userAgent: HttpAgent,
+    to: string,
+    amount: number,
+  ) => {
+    try {
+      if (!to || !amount) return null
+
+      const serviceActor = getActor(userAgent)
+      const result = await serviceActor.cycles_withdraw({
+        amount: BigInt(amount),
+        to: Principal.fromText(to),
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error cycles withdraw credit:', error)
+      return null
+    }
+  }
+
   return {
     getBalancesCredits,
     getBalance,
@@ -486,6 +514,7 @@ const useWallet = () => {
     getBtcDepositAddress,
     btcWithdrawCredit,
     btcWithdrawStatus,
+    cyclesWithdrawCredit,
   }
 }
 

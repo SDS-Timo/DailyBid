@@ -13,6 +13,7 @@ const initialState: AuthState = {
   userDeposit: '',
   userBtcDepositAddress: '',
   userIcpLegacyAccount: '',
+  userDepositCycles: '',
   userPoints: null,
 }
 
@@ -56,6 +57,12 @@ const authSlice = createSlice({
         userIcpLegacyAccount: action.payload,
       }
     },
+    setUserDepositCycles: (state, action: PayloadAction<string>) => {
+      return {
+        ...state,
+        userDepositCycles: action.payload,
+      }
+    },
     setUserPoints: (state, action: PayloadAction<number | null>) => {
       return {
         ...state,
@@ -71,6 +78,7 @@ const authSlice = createSlice({
         userDeposit: '',
         userBtcDepositAddress: '',
         userIcpLegacyAccount: '',
+        userDepositCycles: '',
         userPoints: null,
       }
     },
@@ -84,6 +92,7 @@ export const {
   setUserDeposit,
   setUserBtcDepositAddress,
   setUserIcpLegacyAccount,
+  setUserDepositCycles,
   setUserPoints,
   logout,
 } = authSlice.actions
