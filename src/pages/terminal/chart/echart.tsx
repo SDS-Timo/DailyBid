@@ -25,11 +25,11 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
     const chartInstance = echarts.init(chartRef.current)
 
     const prices = data.map((item) => item.price ?? 0)
-    const volumes = data.map((item) => item.volume ?? 0)
-    const timestamps = data.map((item) => new Date(item.datetime).toISOString())
-
     const { minValue: minPriceValue, maxValue: maxPriceValue } =
       calculateMinMax(prices)
+
+    const volumes = data.map((item) => item.volume ?? 0)
+    const volumeMax = Math.max(...volumes) * 8
 
     const option = {
       tooltip: {
@@ -71,56 +71,32 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
       grid: [
         {
           top: '4%',
-          height: '82%',
-        },
-        {
-          top: '80%',
-          height: '10%',
+          height: '90%',
         },
       ],
-      xAxis: [
-        {
-          type: 'time',
-          data: timestamps,
-          axisLabel: {
-            show: false,
-          },
-          axisLine: {
-            show: false,
-          },
-          splitLine: {
-            show: false,
-          },
-          axisTick: {
-            show: false,
-          },
-          gridIndex: 0,
+      xAxis: {
+        type: 'time',
+        axisLabel: {
+          formatter: (value: string) =>
+            new Date(value).toLocaleDateString('en-US', {
+              month: 'short',
+              day: '2-digit',
+            }),
+          color:
+            colorMode === 'dark'
+              ? theme.colors.grey['200']
+              : theme.colors.grey['900'],
         },
-        {
-          type: 'time',
-          data: timestamps,
-          axisLabel: {
-            formatter: (value: string) =>
-              new Date(value).toLocaleDateString('en-US', {
-                month: 'short',
-                day: '2-digit',
-              }),
+        axisLine: {
+          lineStyle: {
             color:
               colorMode === 'dark'
-                ? theme.colors.grey['200']
-                : theme.colors.grey['900'],
+                ? theme.colors.grey['400']
+                : theme.colors.grey['700'],
           },
-          axisLine: {
-            lineStyle: {
-              color:
-                colorMode === 'dark'
-                  ? theme.colors.grey['400']
-                  : theme.colors.grey['700'],
-            },
-          },
-          gridIndex: 1,
         },
-      ],
+      },
+
       yAxis: [
         {
           type: 'value',
@@ -147,22 +123,20 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
         },
         {
           type: 'value',
-          position: 'left',
-          axisLabel: {
-            show: false,
-          },
-          splitLine: {
-            show: false,
-          },
-          gridIndex: 1,
+          position: 'right',
+          max: volumeMax,
+          axisLabel: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
         },
       ],
       series: [
         {
           name: 'Price',
           type: 'line',
-          data: prices.map((price, index) => ({
-            value: [timestamps[index], price],
+          data: data.map((item) => ({
+            value: [new Date(item.datetime).toISOString(), item.price ?? 0],
           })),
           lineStyle: {
             color: theme.colors.yellow['500'],
@@ -171,7 +145,6 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
           itemStyle: {
             color: theme.colors.yellow['500'],
           },
-          xAxisIndex: 0,
           yAxisIndex: 0,
           tooltip: {
             valueFormatter: (value: number) => {
@@ -186,14 +159,13 @@ const AuctionsEChart: React.FC<Props> = ({ data, volumeAxis }) => {
         {
           name: 'Volume',
           type: 'bar',
-          data: volumes.map((volume, index) => ({
-            value: [timestamps[index], volume],
+          data: data.map((item) => ({
+            value: [new Date(item.datetime).toISOString(), item.volume ?? 0],
           })),
           barWidth: '50%',
           itemStyle: {
             color: theme.colors.blue['500'],
           },
-          xAxisIndex: 1,
           yAxisIndex: 1,
           tooltip: {
             valueFormatter: (value: number) => {

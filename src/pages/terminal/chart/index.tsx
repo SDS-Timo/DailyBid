@@ -80,7 +80,7 @@ const ChartPlot = () => {
       if (newTimeframe === '1D') {
         startDate.setDate(startDate.getDate() - 1)
       } else if (newTimeframe === '1W') {
-        startDate.setDate(startDate.getDate() - 6)
+        startDate.setDate(startDate.getDate() - 7)
       } else if (newTimeframe === '1M') {
         startDate.setMonth(startDate.getMonth() - 1)
       } else {
