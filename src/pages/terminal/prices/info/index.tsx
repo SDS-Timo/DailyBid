@@ -4,6 +4,8 @@ import { Box, Table, Thead, Tbody, Tr, Th } from '@chakra-ui/react'
 import { useSelector, useDispatch } from 'react-redux'
 
 import InfoRow from './infoRow'
+import BinanceTokens from '../../../../common/binanceTokens.json'
+import useBinancePricesApi from '../../../../hooks/useBinancePricesApi'
 import useDexscreenerPricesApi from '../../../../hooks/useDexscreenerPricesApi'
 import useMetalPriceApi from '../../../../hooks/useMetalPricesApi'
 import { RootState, AppDispatch } from '../../../../store'
@@ -19,31 +21,30 @@ const Info: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>()
 
-  const OSMOSIS_TOKENS =
-    process.env.ENV_CRYPTO_DEXSCREENER_API_OSMOSIS_TOKENS || ''
   const ICP_TOKENS = process.env.ENV_CRYPTO_DEXSCREENER_API_ICP_TOKENS || ''
 
   const fetchPrices = useCallback(async () => {
     setLoading(true)
     const { getMetalPriceApi } = useMetalPriceApi()
     const { getDexscreenerPricesData } = useDexscreenerPricesApi()
+    const { getBinancePricesData } = useBinancePricesApi()
 
     try {
       const [
         fetchedMetalPrices,
-        fetchedDexscreenerPricesOsmosis,
+        fetchedBinancePrices,
         fetchedDexscreenerPricesIcp,
       ] = await Promise.all([
         getMetalPriceApi(userAgent),
-        getDexscreenerPricesData(OSMOSIS_TOKENS),
+        getBinancePricesData(BinanceTokens),
         getDexscreenerPricesData(ICP_TOKENS),
       ])
 
-      const filteredDexscreenerPricesOsmosis = Object.values(
-        fetchedDexscreenerPricesOsmosis as Record<string, any>,
+      const filteredBinancePrices = Object.values(
+        fetchedBinancePrices as Record<string, any>,
       ).map(
         ({ name, value, timestamp, baseToken }): TokenApi => ({
-          symbol: baseToken.symbol,
+          symbol: baseToken,
           name,
           value: parseFloat(value),
           timestamp: BigInt(timestamp),
@@ -62,7 +63,7 @@ const Info: React.FC = () => {
       )
 
       const mergedData = [
-        ...filteredDexscreenerPricesOsmosis,
+        ...filteredBinancePrices,
         ...filteredDexscreenerPricesIcp,
         ...fetchedMetalPrices,
       ]
