@@ -14,6 +14,7 @@ import {
   useDisclosure,
 } from '@chakra-ui/react'
 import { useFormik } from 'formik'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 import * as Yup from 'yup'
 
@@ -33,7 +34,7 @@ const fullWithdrawSettings: React.FC = () => {
   const buttonBgColor = useColorModeValue('grey.500', 'grey.600')
   const fontColor = useColorModeValue('grey.25', 'grey.25')
   const { isOpen, onOpen, onClose } = useDisclosure()
-
+  const { t } = useTranslation()
   const dispatch = useDispatch<AppDispatch>()
 
   const toast = useToast({
@@ -109,11 +110,11 @@ const fullWithdrawSettings: React.FC = () => {
 
   const validationSchema = Yup.object().shape({
     destinationAccount: Yup.string()
-      .required('Address is required')
+      .required(t('Address is required'))
       .test('is-valid-address', 'Invalid Address', function (value) {
         return validateAddress(value)
       })
-      .typeError('Invalid Address format'),
+      .typeError(t('Invalid Address format')),
   })
 
   const formik = useFormik({
@@ -131,8 +132,8 @@ const fullWithdrawSettings: React.FC = () => {
       onClose()
 
       let toastId = toast({
-        title: 'Manage orders pending',
-        description: 'Please wait',
+        title: t('Manage orders pending'),
+        description: t('Please wait...'),
         status: 'loading',
         duration: null,
         isClosable: true,
@@ -148,7 +149,7 @@ const fullWithdrawSettings: React.FC = () => {
           toast.update(toastId, {
             title: 'Success',
             description: getSimpleToastDescription(
-              'Manage orders done',
+              t('Manage orders done'),
               durationInSeconds,
             ),
             status: 'success',
@@ -162,9 +163,9 @@ const fullWithdrawSettings: React.FC = () => {
           const description =
             'Err' in response
               ? getErrorMessageManageOrders(response.Err)
-              : 'Unknown error'
+              : t('Unknown error')
           toast.update(toastId, {
-            title: 'Manage orders rejected',
+            title: t('Manage orders rejected'),
             description: getSimpleToastDescription(
               description,
               durationInSeconds,
@@ -177,8 +178,8 @@ const fullWithdrawSettings: React.FC = () => {
       }
 
       toastId = toast({
-        title: 'Full withdrawal pending',
-        description: 'Please wait',
+        title: t('Full withdrawal pending'),
+        description: t('Please wait...'),
         status: 'loading',
         duration: null,
         isClosable: true,
@@ -198,14 +199,14 @@ const fullWithdrawSettings: React.FC = () => {
               const errorType = response
                 ? 'Err' in response
                   ? getErrorMessageWithdraw(response.Err)
-                  : 'Unknown error'
-                : 'Unknown error'
-              return `Error for withdrawal ${balance.symbol}: ${errorType}`
+                  : t('Unknown error')
+                : t('Unknown error')
+              return `${t('Error for withdrawal')} ${balance.symbol}: ${errorType}`
             })
             .join('\n')
 
           toast.update(toastId, {
-            title: 'Full withdrawal rejected',
+            title: t('Full withdrawal rejected'),
             description: (
               <>
                 <div style={{ whiteSpace: 'pre-line' }}>{errorMessages}</div>
@@ -216,7 +217,7 @@ const fullWithdrawSettings: React.FC = () => {
                     marginTop: '0.5em',
                   }}
                 >
-                  {`Duration: ${durationInSeconds.toFixed(1)}s`}
+                  {`${t('Duration')}: ${durationInSeconds.toFixed(1)}s`}
                 </div>
               </>
             ),
@@ -225,9 +226,9 @@ const fullWithdrawSettings: React.FC = () => {
           })
         } else if (result.successes && result.successes.length > 0) {
           toast.update(toastId, {
-            title: 'Success',
+            title: t('Success'),
             description: getSimpleToastDescription(
-              'Full withdrawal done',
+              t('Full withdrawal done'),
               durationInSeconds,
             ),
             status: 'success',
@@ -237,9 +238,9 @@ const fullWithdrawSettings: React.FC = () => {
           dispatch(setIsRefreshBalances())
         } else {
           toast.update(toastId, {
-            title: 'No withdrawal made',
+            title: t('No withdrawal made'),
             description: getSimpleToastDescription(
-              'Insufficient balance in all assets.',
+              t('Insufficient balance in all assets.'),
               durationInSeconds,
             ),
             status: 'warning',
@@ -254,7 +255,10 @@ const fullWithdrawSettings: React.FC = () => {
       formik.setStatus({ success: false })
       formik.setSubmitting(false)
 
-      formik.setFieldError('destinationAccount', 'Auction canister call error')
+      formik.setFieldError(
+        'destinationAccount',
+        t('Auction canister call error'),
+      )
     }
   }
 
@@ -275,7 +279,7 @@ const fullWithdrawSettings: React.FC = () => {
             onChange={(e) => formik.handleChange(e)}
           />
           <FormLabel color="grey.500" fontSize="15px">
-            Destination account
+            {t('Destination account')}
           </FormLabel>
         </FormControl>
       </InputGroup>
@@ -300,10 +304,10 @@ const fullWithdrawSettings: React.FC = () => {
         >
           {formik.isSubmitting ? (
             <>
-              Withdraw <Spinner ml={2} size="sm" color={fontColor} />
+              {t('Withdraw')} <Spinner ml={2} size="sm" color={fontColor} />
             </>
           ) : (
-            'Withdraw'
+            t('Withdraw')
           )}
         </Button>
       </Flex>
@@ -312,18 +316,20 @@ const fullWithdrawSettings: React.FC = () => {
         isOpen={isOpen}
         onClose={onClose}
         onConfirm={handleWithdrawConfirm}
-        title="Confirm Withdraw"
+        title={t('Confirm Withdraw')}
         description={
           <>
-            <Text>Are you sure you want to full withdraw to address</Text>
+            <Text>
+              {t('Are you sure you want to full withdraw to address')}
+            </Text>
             <Text mt={3}>
               <strong>{formik.values.destinationAccount}</strong>?
             </Text>
-            <Text mt={3}>This action cannot be undone.</Text>
+            <Text mt={3}>{t('This action cannot be undone')}.</Text>
           </>
         }
-        confirmText="Confirm"
-        cancelText="Cancel"
+        confirmText={t('Confirm')}
+        cancelText={t('Cancel')}
       />
     </>
   )

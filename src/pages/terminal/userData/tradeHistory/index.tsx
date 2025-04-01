@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 
 import { Box, useDisclosure, useColorModeValue } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 
 import tableContent from './tradeHistoryTable'
@@ -18,6 +19,7 @@ const TradeHistory: React.FC = () => {
   const bgColor = useColorModeValue('grey.200', 'grey.700')
   const fontColor = useColorModeValue('grey.700', 'grey.25')
   const pgSize = pgSizeDinamic()
+  const { t } = useTranslation()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -148,7 +150,7 @@ const TradeHistory: React.FC = () => {
             fontSize="11px"
             bgColor={bgColor}
             fontColor={fontColor}
-            emptyMessage="no trades found"
+            emptyMessage={t('no trades found')}
             pgSize={isResizeUserData ? 15 : pgSize}
             onClick={(c) => c}
             onClickAllMarkets={handleCheckboxChange}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { Box, Table, Thead, Tbody, Tr, Th } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 
 import InfoRow from './infoRow'
@@ -16,6 +17,7 @@ const Info: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [metalPrices, setMetalPrices] = useState<TokenApi[]>([])
   const [cryptoPrices, setCryptoPrices] = useState<TokenApi[]>([])
+  const { t } = useTranslation()
 
   const { userAgent } = useSelector((state: RootState) => state.auth)
 
@@ -133,9 +135,9 @@ const Info: React.FC = () => {
         <Table variant="unstyled" size="sm">
           <Thead>
             <Tr>
-              <Th textAlign="center">Symbol</Th>
-              <Th textAlign="center">Name</Th>
-              <Th textAlign="center">Price</Th>
+              <Th textAlign="center">{t('Symbol')}</Th>
+              <Th textAlign="center">{t('Name')}</Th>
+              <Th textAlign="center">{t('Price')}</Th>
             </Tr>
           </Thead>
           <Tbody>

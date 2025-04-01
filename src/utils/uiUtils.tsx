@@ -1,3 +1,5 @@
+import i18next from 'i18next'
+
 /**
  * Generates a simple toast description with a message and formatted duration.
  * @param message - The main message to display in the toast.
@@ -20,7 +22,7 @@ export const getSimpleToastDescription = (
           marginTop: '0.5em',
         }}
       >
-        {`Duration: ${formattedDuration}s`}
+        {`${i18next.t('Duration')}: ${formattedDuration}s`}
       </div>
     </>
   )
@@ -51,7 +53,7 @@ export const getDoubleLineToastDescription = (
           marginTop: '0.5em',
         }}
       >
-        {`Duration: ${formattedDuration}s`}
+        {`${i18next.t('Duration')}: ${formattedDuration}s`}
       </div>
     </>
   )

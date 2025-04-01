@@ -24,6 +24,7 @@ import {
 } from '@dfinity/identity'
 import { Select } from 'bymax-react-select'
 import { Helmet } from 'react-helmet-async'
+import { useTranslation } from 'react-i18next'
 
 import LogoDark from '../../assets/img/logo/dailyBid_black.svg'
 import LogoLight from '../../assets/img/logo/dailyBid_white.svg'
@@ -54,6 +55,7 @@ const LoginII: React.FC = () => {
     label: '30 days',
   })
 
+  const { t } = useTranslation()
   const { saveToDpasteWithAuth } = useDPasteApi()
 
   const deepLink = `${process.env.ENV_TELEGRAM_DEEP_LINK}&startapp=${delegationCode}`
@@ -77,8 +79,8 @@ const LoginII: React.FC = () => {
     else if (link === 'alternativeLink') onCopyAltLink()
 
     toast({
-      title: 'Copied!',
-      description: 'Link copied to clipboard.',
+      title: t('Copied'),
+      description: t('Link copied to clipboard.'),
       status: 'success',
       duration: 3000,
       isClosable: true,
@@ -86,14 +88,14 @@ const LoginII: React.FC = () => {
   }
 
   const selectOptions = [
-    { id: '1', value: '0.0833', label: '5 minutes' },
-    { id: '2', value: '0.25', label: '15 minutes' },
-    { id: '3', value: '1', label: '1 hour' },
-    { id: '4', value: '3', label: '3 hours' },
-    { id: '5', value: '12', label: '12 hours' },
-    { id: '6', value: '24', label: '1 day' },
-    { id: '7', value: '168', label: '7 days' },
-    { id: '8', value: '720', label: '30 days' },
+    { id: '1', value: '0.0833', label: `5 ${t('minute')}s` },
+    { id: '2', value: '0.25', label: `15 ${t('minute')}s` },
+    { id: '3', value: '1', label: `1 ${t('hour')}` },
+    { id: '4', value: '3', label: `3 ${t('hour')}s` },
+    { id: '5', value: '12', label: `12 ${t('hour')}s` },
+    { id: '6', value: '24', label: `1 ${t('day')}` },
+    { id: '7', value: '168', label: `7 ${t('day')}s` },
+    { id: '8', value: '720', label: `30 ${t('day')}s` },
   ]
 
   const handleLoginDurationOptionChange = (
@@ -137,7 +139,7 @@ const LoginII: React.FC = () => {
     const newTab = window.open('about:blank', '_blank')
 
     if (!newTab) {
-      alert('Popup blocked! Please allow pop-ups and try again.')
+      alert(t('Popup blocked! Please allow pop-ups and try again.'))
       return
     }
 
@@ -301,7 +303,7 @@ const LoginII: React.FC = () => {
       </Heading>
 
       <Heading as="h1" size="2xl" fontWeight="bold">
-        Login for mini dApps
+        {t('Login for mini dApps')}
       </Heading>
 
       <Box
@@ -325,25 +327,25 @@ const LoginII: React.FC = () => {
       {userPrincipal && (
         <>
           <Text fontSize="lg" fontWeight="normal" mb={8}>
-            You have been redirected to Telegram. Click{' '}
+            {t('You have been redirected to Telegram. Click')}{' '}
             <Link as="button" onClick={() => window.close()} color="inherit">
-              here
+              {t('here')}
             </Link>{' '}
-            to close this tab:
+            {t('to close this tab')}:
           </Text>
 
           <Button colorScheme="blue" size="lg" onClick={() => window.close()}>
-            Close
+            {t('Close')}
           </Button>
 
           <Text fontSize="lg" fontWeight="normal" mt={8}>
-            If the redirection did not work you can try to click{' '}
+            {t('If the redirection did not work you can try to click')}{' '}
             <Link href={`${deepLink}_key-${aesKey}`} color="inherit">
-              here
+              {t('here')}
             </Link>{' '}
-            or{' '}
+            {t('or')}{' '}
             <Link href={`${alternativeLink}_key-${aesKey}`} color="inherit">
-              here
+              {t('here')}
             </Link>
             .
           </Text>
@@ -395,7 +397,7 @@ const LoginII: React.FC = () => {
           onChange={(e) => setShowDetails(e.target.checked)}
           colorScheme="blue"
         >
-          Show details
+          {t('Show details')}
         </Checkbox>
       </Box>
 

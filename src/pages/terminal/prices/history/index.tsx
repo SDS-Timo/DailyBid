@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 
 import { Box, Table, Thead, Tbody, Tr, Th, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 
 import HistoryRow from './historyRow'
@@ -11,7 +12,7 @@ const PriceHistory: React.FC = () => {
   const [prices, setPrices] = useState<DataItem[]>([])
   const [loading, setLoading] = useState(true)
   const [toggleVolume, setToggleVolume] = useState('base')
-
+  const { t } = useTranslation()
   const selectedSymbol = useSelector(
     (state: RootState) => state.tokens.selectedSymbol,
   )
@@ -52,7 +53,7 @@ const PriceHistory: React.FC = () => {
         <Table variant="unstyled" size="sm">
           <Thead>
             <Tr>
-              <Th textAlign="center">Price</Th>
+              <Th textAlign="center">{t('Price')}</Th>
               <Th
                 textAlign="center"
                 whiteSpace="nowrap"
@@ -60,7 +61,7 @@ const PriceHistory: React.FC = () => {
                 onClick={handleToggleVolume}
                 _hover={{ textDecoration: 'underline' }}
               >
-                Volume
+                {t('Volume')}
                 <Text as="span" fontSize="10px">
                   {' '}
                   (
@@ -71,7 +72,7 @@ const PriceHistory: React.FC = () => {
                 </Text>
               </Th>
               <Th textAlign="center" whiteSpace="nowrap">
-                Date
+                {t('Date')}
               </Th>
             </Tr>
           </Thead>

@@ -15,6 +15,7 @@ import {
   MenuItem,
   useColorModeValue,
 } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 
 import AutoClaimTimer from './autoClaim'
@@ -29,6 +30,7 @@ import { checkUserAgentDelegation } from '../../../utils/authUtils'
 const HeaderInformation = () => {
   const bgColor = useColorModeValue('grey.100', 'grey.900')
   const dispatch = useDispatch<AppDispatch>()
+  const { t } = useTranslation()
   const headerInformation = useSelector(
     (state: RootState) => state.prices.headerInformation,
   )
@@ -45,9 +47,9 @@ const HeaderInformation = () => {
 
   const tooltipTextStandard = (
     <>
-      {`Checking statistics`}
+      {t(`Checking statistics`)}
       <br />
-      {`Please wait...`}
+      {t(`Please wait...`)}
     </>
   )
 
@@ -117,22 +119,22 @@ const HeaderInformation = () => {
           <>
             {clearingPrice !== null || clearingVolume !== null ? (
               <>
-                {`Clearing Price: ${clearingPrice || '-'} ${symbol?.quote}`}
+                {`${t('Clearing Price')}: ${clearingPrice || '-'} ${symbol?.quote}`}
                 <br />
-                {`Clearing Volume: ${clearingVolume || '-'} ${symbol?.base}`}
+                {`${t('Clearing Volume')}: ${clearingVolume || '-'} ${symbol?.base}`}
                 <br />
               </>
             ) : (
               <>
-                {`Highest Bid: ${maxBidPrice || '-'} ${symbol?.quote}`}
+                {`${t('Highest Bid')}: ${maxBidPrice || '-'} ${symbol?.quote}`}
                 <br />
-                {`Lowest Ask: ${minAskPrice || '-'} ${symbol?.quote}`}
+                {`${t('Lowest Ask')}: ${minAskPrice || '-'} ${symbol?.quote}`}
                 <br />
               </>
             )}
-            {`Total Bid Volume: ${totalBidVolume} ${symbol?.base}`}
+            {`${t('Total Bid Volume')}: ${totalBidVolume} ${symbol?.base}`}
             <br />
-            {`Total Ask Volume: ${totalAskVolume} ${symbol?.base}`}
+            {`${t('Total Ask Volume')}: ${totalAskVolume} ${symbol?.base}`}
           </>,
         )
       }
@@ -223,7 +225,7 @@ const HeaderInformation = () => {
       >
         <Flex direction="column">
           <Stat size="sm">
-            <StatLabel>Last Clearing</StatLabel>
+            <StatLabel>{t('Last Clearing')}</StatLabel>
             <StatNumber>
               {typeof headerInformation?.lastAuction === 'number'
                 ? `$${headerInformation?.lastAuction.toLocaleString('en-US', {
@@ -243,7 +245,7 @@ const HeaderInformation = () => {
       >
         <Flex direction="column">
           <Stat size="sm">
-            <StatLabel>Previous Change</StatLabel>
+            <StatLabel>{t('Previous Change')}</StatLabel>
             {typeof headerInformation?.previousChange.amount === 'number' &&
             typeof headerInformation?.previousChange.percentage === 'number' ? (
               headerInformation.previousChange.amount >= 0 ? (
@@ -328,7 +330,7 @@ const HeaderInformation = () => {
             onClick={() => fetchStatistics()}
           >
             <Stat size="sm">
-              <StatLabel>Next Clearing</StatLabel>
+              <StatLabel>{t('Next Clearing')}</StatLabel>
               <StatNumber>
                 {nextSession ? nextSession.nextSession : '--'}
               </StatNumber>
@@ -351,7 +353,7 @@ const HeaderInformation = () => {
         <Flex direction="column">
           <Tooltip label={tooltipText} aria-label="Statistics">
             <Stat size="sm" onMouseEnter={() => fetchStatistics()}>
-              <StatLabel>Next Clearing</StatLabel>
+              <StatLabel>{t('Next Clearing')}</StatLabel>
               <StatNumber>
                 {nextSession ? nextSession.nextSession : '--'}
               </StatNumber>

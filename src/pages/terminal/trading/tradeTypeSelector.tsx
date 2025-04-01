@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Box, Grid } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 
 interface TradeTypeSelectorProps {
   tradeType: string
@@ -11,6 +12,7 @@ const TradeTypeSelector: React.FC<TradeTypeSelectorProps> = ({
   tradeType,
   handleTradeTypeChange,
 }) => {
+  const { t } = useTranslation()
   return (
     <Grid templateColumns="repeat(2, 1fr)" gap={0}>
       <Box
@@ -28,7 +30,7 @@ const TradeTypeSelector: React.FC<TradeTypeSelectorProps> = ({
         borderRight="none"
         borderRadius="none"
       >
-        BUY
+        {t('BUY')}
       </Box>
       <Box
         as="button"
@@ -45,7 +47,7 @@ const TradeTypeSelector: React.FC<TradeTypeSelectorProps> = ({
         borderRight="none"
         borderRadius="none"
       >
-        SELL
+        {t('SELL')}
       </Box>
     </Grid>
   )

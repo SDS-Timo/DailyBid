@@ -30,6 +30,7 @@ import {
 import { HttpAgent } from '@dfinity/agent'
 import { Select } from 'bymax-react-select'
 import { useFormik } from 'formik'
+import { useTranslation } from 'react-i18next'
 import { LuDownload, LuUpload } from 'react-icons/lu'
 import { RiHandCoinLine } from 'react-icons/ri'
 import * as Yup from 'yup'
@@ -73,19 +74,12 @@ const TokenRow: React.FC<TokenRowProps> = ({
   currentIndex,
   onAccordionChange,
 }) => {
-  const claimTooltipTextStandard = (
-    <>
-      {`Claim Direct Deposit`}
-      <br />
-      {`Please wait...`}
-    </>
-  )
-
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
   const bgColor = useColorModeValue('grey.200', 'grey.600')
   const bgColorMenu = useColorModeValue('grey.100', 'grey.900')
   const fontColor = useColorModeValue('grey.700', 'grey.25')
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const { t } = useTranslation()
 
   const [action, setAction] = useState('')
   const [networkOption, setNetworkOption] = useState<Option | Option[] | null>(
@@ -94,6 +88,14 @@ const TokenRow: React.FC<TokenRowProps> = ({
   const [depositAllowance, setDepositAllowance] = useState<string | null>(null)
   const [maxDepositAllowance, setMaxDepositAllowance] = useState<string | null>(
     null,
+  )
+
+  const claimTooltipTextStandard = (
+    <>
+      {t(`Claim Direct Deposit`)}
+      <br />
+      {t(`Please wait...`)}
+    </>
   )
   const [claimTooltipText, setClaimTooltipText] = useState(
     claimTooltipTextStandard,
@@ -161,8 +163,8 @@ const TokenRow: React.FC<TokenRowProps> = ({
   const handleCopyToClipboard = () => {
     onCopy()
     toast({
-      title: 'Copied',
-      description: 'Token principal copied to clipboard',
+      title: t('Copied'),
+      description: t('Token principal copied to clipboard'),
       status: 'success',
     })
   }
@@ -183,22 +185,24 @@ const TokenRow: React.FC<TokenRowProps> = ({
 
   const validationSchema = Yup.object().shape({
     amount: Yup.number()
-      .required('Amount is a required field')
+      .required(t('Amount is a required field'))
       .typeError('')
       .when('action', {
         is: 'withdraw',
         then: (schema) =>
-          schema.max(token.volumeInAvailable || 0, 'Not enough funds'),
+          schema.max(token.volumeInAvailable || 0, t('Not enough funds')),
       })
       .when('action', {
         is: 'deposit',
         then: (schema) =>
-          schema.max(Number(maxDepositAllowance) || 0, 'Not enough funds'),
+          schema.max(Number(maxDepositAllowance) || 0, t('Not enough funds')),
       }),
-    account: Yup.string().required('Account is a required field').typeError(''),
+    account: Yup.string()
+      .required(t('Account is a required field'))
+      .typeError(''),
     network: Yup.string().when('symbol', {
       is: (symbol: string) => ['BTC', 'TCYCLES'].includes(symbol),
-      then: (schema) => schema.required('Network is required field'),
+      then: (schema) => schema.required(t('Network is required field')),
     }),
   })
 
@@ -287,25 +291,25 @@ const TokenRow: React.FC<TokenRowProps> = ({
     ) {
       setClaimTooltipText(
         <>
-          {`Claim Direct Deposit`}
+          {t(`Claim Direct Deposit`)}
           <br />
-          {`Not Available`}
+          {t(`Not Available`)}
         </>,
       )
     } else if (balanceOf <= deposit) {
       setClaimTooltipText(
         <>
-          {`Claim Direct Deposit`}
+          {t(`Claim Direct Deposit`)}
           <br />
-          {`No deposits available`}
+          {t(`No deposits available`)}
         </>,
       )
     } else {
       setClaimTooltipText(
         <>
-          {`Claim Direct Deposit`}
+          {t(`Claim Direct Deposit`)}
           <br />
-          {`${fixDecimal(balanceOf - deposit, token.decimals)} ${token.base} available`}
+          {`${fixDecimal(balanceOf - deposit, token.decimals)} ${token.base} ${t('available')}`}
         </>,
       )
     }
@@ -485,10 +489,10 @@ const TokenRow: React.FC<TokenRowProps> = ({
                   w="full"
                 >
                   <Text fontSize="12px" color="grey.400">
-                    {volumeInLocked} Locked
+                    {volumeInLocked} {t('Locked')}
                   </Text>
                   <Text ml={2} fontSize="12px" color="grey.400">
-                    {volumeInAvailable} Available
+                    {volumeInAvailable} {t('Available')}
                   </Text>
                 </Flex>
               </Flex>
@@ -509,12 +513,12 @@ const TokenRow: React.FC<TokenRowProps> = ({
                       }
                       placeholder={
                         networkOptions?.length <= 0
-                          ? 'Loading...'
-                          : 'Select a network'
+                          ? t('Loading...')
+                          : t('Select a network')
                       }
-                      noOptionsMessage="No network found"
+                      noOptionsMessage={t('No network found')}
                       isLoading={networkOptions?.length <= 0}
-                      loadingMessage="Loading..."
+                      loadingMessage={t('Loading...')}
                       onChange={handleNetworkChange}
                       styles={customStyles as any}
                     />
@@ -544,14 +548,14 @@ const TokenRow: React.FC<TokenRowProps> = ({
                     />
                     <FormLabel color="grey.500" fontSize="15px">
                       {action === 'deposit'
-                        ? 'Source account'
+                        ? t('Source account')
                         : network === 'cycles'
                           ? 'Canister Id'
-                          : 'Destination account'}
+                          : t('Destination account')}
                     </FormLabel>
                     {depositAllowance && (
                       <Text color="grey.400" fontSize="12px">
-                        Allowance amount: {depositAllowance} {token.base}
+                        {t('Allowance amount:')} {depositAllowance} {token.base}
                       </Text>
                     )}
                     {!!formik.errors.account && formik.touched.account && (
@@ -610,7 +614,7 @@ const TokenRow: React.FC<TokenRowProps> = ({
                   </InputGroup>
                   {maxDepositAllowance && (
                     <Text color="grey.400" fontSize="12px">
-                      Max available: {maxDepositAllowance} {token.base}
+                      {t('Max available:')} {maxDepositAllowance} {token.base}
                     </Text>
                   )}
                   {!!formik.errors.amount && formik.touched.amount && (
@@ -640,19 +644,20 @@ const TokenRow: React.FC<TokenRowProps> = ({
                     {action === 'withdraw' ? (
                       token.withdrawStatus === 'loading' ? (
                         <>
-                          Withdraw{' '}
+                          {t('Withdraw')}{' '}
                           <Spinner ml={2} size="sm" color={fontColor} />
                         </>
                       ) : (
-                        'Withdraw'
+                        t('Withdraw')
                       )
                     ) : action === 'deposit' ? (
                       token.depositStatus === 'loading' ? (
                         <>
-                          Deposit <Spinner ml={2} size="sm" color={fontColor} />
+                          {t('Deposit')}{' '}
+                          <Spinner ml={2} size="sm" color={fontColor} />
                         </>
                       ) : (
-                        'Deposit'
+                        t('Deposit')
                       )
                     ) : null}
                   </Button>
@@ -667,24 +672,24 @@ const TokenRow: React.FC<TokenRowProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         onConfirm={handleWithdrawConfirm}
-        title="Confirm Withdraw"
+        title={t('Confirm Withdraw')}
         description={
           <>
             <Text>
-              Are you sure you want to withdraw{' '}
+              {t('Are you sure you want to withdraw')}{' '}
               <strong>
                 {formik.values.amount} {token.base}
               </strong>{' '}
-              to address
+              {t('to address')}
             </Text>
             <Text mt={3}>
               <strong>{formik.values.account}</strong>?
             </Text>
-            <Text mt={3}>This action cannot be undone.</Text>
+            <Text mt={3}>{t('This action cannot be undone.')}</Text>
           </>
         }
-        confirmText="Confirm"
-        cancelText="Cancel"
+        confirmText={t('Confirm')}
+        cancelText={t('Cancel')}
       />
     </>
   )

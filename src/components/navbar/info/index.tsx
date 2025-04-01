@@ -13,6 +13,7 @@ import {
   useColorModeValue,
   useClipboard,
 } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 
 import useOrder from '../../../hooks/useOrders'
@@ -28,6 +29,7 @@ const NavbarInfo: React.FC = () => {
   })
   const dispatch = useDispatch<AppDispatch>()
   const principal = getAuctionCanisterId()
+  const { t } = useTranslation()
 
   const bgColor = useColorModeValue('grey.100', 'grey.900')
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
@@ -52,7 +54,7 @@ const NavbarInfo: React.FC = () => {
 
       toast({
         position: 'top-right',
-        title: 'Copied',
+        title: t('Copied'),
         description,
         status: 'success',
       })
@@ -88,7 +90,7 @@ const NavbarInfo: React.FC = () => {
         <MenuList bg={bgColor} p={4}>
           <Box>
             <Text as="strong" fontSize="14px">
-              Backend:
+              {t('Backend')}:
             </Text>
             <Flex alignItems="center">
               <Text
@@ -97,7 +99,7 @@ const NavbarInfo: React.FC = () => {
                 onClick={() =>
                   copyToClipboard(
                     'auctionPrincipal',
-                    'Backend principal copied to clipboard',
+                    t('Backend principal copied to clipboard'),
                   )
                 }
                 cursor="pointer"
@@ -116,7 +118,7 @@ const NavbarInfo: React.FC = () => {
           {selectedQuote.principal && (
             <Box>
               <Text as="strong" fontSize="14px">
-                Quote token ledger{' '}
+                {t('Quote token ledger')}{' '}
               </Text>
               <Text as="strong" fontSize="11px">
                 ({selectedQuote.base}):
@@ -128,7 +130,7 @@ const NavbarInfo: React.FC = () => {
                   onClick={() =>
                     copyToClipboard(
                       'quotePrincipal',
-                      'Quote token principal copied to clipboard',
+                      t('Quote token principal copied to clipboard'),
                     )
                   }
                   cursor="pointer"
@@ -147,23 +149,23 @@ const NavbarInfo: React.FC = () => {
           )}
           <Box>
             <Text as="strong" fontSize="14px">
-              Order size:
+              {t('Order size')}:
             </Text>
             <Text ml={1} fontSize="13px">
               {orderSettings.orderQuoteVolumeMinimum} {selectedQuote.base}{' '}
-              minimum
+              {t('minimum')}
             </Text>
             <Text ml={1} fontSize="13px">
-              {orderSettings.orderQuoteVolumeStep} {selectedQuote.base} step
-              size
+              {orderSettings.orderQuoteVolumeStep} {selectedQuote.base}{' '}
+              {t('step size')}
             </Text>
           </Box>
           <Box>
             <Text as="strong" fontSize="14px">
-              Price precision:
+              {t('Price precision:')}
             </Text>
             <Text ml={1} fontSize="13px">
-              {orderSettings.orderPriceDigitsLimit} significant digits
+              {orderSettings.orderPriceDigitsLimit} {t('significant digits')}
             </Text>
           </Box>
         </MenuList>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { useToast } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 
 import useWallet from '../hooks/useWallet'
@@ -17,6 +18,7 @@ const BtcWithdrawStatusComponent: React.FC = () => {
   )
   const { btcWithdrawStatus } = useWallet()
 
+  const { t } = useTranslation()
   const toast = useToast({
     duration: 10000,
     position: 'top-right',
@@ -141,12 +143,12 @@ const BtcWithdrawStatusComponent: React.FC = () => {
         if (isSubmitted || isPending) {
           toast({
             title: isSubmitted
-              ? 'BTC withdraw done'
-              : 'BTC withdraw in progress',
+              ? t('BTC withdraw done')
+              : t('BTC withdraw in progress'),
             description: txid
               ? getToastDescriptionWithLink(
                   status,
-                  `View transaction`,
+                  t('View transaction'),
                   `https://mempool.space/tx/${txid}`,
                 )
               : status,

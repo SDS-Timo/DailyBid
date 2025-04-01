@@ -10,6 +10,7 @@ import {
   Tooltip,
   useColorModeValue,
 } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { FiEdit3 } from 'react-icons/fi'
 import { Row } from 'react-table'
 
@@ -31,10 +32,11 @@ export default function tableContent(
   handleCancel: (id: bigint | undefined, type: string | undefined) => void,
 ) {
   const bgColor = useColorModeValue('grey.200', 'grey.700')
+  const { t } = useTranslation()
 
   const tableColumns: ColumnWithSorting<TokenDataItem>[] = [
     {
-      Header: 'Symbol',
+      Header: t('Symbol'),
       accessor: 'symbol',
       Cell: ({ row }: { row: Row<TokenDataItem> }) => {
         const { symbol, base, quote, logo } = row.original
@@ -50,7 +52,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Side',
+      Header: t('Side'),
       accessor: 'type',
       Cell: ({ row }: { row: Row<TokenDataItem> }) => {
         const { type } = row.original
@@ -65,7 +67,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Limit',
+      Header: t('Limit'),
       accessor: 'price',
       sortType: (
         rowA: Row<TokenDataItem>,
@@ -92,7 +94,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Amount',
+      Header: t('Amount'),
       accessor: 'volume',
       sortType: (rowA, rowB) => {
         const valA =
@@ -172,7 +174,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Actions',
+      Header: t('Actions'),
       accessor: 'actions',
       disableSortBy: true,
       Cell: ({ row }: { row: Row<TokenDataItem> }) => {

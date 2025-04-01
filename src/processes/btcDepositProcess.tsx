@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { useToast } from '@chakra-ui/react'
 import { differenceInSeconds } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 
 import useCkBtcMinter from '../hooks/useCkBtcMinter'
@@ -18,6 +19,7 @@ const BtcDepositComponent: React.FC = () => {
     (state: RootState) => state.auth.userBtcDepositAddress,
   )
 
+  const { t } = useTranslation()
   const toast = useToast({
     duration: 10000,
     position: 'top-right',
@@ -103,18 +105,18 @@ const BtcDepositComponent: React.FC = () => {
       detectNewTxids(
         previousNewBtcUtxoRef,
         newBtcUtxo,
-        'New BTC deposit found',
+        t('New BTC deposit found'),
         (newTxids) =>
-          `${newTxids.reduce((sum, tx) => sum + Number(tx.amount), 0)} BTC pending`,
+          `${newTxids.reduce((sum, tx) => sum + Number(tx.amount), 0)} BTC ${t('pending')}`,
         'success',
       )
 
       detectNewTxids(
         previousCkBtcUtxoRef,
         ckBtcUtxo,
-        'BTC deposit done',
+        t('BTC deposit done'),
         (newTxids) =>
-          `${newTxids.reduce((sum, tx) => sum + Number(tx.amount), 0)} BTC received`,
+          `${newTxids.reduce((sum, tx) => sum + Number(tx.amount), 0)} BTC ${t('received')}`,
         'success',
       )
 

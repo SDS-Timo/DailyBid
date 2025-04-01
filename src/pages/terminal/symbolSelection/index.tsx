@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react'
 
 import { Box } from '@chakra-ui/react'
 import { Select } from 'bymax-react-select'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 
 import customStyles from '../../../common/styles'
@@ -16,6 +17,7 @@ import { Option } from '../../../types'
 
 const SymbolSelection: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
   const { userAgent } = useSelector((state: RootState) => state.auth)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
@@ -111,10 +113,10 @@ const SymbolSelection: React.FC = () => {
         isMulti={false}
         isClearable={false}
         options={options}
-        placeholder={loading ? 'Loading...' : 'Select a symbol'}
-        noOptionsMessage="No symbols found"
+        placeholder={loading ? t('Loading...') : t('Select a symbol')}
+        noOptionsMessage={t('No symbols found')}
         isLoading={loading}
-        loadingMessage="Loading..."
+        loadingMessage={t('Loading...')}
         onChange={handleChange}
         styles={customStyles as any}
       />

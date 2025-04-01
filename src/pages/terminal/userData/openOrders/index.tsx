@@ -6,6 +6,7 @@ import {
   useToast,
   useColorModeValue,
 } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 
 import tableContent from './openOrdersTable'
@@ -29,6 +30,7 @@ import { getSimpleToastDescription } from '../../../../utils/uiUtils'
 const OpenOrders: React.FC = () => {
   const bgColor = useColorModeValue('grey.200', 'grey.700')
   const fontColor = useColorModeValue('grey.700', 'grey.25')
+  const { t } = useTranslation()
   const toast = useToast({
     duration: 10000,
     position: 'top-right',
@@ -182,8 +184,8 @@ const OpenOrders: React.FC = () => {
       refreshOpenOrders(true)
 
       const toastId = toast({
-        title: 'Cancel order pending',
-        description: 'Please wait',
+        title: t('Cancel order pending'),
+        description: t('Please wait...'),
         status: 'loading',
         duration: null,
         isClosable: true,
@@ -198,9 +200,9 @@ const OpenOrders: React.FC = () => {
           if (response.length > 0 && Object.keys(response[0]).includes('Ok')) {
             if (toastId) {
               toast.update(toastId, {
-                title: 'Success',
+                title: t('Success'),
                 description: getSimpleToastDescription(
-                  'Order cancelled',
+                  t('Order cancelled'),
                   durationInSeconds,
                 ),
                 status: 'success',
@@ -210,7 +212,7 @@ const OpenOrders: React.FC = () => {
           } else {
             if (toastId) {
               toast.update(toastId, {
-                title: 'Cancel order rejected',
+                title: t('Cancel order rejected'),
                 description: getSimpleToastDescription(
                   getErrorMessageCancelOrder(response[0].Err),
                   durationInSeconds,
@@ -232,9 +234,9 @@ const OpenOrders: React.FC = () => {
 
           if (toastId) {
             toast.update(toastId, {
-              title: 'Cancel order rejected',
+              title: t('Cancel order rejected'),
               description: getSimpleToastDescription(
-                `Error: ${message}`,
+                `${t('Error')}: ${message}`,
                 durationInSeconds,
               ),
               status: 'error',
@@ -305,7 +307,7 @@ const OpenOrders: React.FC = () => {
             fontSize="11px"
             bgColor={bgColor}
             fontColor={fontColor}
-            emptyMessage="no order found"
+            emptyMessage={t('no order found')}
             pgSize={isResizeUserData ? 15 : pgSize}
             onClick={(c) => c}
             onClickAllMarkets={handleCheckboxChange}

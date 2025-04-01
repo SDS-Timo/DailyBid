@@ -10,6 +10,7 @@ import {
   IconButton,
   useColorModeValue,
 } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { useSelector, useDispatch } from 'react-redux'
 
@@ -21,7 +22,7 @@ import { setIsResizeUserData } from '../../../store/uiSettings'
 const UserData: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
   const dispatch = useDispatch<AppDispatch>()
-
+  const { t } = useTranslation()
   const isResizeUserData = useSelector(
     (state: RootState) => state.uiSettings.isResizeUserData,
   )
@@ -42,14 +43,14 @@ const UserData: React.FC = () => {
             _focus={{ boxShadow: 'none' }}
             _active={{ background: 'transparent' }}
           >
-            Open Orders
+            {t('Open Orders')}
           </Tab>
           <Tab
             _selected={{ borderBottom: '2px solid', borderColor: 'blue.500' }}
             _focus={{ boxShadow: 'none' }}
             _active={{ background: 'transparent' }}
           >
-            Trade History
+            {t('Trade History')}
           </Tab>
           <IconButton
             aria-label="Resize"

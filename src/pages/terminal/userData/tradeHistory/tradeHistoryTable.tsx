@@ -1,6 +1,7 @@
 import { MouseEventHandler } from 'react'
 
 import { Flex, Image, Text, HStack, Tooltip } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { Row } from 'react-table'
 
 import { ColumnWithSorting } from '../../../../components/paginationTable'
@@ -11,9 +12,10 @@ export default function tableContent(
   toggleVolume: string,
   handleToggleVolume: MouseEventHandler<HTMLParagraphElement> | undefined,
 ) {
+  const { t } = useTranslation()
   const tableColumns: ColumnWithSorting<TokenDataItem>[] = [
     {
-      Header: 'Symbol',
+      Header: t('Symbol'),
       accessor: 'symbol',
       Cell: ({ row }: { row: Row<TokenDataItem> }) => {
         const { symbol, base, quote, logo } = row.original
@@ -29,7 +31,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Side',
+      Header: t('Side'),
       accessor: 'type',
       Cell: ({ row }: { row: Row<TokenDataItem> }) => {
         const { type } = row.original
@@ -44,7 +46,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Price',
+      Header: t('Price'),
       accessor: 'price',
       sortType: (
         rowA: Row<TokenDataItem>,
@@ -71,7 +73,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Amount',
+      Header: t('Amount'),
       accessor: 'volume',
       sortType: (rowA, rowB) => {
         const valA =
@@ -151,7 +153,7 @@ export default function tableContent(
       },
     },
     {
-      Header: 'Date',
+      Header: t('Date'),
       accessor: 'datetime',
       sortType: (rowA, rowB, columnId) => {
         const dateA = new Date(rowA.values[columnId])

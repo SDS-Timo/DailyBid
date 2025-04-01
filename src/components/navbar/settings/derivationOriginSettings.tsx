@@ -15,6 +15,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useFormik } from 'formik'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import * as Yup from 'yup'
 
@@ -27,6 +28,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
   const buttonBgColor = useColorModeValue('grey.500', 'grey.600')
   const fontColor = useColorModeValue('grey.25', 'grey.25')
+  const { t } = useTranslation()
   const toast = useToast({
     duration: 10000,
     position: 'top-right',
@@ -59,7 +61,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
     }
 
     throw new Error(
-      'Invalid input. Please provide a valid canister ID or a full URL.',
+      t('Invalid input. Please provide a valid canister ID or a full URL.'),
     )
   }, [])
 
@@ -70,7 +72,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
 
   const validationSchema = Yup.object().shape({
     canisterId: Yup.string()
-      .required('Canister ID or full URL is required')
+      .required(t('Canister ID or full URL is required'))
       .test('is-valid-canister-id', 'Invalid Canister ID', function (value) {
         if (!value) return false
         try {
@@ -80,7 +82,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
           return false
         }
       })
-      .typeError('Invalid Canister ID format'),
+      .typeError(t('Invalid Canister ID format')),
   })
 
   const formik = useFormik({
@@ -92,8 +94,8 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
         localStorage.setItem('auctionDerivationOrigin', url)
 
         toast({
-          title: 'Internet Identity Derivation Origin',
-          description: 'Saved successfully',
+          title: t('Internet Identity Derivation Origin'),
+          description: t('Saved successfully'),
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -105,7 +107,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
         setStatus({ success: false })
         setSubmitting(false)
 
-        formik.setFieldError('canisterId', 'Canister ID save error')
+        formik.setFieldError('canisterId', t('Canister ID save error'))
       }
     },
   })
@@ -121,7 +123,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
   return (
     <>
       <Tooltip
-        label="Log out to change"
+        label={t('Log out to change')}
         isDisabled={!isAuthenticated}
         aria-label="Log out to change"
       >
@@ -143,7 +145,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
               onChange={(e) => formik.handleChange(e)}
             />
             <FormLabel color="grey.500" fontSize="15px">
-              Canister ID or full URL
+              {t('Canister ID or full URL')}
             </FormLabel>
           </FormControl>
           <InputRightElement h="100%" w="45px" p="0">
@@ -163,7 +165,7 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
                   formik.setFieldValue('canisterId', canisterId)
                 }}
               >
-                Default
+                {t('Default')}
               </Button>
             </Flex>
           </InputRightElement>
@@ -190,10 +192,10 @@ const DerivationOriginSettings: React.FC<{ isMenuOpen: boolean }> = ({
           >
             {formik.isSubmitting ? (
               <>
-                Save <Spinner ml={2} size="sm" color={fontColor} />
+                {t('Save')} <Spinner ml={2} size="sm" color={fontColor} />
               </>
             ) : (
-              'Save'
+              t('Save')
             )}
           </Button>
         </Flex>

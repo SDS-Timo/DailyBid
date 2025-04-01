@@ -290,7 +290,7 @@ const WalletContent: React.FC = () => {
                   borderColor: `${borderColor}`,
                 }}
               ></div>
-              {t(`Pending:`)}
+              {t(`Pending`)}:
               <br />
               {newBtcUtxo.map((utxo, index) => (
                 <span key={index}>
@@ -409,7 +409,7 @@ const WalletContent: React.FC = () => {
               toast.update(toastId, {
                 title: `${t('New {{token}} deposits found:', { token: base })} ${fixDecimal(depositInc, token?.decimals)}`,
                 description: getSimpleToastDescription(
-                  `${t('Credited:')} ${fixDecimal(creditInc, token?.decimals)} | ${t('Total:')} ${fixDecimal(creditTotal, token?.decimals)}`,
+                  `${t('Credited:')} ${fixDecimal(creditInc, token?.decimals)} | ${t('Total')}: ${fixDecimal(creditTotal, token?.decimals)}`,
                   durationInSeconds,
                 ),
                 status: 'success',

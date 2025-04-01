@@ -17,6 +17,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useFormik } from 'formik'
+import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 import * as Yup from 'yup'
 
@@ -52,6 +53,7 @@ import {
 import { getSimpleToastDescription } from '../../../utils/uiUtils'
 
 const Trading = () => {
+  const { t } = useTranslation()
   const toast = useToast({
     duration: 10000,
     position: 'top-right',
@@ -141,14 +143,17 @@ const Trading = () => {
               Number(orderSettings.orderQuoteVolumeMinimumNat) ||
             createError({
               path,
-              message: `Amount must be ≥ ${orderSettings.orderQuoteVolumeMinimum} ${symbol?.quote}`,
+              message: `${t('Amount must be')} ≥ ${orderSettings.orderQuoteVolumeMinimum} ${symbol?.quote}`,
             })
           )
         })
         .when('amountType', {
           is: 'quote',
           then: (schema) =>
-            schema.max(available?.volumeInAvailable || 0, `Not enough funds`),
+            schema.max(
+              available?.volumeInAvailable || 0,
+              t(`Not enough funds`),
+            ),
         }),
 
       baseAmount: Yup.number()
@@ -176,7 +181,7 @@ const Trading = () => {
             value === Number(calculatedBaseVolume) ||
             this.createError({
               path: this.path,
-              message: `Amount must be a multiple of ${fixDecimal(baseStepSize || 0, baseStepSizeDecimal)}`,
+              message: `${t('Amount must be a multiple of')} ${fixDecimal(baseStepSize || 0, baseStepSizeDecimal)}`,
             })
           )
         })
@@ -231,7 +236,7 @@ const Trading = () => {
                   orderDetails.id !== 0n)
 
               if (insufficientFunds) {
-                return createError({ path, message: 'Not enough funds' })
+                return createError({ path, message: t('Not enough funds') })
               }
 
               return true
@@ -288,12 +293,12 @@ const Trading = () => {
 
       const title =
         orderDetails.id === 0n
-          ? 'Create order pending'
-          : 'Replace order pending'
+          ? t('Create order pending')
+          : t('Replace order pending')
 
       const toastId = toast({
         title,
-        description: 'Please wait',
+        description: t('Please wait...'),
         status: 'loading',
         duration: null,
         isClosable: true,
@@ -319,9 +324,9 @@ const Trading = () => {
             ) {
               if (toastId) {
                 toast.update(toastId, {
-                  title: 'Success',
+                  title: t('Success'),
                   description: getSimpleToastDescription(
-                    'Order created',
+                    t('Order created'),
                     durationInSeconds,
                   ),
                   status: 'success',
@@ -331,7 +336,7 @@ const Trading = () => {
             } else {
               if (toastId) {
                 toast.update(toastId, {
-                  title: 'Create order rejected',
+                  title: t('Create order rejected'),
                   description: getSimpleToastDescription(
                     getErrorMessagePlaceOrder(response[0].Err),
                     durationInSeconds,
@@ -350,9 +355,9 @@ const Trading = () => {
 
             if (toastId) {
               toast.update(toastId, {
-                title: 'Create order rejected',
+                title: t('Create order rejected'),
                 description: getSimpleToastDescription(
-                  `Error: ${message}`,
+                  `${t('Error')}: ${message}`,
                   durationInSeconds,
                 ),
                 status: 'error',
@@ -388,9 +393,9 @@ const Trading = () => {
             if (Object.keys(response).includes('Ok')) {
               if (toastId) {
                 toast.update(toastId, {
-                  title: 'Success',
+                  title: t('Success'),
                   description: getSimpleToastDescription(
-                    'Order replaced',
+                    t('Order replaced'),
                     durationInSeconds,
                   ),
                   status: 'success',
@@ -400,7 +405,7 @@ const Trading = () => {
             } else {
               if (toastId) {
                 toast.update(toastId, {
-                  title: 'Replace order rejected',
+                  title: t('Replace order rejected'),
                   description: getSimpleToastDescription(
                     getErrorMessagePlaceOrder(response.Err),
                     durationInSeconds,
@@ -419,9 +424,9 @@ const Trading = () => {
 
             if (toastId) {
               toast.update(toastId, {
-                title: 'Replace order rejected',
+                title: t('Replace order rejected'),
                 description: getSimpleToastDescription(
-                  `Error: ${message}`,
+                  `${t('Error')}: ${message}`,
                   durationInSeconds,
                 ),
                 status: 'error',
@@ -879,7 +884,7 @@ const Trading = () => {
             }}
           />
           <FormLabel color="grey.500" fontSize="15px">
-            Price
+            {t('Price')}
           </FormLabel>
           {!!formik.errors.price && formik.touched.price && (
             <Text color="red.500" fontSize="12px">
@@ -941,7 +946,7 @@ const Trading = () => {
               }}
             />
             <FormLabel color="grey.500" fontSize="15px">
-              Amount
+              {t('Amount')}
             </FormLabel>
           </FormControl>
           <InputRightElement
@@ -1025,7 +1030,7 @@ const Trading = () => {
               }}
             />
             <FormLabel color="grey.500" fontSize="15px">
-              Amount
+              {t('Amount')}
             </FormLabel>
           </FormControl>
           <InputRightElement
@@ -1066,7 +1071,7 @@ const Trading = () => {
         </InputGroup>
         {baseStepSize && (
           <Text color={fontColor} fontSize="11px">
-            Step Size: {fixDecimal(baseStepSize, baseStepSizeDecimal)}
+            {t('Step Size')}: {fixDecimal(baseStepSize, baseStepSizeDecimal)}
           </Text>
         )}
         {!!formik.errors.baseAmount && formik.touched.baseAmount && (
@@ -1116,7 +1121,7 @@ const Trading = () => {
             pointerEvents={loading ? 'none' : 'auto'}
           >
             <Text textAlign="center" fontSize="14px">
-              Available:
+              {t('Available')}:
             </Text>
             <Text textAlign="center" fontSize="12px">
               {available?.volumeInAvailable &&
@@ -1157,7 +1162,7 @@ const Trading = () => {
               isDisabled={!selectedSymbol || formik.isSubmitting}
               onClick={handleClearForm}
             >
-              Reset
+              {t('Reset')}
             </Button>
             <Button
               background={tradeType === 'buy' ? 'green.500' : 'red.500'}
@@ -1174,13 +1179,13 @@ const Trading = () => {
             >
               {formik.isSubmitting ? (
                 <>
-                  {orderDetails.id !== 0n ? 'Replacing' : 'Creating'}{' '}
+                  {orderDetails.id !== 0n ? t('Replacing') : t('Creating')}{' '}
                   <Spinner ml={2} size="sm" color="grey.25" />
                 </>
               ) : orderDetails.id !== 0n ? (
-                'Replace'
+                t('Replace')
               ) : (
-                'Create'
+                t('Create')
               )}
             </Button>
           </Flex>
