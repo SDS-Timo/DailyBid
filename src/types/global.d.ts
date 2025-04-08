@@ -11,6 +11,7 @@ declare global {
         [key: string]: any
       }
     }
+    smartlook?: any
   }
 }
 
