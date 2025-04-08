@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 
 import {
   Box,
+  HStack,
+  Text,
   Flex,
   useDisclosure,
   useColorMode,
@@ -224,14 +226,16 @@ const NavbarComponent: React.FC = () => {
       borderColor="grey.800"
       flexDirection={{ base: 'column', md: 'row' }}
     >
-      <Box>
+      <HStack gap="2" align="center">
         <Image
           src={colorMode === 'dark' ? LogoLight : LogoDark}
           height="37px"
-          mb="3px"
           alt="Logo"
         />
-      </Box>
+        <Text ml={3} fontSize="xs" fontWeight="medium">
+          Alpha Test
+        </Text>
+      </HStack>
       <Flex flexDirection="row" alignItems="center" ml="auto">
         {isAuthenticated && <NavbarUser />}
         {/* <NavbarLanguages /> */}
