@@ -26,13 +26,16 @@ import { setIsRefreshUserData } from '../../../store/orders'
 import { setIsRefreshPrices } from '../../../store/prices'
 import { NextSession } from '../../../types'
 import { checkUserAgentDelegation } from '../../../utils/authUtils'
-
+import { analytics } from '../../../utils/mixpanelUtils'
 const HeaderInformation = () => {
   const bgColor = useColorModeValue('grey.100', 'grey.900')
   const dispatch = useDispatch<AppDispatch>()
   const { t } = useTranslation()
   const headerInformation = useSelector(
     (state: RootState) => state.prices.headerInformation,
+  )
+  const userPrincipal = useSelector(
+    (state: RootState) => state.auth.userPrincipal,
   )
   const { userAgent } = useSelector((state: RootState) => state.auth)
   const selectedSymbol = useSelector(
@@ -180,6 +183,8 @@ const HeaderInformation = () => {
 
         if (!checkUserAgentDelegation(userAgent)) {
           dispatch(logout())
+          // Mixpanel event tracking [User Logged Out]
+          analytics.userLoggedOut(userPrincipal)
           localStorage.removeItem('identity')
           localStorage.removeItem('delegationIdentity')
           localStorage.removeItem('mnemonicPhrase')

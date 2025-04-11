@@ -46,6 +46,7 @@ import {
   getDecimals,
   fixDecimal,
 } from '../../../utils/calculationsUtils'
+import { analytics } from '../../../utils/mixpanelUtils'
 import { getToken } from '../../../utils/tokenUtils'
 import {
   getSimpleToastDescription,
@@ -416,6 +417,15 @@ const WalletContent: React.FC = () => {
                 isClosable: true,
               })
             }
+
+            // Mixpanel event tracking [Deposit Completed]
+            analytics.depositCompleted({
+              principal: userPrincipal,
+              amount: `${fixDecimal(depositInc, token?.decimals)}`,
+              currency: base,
+              transaction_id: response.Ok?.txid,
+              usd_value: '',
+            })
           } else {
             if (toastId) {
               toast.update(toastId, {
@@ -514,6 +524,14 @@ const WalletContent: React.FC = () => {
                   isClosable: true,
                 })
               }
+
+              // Mixpanel event tracking [Withdrawal Completed]
+              analytics.withdrawalCompleted({
+                principal: userPrincipal,
+                amount: `${fixDecimal(volumeInBase, token.decimals)}`,
+                currency: token.base,
+                transaction_id: response.Ok?.txid,
+              })
             } else if (response && Object.keys(response).includes('Err')) {
               withdrawStatus(token.base, 'error')
               if (toastId) {
@@ -625,6 +643,14 @@ const WalletContent: React.FC = () => {
                   isClosable: true,
                 })
               }
+
+              // Mixpanel event tracking [Withdrawal Completed]
+              analytics.withdrawalCompleted({
+                principal: userPrincipal,
+                amount: `${fixDecimal(Number(volume), token.decimals)}`,
+                currency: token.base,
+                transaction_id: response.Ok?.block_index,
+              })
             } else if (response && Object.keys(response).includes('Err')) {
               withdrawStatus(token.base, 'error')
               if (toastId) {
@@ -704,6 +730,14 @@ const WalletContent: React.FC = () => {
                   isClosable: true,
                 })
               }
+
+              // Mixpanel event tracking [Withdrawal Completed]
+              analytics.withdrawalCompleted({
+                principal: userPrincipal,
+                amount: `${fixDecimal(volumeInBase, token.decimals)}`,
+                currency: token.base,
+                transaction_id: response.Ok?.txid,
+              })
             } else if (response && Object.keys(response).includes('Err')) {
               withdrawStatus(token.base, 'error')
               if (toastId) {

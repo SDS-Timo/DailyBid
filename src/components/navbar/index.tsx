@@ -159,7 +159,7 @@ const NavbarComponent: React.FC = () => {
             const agent = getAgent(delegationIdentity)
             console.log('agent', agent)
 
-            doLogin(agent, dispatch)
+            doLogin(agent, dispatch, 'IC')
           }
         }
       } catch (error) {
@@ -201,7 +201,7 @@ const NavbarComponent: React.FC = () => {
           processDelegation(delegationCode, aesKey, obj)
         } else if (restoredDelegationII) {
           const agent = getAgent(restoredDelegationII)
-          doLogin(agent, dispatch)
+          doLogin(agent, dispatch, 'IC')
         } else {
           const localStorageSaved = localStorage.getItem('mnemonicPhrase')
           if (localStorageSaved) {

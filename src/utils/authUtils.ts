@@ -31,6 +31,9 @@ import {
   setUserIcpLegacyAccount,
   setUserDepositCycles,
 } from '../store/auth'
+import { getDeviceType } from '../utils/deviceUtils'
+import { getLocation } from '../utils/locationUtils'
+import { analytics } from '../utils/mixpanelUtils'
 
 /**
  * Creates and returns an HTTP agent with the specified identity.
@@ -107,14 +110,17 @@ export function generatePublicKey() {
  * @param dispatch - The dispatch function to trigger actions in the Redux store.
  */
 
-export async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
+export async function doLogin(
+  myAgent: HttpAgent,
+  dispatch: AppDispatch,
+  loginMethod: string,
+) {
   const canisterId = getAuctionCanisterId()
 
   const principal = await myAgent.getPrincipal()
+  const principalText = principal.toText()
 
-  const hexSubAccountId = getSubAccountFromPrincipal(
-    principal.toText(),
-  ).subAccountId
+  const hexSubAccountId = getSubAccountFromPrincipal(principalText).subAccountId
 
   const userIcpLegacyAccount = getAccountIdentifier(
     `${canisterId}`,
@@ -123,17 +129,31 @@ export async function doLogin(myAgent: HttpAgent, dispatch: AppDispatch) {
 
   const depositCyclescommandText = depositCyclesCommandString(
     canisterId,
-    principal.toText(),
+    principalText,
     hexSubAccountId,
   )
 
+  // Mixpanel event tracking [User Identify]
+  analytics.userIdentify(principalText)
+
+  // Mixpanel event tracking [User Logged In]
+  analytics.userLoggedIn({
+    principal: principalText,
+    login_method: loginMethod,
+  })
+
+  // Mixpanel event tracking [Demographics Captured]
+  analytics.demographicsCaptured({
+    principal: principalText,
+    location: await getLocation(),
+    device_type: getDeviceType(),
+  })
+
   dispatch(setUserAgent(myAgent))
   dispatch(setIsAuthenticated(true))
-  dispatch(setUserPrincipal(principal.toText()))
-  dispatch(setUserDeposit(getUserDepositAddress(principal.toText())))
-  dispatch(
-    setUserBtcDepositAddress(generateBtcDepositAddress(principal.toText())),
-  )
+  dispatch(setUserPrincipal(principalText))
+  dispatch(setUserDeposit(getUserDepositAddress(principalText)))
+  dispatch(setUserBtcDepositAddress(generateBtcDepositAddress(principalText)))
   dispatch(setUserIcpLegacyAccount(userIcpLegacyAccount))
   dispatch(setUserDepositCycles(depositCyclescommandText))
 }
@@ -157,7 +177,7 @@ export async function seedAuthenticate(seed: string, dispatch: AppDispatch) {
 
     if (newIdentity) {
       const myAgent = getAgent(newIdentity)
-      await doLogin(myAgent, dispatch)
+      await doLogin(myAgent, dispatch, 'Seed')
     }
   } catch (error) {
     console.error('Error during seed authentication:', error)
@@ -208,7 +228,7 @@ export async function identityAuthenticate(
       onSuccess: async () => {
         const identity = authClient.getIdentity()
         const myAgent = getAgent(identity)
-        await doLogin(myAgent, dispatch)
+        await doLogin(myAgent, dispatch, AuthNetworkTypes)
       },
       onError: (error) => {
         AuthNetworkTypes === 'IC'
@@ -299,7 +319,7 @@ export const mnemonicAuthenticate = async (
 
     const myAgent = getAgent(newIdentity)
 
-    await doLogin(myAgent, dispatch)
+    await doLogin(myAgent, dispatch, 'Mnemonic')
   } catch (error) {
     console.error('Authentication failed:', error)
   }

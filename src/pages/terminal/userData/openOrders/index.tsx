@@ -24,6 +24,11 @@ import {
   setIsRefreshUserData,
 } from '../../../../store/orders'
 import { TokenDataItem, Result } from '../../../../types'
+import {
+  convertPriceFromCanister,
+  convertVolumeFromCanister,
+} from '../../../../utils/calculationsUtils'
+import { analytics } from '../../../../utils/mixpanelUtils'
 import { getErrorMessageCancelOrder } from '../../../../utils/orderUtils'
 import { getSimpleToastDescription } from '../../../../utils/uiUtils'
 
@@ -46,6 +51,9 @@ const OpenOrders: React.FC = () => {
   const [showAllMarkets, setShowAllMarkets] = useState(false)
   const [toggleVolume, setToggleVolume] = useState('base')
   const { userAgent } = useSelector((state: RootState) => state.auth)
+  const userPrincipal = useSelector(
+    (state: RootState) => state.auth.userPrincipal,
+  )
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
   )
@@ -207,6 +215,38 @@ const OpenOrders: React.FC = () => {
                 ),
                 status: 'success',
                 isClosable: true,
+              })
+            }
+
+            const formattedPrice = convertPriceFromCanister(
+              Number(response[0].Ok[3]),
+              Number(symbol?.decimals),
+              selectedQuote.decimals,
+            )
+
+            const { volumeInBase } = convertVolumeFromCanister(
+              Number(response[0].Ok[2]),
+              Number(symbol?.decimals),
+              formattedPrice,
+            )
+
+            // Mixpanel event tracking [Bid/Ask Canceled]
+            const eventData = {
+              principal: userPrincipal,
+              auction_id: `${id}`,
+              price: `${formattedPrice}`,
+              asset: symbol?.base ?? 'UNKNOWN',
+            }
+
+            if (type === 'buy') {
+              analytics.bidCanceled({
+                ...eventData,
+                bid_amount: `${volumeInBase}`,
+              })
+            } else {
+              analytics.askCanceled({
+                ...eventData,
+                ask_amount: `${volumeInBase}`,
               })
             }
           } else {

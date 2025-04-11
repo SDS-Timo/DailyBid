@@ -23,6 +23,7 @@ import WalletComponent from './wallet'
 import useWindow from '../../hooks/useWindow'
 import { RootState } from '../../store'
 import { logout } from '../../store/auth'
+import { analytics } from '../../utils/mixpanelUtils'
 
 interface AccountComponentProps {
   isOpen: boolean
@@ -43,9 +44,13 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated,
   )
-
+  const userPrincipal = useSelector(
+    (state: RootState) => state.auth.userPrincipal,
+  )
   const handleLogout = () => {
     dispatch(logout())
+    // Mixpanel event tracking [User Logged Out]
+    analytics.userLoggedOut(userPrincipal)
     localStorage.removeItem('identity')
     localStorage.removeItem('delegationIdentity')
     localStorage.removeItem('mnemonicPhrase')
