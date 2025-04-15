@@ -49,7 +49,7 @@ const usePriceHistory = () => {
       )
 
       const formattedData: DataItem[] = (prices ?? [])
-        .reverse()
+        //.reverse()
         .filter(
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           ([_ts, _sessionNumber, _ledger, _volume, price]) =>

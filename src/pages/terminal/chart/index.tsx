@@ -12,7 +12,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import EChart from './echart'
 //import Chart from './chart'
-import usePriceHistory from '../../../hooks/usePriceHistory'
+import useAuctionQuery from '../../../hooks/useAuctionQuery'
 import { RootState, AppDispatch } from '../../../store'
 import { setHeaderInformation, setPricesHistory } from '../../../store/prices'
 import { DataItem } from '../../../types'
@@ -52,13 +52,13 @@ const ChartPlot = () => {
       setLoading(true)
       dispatch(setHeaderInformation(null))
 
-      const { getPriceHistory } = usePriceHistory()
-      const prices = await getPriceHistory(
-        userAgent,
-        symbol,
-        selectedQuote,
-        orderSettings.orderPriceDigitsLimit,
-      )
+      const { getQuerys } = useAuctionQuery()
+      const { pricesHistory: prices = [] } = await getQuerys(userAgent, {
+        selectedSymbol: symbol,
+        selectedQuote: selectedQuote,
+        priceDigitsLimit: orderSettings.orderPriceDigitsLimit,
+        queryTypes: ['price_history'],
+      })
 
       const headerInformation = calculateHeaderInformation(prices)
       dispatch(setHeaderInformation(headerInformation))

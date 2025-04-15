@@ -29,7 +29,7 @@ const PriceHistory: React.FC = () => {
 
   const pricesFiltered = useMemo(() => {
     if (pricesHistory.length > 0) {
-      return [...pricesHistory].reverse().slice(0, 17)
+      return [...pricesHistory].slice(0, 17)
     }
     return []
   }, [pricesHistory])
