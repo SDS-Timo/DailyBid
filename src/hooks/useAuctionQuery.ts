@@ -402,18 +402,15 @@ const useAuctionQuery = () => {
       }
 
       if (queryTypes.includes('transaction_history')) {
-        queryParams.transaction_history = [BigInt(10000), BigInt(0)]
+        queryParams.transaction_history = [[BigInt(10000), BigInt(0)]]
       }
 
       if (queryTypes.includes('deposit_history')) {
-        queryParams.deposit_history = [BigInt(10000), BigInt(0)]
+        queryParams.deposit_history = [[BigInt(10000), BigInt(0)]]
       }
 
-      if (queryTypes.includes('bids')) {
+      if (queryTypes.includes('open_orders')) {
         queryParams.bids = [true]
-      }
-
-      if (queryTypes.includes('asks')) {
         queryParams.asks = [true]
       }
 
@@ -438,6 +435,7 @@ const useAuctionQuery = () => {
 
       // Process the results based on requested query types
       const response: any = {}
+      response.points = result.points
 
       // Process price history if requested
       if (
@@ -456,16 +454,13 @@ const useAuctionQuery = () => {
 
       // Process order data (bids and asks) if requested
       if (
-        (queryTypes.includes('bids') || queryTypes.includes('asks')) &&
+        queryTypes.includes('open_orders') &&
         selectedQuote &&
         tokens.length > 0
       ) {
-        const bidsRaw = queryTypes.includes('bids') ? result.bids || [] : []
-        const asksRaw = queryTypes.includes('asks') ? result.asks || [] : []
-
         const openOrders = processOrders(
-          bidsRaw,
-          asksRaw,
+          result.bids || [],
+          result.asks || [],
           tokens,
           selectedQuote,
           priceDigitsLimit,

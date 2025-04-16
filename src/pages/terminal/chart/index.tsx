@@ -61,6 +61,7 @@ const ChartPlot = () => {
       })
 
       const headerInformation = calculateHeaderInformation(prices)
+
       dispatch(setHeaderInformation(headerInformation))
 
       dispatch(setPricesHistory(prices))

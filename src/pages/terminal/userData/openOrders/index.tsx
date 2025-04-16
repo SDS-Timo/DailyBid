@@ -14,6 +14,7 @@ import LoginButtonComponent from '../../../../components/loginButton'
 import PaginationTable, {
   pgSizeDinamic,
 } from '../../../../components/paginationTable'
+import useAuctionQuery from '../../../../hooks/useAuctionQuery'
 import useOpenOrders from '../../../../hooks/useOrders'
 import useBalances from '../../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../../store'
@@ -23,6 +24,7 @@ import {
   setOrderDetails,
   setIsRefreshUserData,
 } from '../../../../store/orders'
+import { setTrades } from '../../../../store/trades'
 import { TokenDataItem, Result } from '../../../../types'
 import {
   convertPriceFromCanister,
@@ -84,15 +86,18 @@ const OpenOrders: React.FC = () => {
   const fetchOpenOrders = async () => {
     if (selectedQuote) {
       setLoading(true)
-      const { getOpenOrders } = useOpenOrders()
-      const openOrdersRaw = await getOpenOrders(
-        userAgent,
-        tokens,
-        selectedQuote,
-        orderSettings.orderPriceDigitsLimit,
-      )
+
+      const { getQuerys } = useAuctionQuery()
+      const { orders: openOrdersRaw = [], trades: tradesRaw = [] } =
+        await getQuerys(userAgent, {
+          tokens: tokens,
+          selectedQuote: selectedQuote,
+          priceDigitsLimit: orderSettings.orderPriceDigitsLimit,
+          queryTypes: ['open_orders', 'transaction_history'],
+        })
 
       dispatch(setOpenOrders(openOrdersRaw))
+      dispatch(setTrades(tradesRaw))
       filterOpenOrders(openOrdersRaw)
       setLoading(false)
     }
@@ -101,6 +106,7 @@ const OpenOrders: React.FC = () => {
   const fetchBalances = useCallback(async () => {
     const { getBalancesCredits } = useBalances()
     const balancesCredits = await getBalancesCredits(userAgent, tokens)
+
     dispatch(setBalances(balancesCredits))
   }, [userAgent, tokens, dispatch])
 

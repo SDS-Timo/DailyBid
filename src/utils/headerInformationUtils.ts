@@ -25,11 +25,11 @@ export function calculateHeaderInformation(prices: DataItem[]) {
     headerInformation: HeaderInformation,
   ) {
     if (prices.length) {
-      const priceDigitsLimit = prices[prices.length - 1].priceDigitsLimit || 5
-      const lastPrice = prices[prices.length - 1].price
+      const priceDigitsLimit = prices[0].priceDigitsLimit || 5
+      const lastPrice = prices[0].price
 
       let previousPrice = lastPrice
-      if (prices.length >= 2) previousPrice = prices[prices.length - 2].price
+      if (prices.length >= 2) previousPrice = prices[1].price
 
       const changeInDollar = lastPrice - previousPrice
 
@@ -52,7 +52,7 @@ export function calculateHeaderInformation(prices: DataItem[]) {
   function calculateVolume(prices: DataItem[]) {
     if (prices.length) {
       const startDate = new Date()
-      startDate.setDate(startDate.getDate() - 6)
+      startDate.setDate(startDate.getDate() - 7)
 
       const filtered = prices.filter((item) => {
         const itemDate = new Date(item.datetime)
