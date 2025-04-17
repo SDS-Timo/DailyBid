@@ -15,12 +15,27 @@ import { checkUserAgentDelegation } from '../utils/authUtils'
 import { calculateHeaderInformation } from '../utils/headerInformationUtils'
 import { analytics } from '../utils/mixpanelUtils'
 
+/**
+ * NextClearingComponent
+ *
+ * Manages the timing and data updates related to auction sessions.
+ * This component doesn't render any UI elements but handles:
+ * - Tracking when the next auction session occurs
+ * - Fetching updated data before new sessions
+ * - Updating the Redux store with latest information
+ * - Session validation
+ */
 const NextClearingComponent: React.FC = () => {
+  // State for tracking the next auction session
   const [nextSession, setNextSession] = useState<string | undefined | null>(
     null,
   )
   const [nextSessionTime, setNextSessionTime] = useState<Date | null>(null)
+
+  // Redux hooks
   const dispatch = useDispatch<AppDispatch>()
+
+  // Redux selectors
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
   const { userAgent } = useSelector((state: RootState) => state.auth)
   const orderSettings = useSelector(
@@ -35,12 +50,21 @@ const NextClearingComponent: React.FC = () => {
   const selectedQuote = useSelector(
     (state: RootState) => state.tokens.selectedQuote,
   )
+
+  // Handle array or single value for selectedSymbol
   const symbol = Array.isArray(selectedSymbol)
     ? selectedSymbol[0]
     : selectedSymbol
 
+  // Custom hooks for API interactions
+  const { getNextSession } = usePriceHistory()
+  const { getQuerys } = useAuctionQuery()
+
+  /**
+   * Fetches the next session information from the API
+   * Sets the next session time and identifier
+   */
   const fetchNextSession = useCallback(async () => {
-    const { getNextSession } = usePriceHistory()
     const info = await getNextSession(userAgent)
 
     if (info?.datetime) {
@@ -52,14 +76,27 @@ const NextClearingComponent: React.FC = () => {
 
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | null = null
-    let timeoutId: ReturnType<typeof setInterval> | null = null
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    let isActive = true // Flag to control concurrent executions
 
+    /**
+     * Starts polling for next session data every second
+     * Ensures any existing polling is stopped before starting new one
+     */
     const startPolling = () => {
+      // Clear any existing interval first
+      stopPolling()
+
       intervalId = setInterval(() => {
-        fetchNextSession()
+        if (isActive) {
+          fetchNextSession()
+        }
       }, 1000)
     }
 
+    /**
+     * Stops the polling interval if active
+     */
     const stopPolling = () => {
       if (intervalId) {
         clearInterval(intervalId)
@@ -67,8 +104,20 @@ const NextClearingComponent: React.FC = () => {
       }
     }
 
+    /**
+     * Handles the timing logic for the next session
+     * - If session time is approaching, fetches updated data
+     * - Manages polling based on time remaining
+     */
     const handleSessionTime = async () => {
-      if (!nextSessionTime) return
+      if (!nextSessionTime || !isActive) return
+
+      // Ensure existing timers are cleared
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+        timeoutId = null
+      }
+      stopPolling()
 
       const now = new Date()
       const timeDifference = nextSessionTime.getTime() - now.getTime()
@@ -76,6 +125,7 @@ const NextClearingComponent: React.FC = () => {
       if (timeDifference > 1000) {
         const timeToWait = timeDifference - 1000
 
+        // Validate user session
         if (!checkUserAgentDelegation(userAgent)) {
           dispatch(logout())
           // Mixpanel event tracking [User Logged Out]
@@ -85,7 +135,7 @@ const NextClearingComponent: React.FC = () => {
           localStorage.removeItem('mnemonicPhrase')
         }
 
-        const { getQuerys } = useAuctionQuery()
+        // Fetch updated data before the next session
         const [priceHistoryResult, userDataResult] = await Promise.all([
           getQuerys(userAgent, {
             selectedSymbol: symbol ?? undefined,
@@ -101,8 +151,11 @@ const NextClearingComponent: React.FC = () => {
           }),
         ])
 
-        const { pricesHistory: prices = [] } = priceHistoryResult
+        // Only continue if the component is still mounted
+        if (!isActive) return
 
+        // Extract data from API responses
+        const { pricesHistory: prices = [] } = priceHistoryResult
         const {
           orders: openOrdersRaw = [],
           trades: tradesRaw = [],
@@ -110,6 +163,7 @@ const NextClearingComponent: React.FC = () => {
           points,
         } = userDataResult
 
+        // Update Redux store with fetched data
         const headerInformation = calculateHeaderInformation(
           prices,
           nextSession || '--',
@@ -121,28 +175,43 @@ const NextClearingComponent: React.FC = () => {
         dispatch(setOpenOrders(openOrdersRaw))
         dispatch(setTrades(tradesRaw))
 
-        timeoutId = setTimeout(() => {
-          startPolling()
-        }, timeToWait)
+        // Wait until close to session time to start polling
+        // Only create new timeout if component is still active
+        if (isActive) {
+          timeoutId = setTimeout(() => {
+            if (isActive) {
+              startPolling()
+            }
+          }, timeToWait)
+        }
       } else {
-        startPolling()
+        // If close to or past session time, start polling immediately
+        if (isActive) {
+          startPolling()
+        }
       }
     }
 
-    if (nextSessionTime) {
+    // Initialize based on whether we have a session time already
+    if (nextSessionTime && isActive) {
       handleSessionTime()
-    } else {
+    } else if (isActive) {
       fetchNextSession()
     }
 
+    // Cleanup function to prevent memory leaks and ensure no timers remain active after unmount
     return () => {
+      isActive = false // Prevents asynchronous operations after unmount
       if (timeoutId) {
         clearTimeout(timeoutId)
+        timeoutId = null
       }
       stopPolling()
     }
   }, [nextSessionTime, fetchNextSession, dispatch])
 
+  // This component doesn't render anything visible
   return null
 }
+
 export default NextClearingComponent
