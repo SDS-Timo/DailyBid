@@ -1,14 +1,106 @@
 import { HttpAgent } from '@dfinity/agent'
 import { Principal } from '@dfinity/principal'
 
-import { TokenMetadata, Option, Order, SettingsState } from '../types'
-import { convertVolumeFromCanister } from '../utils/calculationsUtils'
-import { getActor } from '../utils/canisterUtils'
+import {
+  TokenDataItem,
+  TokenMetadata,
+  Option,
+  Order,
+  SettingsState,
+} from '../../types'
+import {
+  convertPriceFromCanister,
+  convertVolumeFromCanister,
+  addDecimal,
+} from '../../utils/calculationsUtils'
+import { getActor } from '../../utils/canisterUtils'
+import { getToken } from '../../utils/tokenUtils'
 
 /**
  * Custom hook for managing orders.
  */
 const useOrders = () => {
+  /**
+   * Fetches and returns the open orders.
+   *
+   * @param userAgent - An instance of HttpAgent used for making authenticated requests.
+   * @param tokens - An array of token objects.
+   * @param selectedQuote - The selected token metadata for the quote currency.
+   * @param priceDigitsLimit - The limit number of digits places defined by the canister
+   * @returns A promise that resolves to an array of open TokenDataItem orders.
+   */
+  const getOpenOrders = async (
+    userAgent: HttpAgent,
+    tokens: TokenMetadata[],
+    selectedQuote: TokenMetadata,
+    priceDigitsLimit: number,
+  ): Promise<TokenDataItem[]> => {
+    try {
+      if (!tokens || tokens.length === 0) return []
+
+      const serviceActor = getActor(userAgent)
+
+      const [bidsRaw, asksRaw] = await Promise.all([
+        serviceActor.queryBids(),
+        serviceActor.queryAsks(),
+      ])
+
+      const openOrdersRaw = [
+        ...bidsRaw.map(([id, bid, sessionNumber]) => ({
+          ...bid,
+          id,
+          sessionNumber,
+          type: 'buy',
+        })),
+        ...asksRaw.map(([id, ask, sessionNumber]) => ({
+          ...ask,
+          id,
+          sessionNumber,
+          type: 'sell',
+        })),
+      ]
+
+      const openOrders: TokenDataItem[] = (openOrdersRaw ?? []).map((order) => {
+        const { id, icrc1Ledger, price, volume, type } = order
+
+        const token = getToken(tokens, icrc1Ledger)
+
+        const formattedPrice = convertPriceFromCanister(
+          Number(price),
+          token.decimals,
+          selectedQuote.decimals,
+        )
+
+        const { volumeInQuote, volumeInBase } = convertVolumeFromCanister(
+          Number(volume),
+          token.decimals,
+          formattedPrice,
+        )
+
+        return {
+          id,
+          datetime: '',
+          price: formattedPrice,
+          type,
+          volume: volumeInQuote,
+          volumeInQuote,
+          volumeInBase,
+          quoteDecimals: selectedQuote.decimals,
+          baseDecimals: token.decimals,
+          priceDigitsLimit,
+          ...token,
+        }
+      })
+
+      const data = addDecimal(openOrders, 2)
+
+      return data
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+      return []
+    }
+  }
+
   /**
    * Fetches and returns the order settings.
    *
@@ -209,6 +301,7 @@ const useOrders = () => {
   }
 
   return {
+    getOpenOrders,
     getOrderSettings,
     placeOrder,
     replaceOrder,

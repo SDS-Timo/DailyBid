@@ -1,14 +1,14 @@
 import { HttpAgent } from '@dfinity/agent'
 
-import { TokenDataItem, TokenMetadata } from '../types'
+import { TokenDataItem, TokenMetadata } from '../../types'
 import {
   convertPriceFromCanister,
   convertVolumeFromCanister,
   getDecimals,
   addDecimal,
-} from '../utils/calculationsUtils'
-import { getActor } from '../utils/canisterUtils'
-import { getToken } from '../utils/tokenUtils'
+} from '../../utils/calculationsUtils'
+import { getActor } from '../../utils/canisterUtils'
+import { getToken } from '../../utils/tokenUtils'
 
 /**
  * Custom hook for fetching and managing transaction history.

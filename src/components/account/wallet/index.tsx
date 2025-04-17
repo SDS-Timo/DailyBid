@@ -30,8 +30,10 @@ import Cycles from '../../../assets/img/coins/cycles.svg'
 import IcpMonoIcon from '../../../assets/img/coins/icp_mono.svg'
 import WalletIconDark from '../../../assets/img/common/wallet-black.svg'
 import WalletIconLight from '../../../assets/img/common/wallet-white.svg'
+import useAuctionQuery from '../../../hooks/useAuctionQuery'
 import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
+import { setActions } from '../../../store/actions'
 import { setUserPoints } from '../../../store/auth'
 import { setBalances, setIsWithdrawStarted } from '../../../store/balances'
 import {
@@ -149,14 +151,18 @@ const WalletContent: React.FC = () => {
 
   const fetchBalances = useCallback(async () => {
     setLoading(true)
-    const { getBalancesCredits, getUserPoints } = useWallet()
-
-    const [balancesCredits, points] = await Promise.all([
-      getBalancesCredits(userAgent, tokens),
-      getUserPoints(userAgent),
-    ])
+    const { getQuerys } = useAuctionQuery()
+    const {
+      credits: balancesCredits = [],
+      depositHistory: depositHistory = [],
+      points,
+    } = await getQuerys(userAgent, {
+      tokens: tokens,
+      queryTypes: ['credits', 'deposit_history'],
+    })
 
     dispatch(setBalances(balancesCredits))
+    dispatch(setActions(depositHistory))
     dispatch(setUserPoints(Number(points)))
 
     setLoading(false)
@@ -1097,13 +1103,13 @@ const WalletContent: React.FC = () => {
             />
           </TabPanel>
           <TabPanel>
-            <ActionTab userAgent={userAgent} tokens={tokens} />
+            <ActionTab tokens={tokens} />
           </TabPanel>
           <TabPanel>
             <LedgerTab tokens={tokens} />
           </TabPanel>
           <TabPanel>
-            <ActionTab userAgent={userAgent} tokens={tokens} />
+            <ActionTab tokens={tokens} />
           </TabPanel>
         </TabPanels>
       </Tabs>

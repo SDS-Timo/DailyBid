@@ -1,9 +1,9 @@
 import { HttpAgent } from '@dfinity/agent'
 
-import { TokenMetadata, TokenDataItem } from '../types'
-import { convertVolumeFromCanister } from '../utils/calculationsUtils'
-import { getActor } from '../utils/canisterUtils'
-import { getToken } from '../utils/tokenUtils'
+import { TokenMetadata, TokenDataItem } from '../../types'
+import { convertVolumeFromCanister } from '../../utils/calculationsUtils'
+import { getActor } from '../../utils/canisterUtils'
+import { getToken } from '../../utils/tokenUtils'
 
 /**
  * Custom hook for fetching and managing deposit/withdraw history.

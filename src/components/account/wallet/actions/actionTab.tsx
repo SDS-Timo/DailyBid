@@ -12,28 +12,22 @@ import {
   FormControl,
   FormLabel,
 } from '@chakra-ui/react'
-import { HttpAgent } from '@dfinity/agent'
 import { Select } from 'bymax-react-select'
 import { FiSearch } from 'react-icons/fi'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import ActionRow from './actionRow'
 import customStyles from '../../../../common/styles'
-import useDepositHistory from '../../../../hooks/useDepositHistory'
-import { RootState, AppDispatch } from '../../../../store'
-import { setActions } from '../../../../store/actions'
+import { RootState } from '../../../../store'
 import { TokenDataItem, TokenMetadata, Option } from '../../../../types'
 
 interface ActionTabProps {
-  userAgent: HttpAgent
   tokens: TokenMetadata[]
 }
 
-const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
+const ActionTab: React.FC<ActionTabProps> = ({ tokens }) => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
-  const dispatch = useDispatch<AppDispatch>()
 
-  const [loading, setLoading] = useState(true)
   const [filteredActions, setFilteredActions] = useState<TokenDataItem[]>([])
   const [symbol, setSymbol] = useState<Option | Option[] | null>(null)
   const [startDate, setStartDate] = useState('')
@@ -41,23 +35,12 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
   const [showFilters, setShowFilters] = useState(false)
 
   const actions = useSelector((state: RootState) => state.actions.actions)
+  const loading = actions.length === 0
 
   const token =
     Array.isArray(symbol) && symbol.length > 0
       ? symbol[0]
       : (symbol as Option | null)
-
-  const fetchDepositHistory = useCallback(async () => {
-    setLoading(true)
-    const { getDepositHistory } = useDepositHistory()
-    const data = await getDepositHistory(userAgent, tokens)
-    dispatch(setActions(data))
-    setLoading(false)
-  }, [userAgent, tokens])
-
-  useEffect(() => {
-    fetchDepositHistory()
-  }, [fetchDepositHistory])
 
   const handleChange = useCallback((option: Option | Option[] | null) => {
     setSymbol(option)
@@ -102,11 +85,11 @@ const ActionTab: React.FC<ActionTabProps> = ({ userAgent, tokens }) => {
     })
 
     setFilteredActions(filteredActions)
-  }, [token?.label, startDate, endDate, actions])
+  }, [token?.label, startDate, endDate, actions, isWithinDateRange])
 
   return (
     <>
-      {loading && actions?.length <= 0 ? (
+      {loading ? (
         <Flex justify="center" align="center" h="100px">
           <Progress size="xs" isIndeterminate w="90%" />
         </Flex>

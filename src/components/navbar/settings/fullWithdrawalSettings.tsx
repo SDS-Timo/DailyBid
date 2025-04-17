@@ -18,11 +18,13 @@ import { useTranslation } from 'react-i18next'
 import { useSelector, useDispatch } from 'react-redux'
 import * as Yup from 'yup'
 
+import useAuctionQuery from '../../../hooks/useAuctionQuery'
 import useOrders from '../../../hooks/useOrders'
 import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
 import { setIsRefreshBalances } from '../../../store/balances'
 import { setIsRefreshUserData } from '../../../store/orders'
+import { TokenDataItem } from '../../../types'
 import { decodeIcrcAccountText } from '../../../utils/convertionsUtils'
 import { getErrorMessageManageOrders } from '../../../utils/orderUtils'
 import { getSimpleToastDescription } from '../../../utils/uiUtils'
@@ -53,14 +55,20 @@ const fullWithdrawSettings: React.FC = () => {
 
   const fetchWithdrawals = useCallback(
     async (account: string) => {
-      const { getBalancesCredits, withdrawCredit } = useWallet()
+      const { withdrawCredit } = useWallet()
 
       try {
-        const balancesCredits = await getBalancesCredits(userAgent, tokens)
+        const { getQuerys } = useAuctionQuery()
+        const { credits: balancesCredits = [] } = await getQuerys(userAgent, {
+          tokens: tokens,
+          queryTypes: ['credits'],
+        })
 
         const withdrawalPromises = balancesCredits
-          .filter((balance) => Number(balance.volumeInTotalNat) > 0)
-          .map(async (balance) => {
+          .filter(
+            (balance: TokenDataItem) => Number(balance.volumeInTotalNat) > 0,
+          )
+          .map(async (balance: TokenDataItem) => {
             const response = await withdrawCredit(
               userAgent,
               balance.principal,

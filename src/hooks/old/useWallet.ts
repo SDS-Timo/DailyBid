@@ -2,23 +2,104 @@ import { HttpAgent } from '@dfinity/agent'
 import { IcrcLedgerCanister, decodeIcrcAccount } from '@dfinity/ledger-icrc'
 import { Principal } from '@dfinity/principal'
 
-import { TokenMetadata, Result } from '../types'
+import { TokenDataItem, TokenMetadata, Result } from '../../types'
 import {
   convertVolumeFromCanister,
   getDecimals,
-} from '../utils/calculationsUtils'
-import { getActor } from '../utils/canisterUtils'
-import { getAuctionCanisterId } from '../utils/canisterUtils'
+  addDecimal,
+} from '../../utils/calculationsUtils'
+import { getActor } from '../../utils/canisterUtils'
+import { getAuctionCanisterId } from '../../utils/canisterUtils'
 import {
   hexToUint8Array,
   getSubAccountFromPrincipal,
-} from '../utils/convertionsUtils'
-import { getToken } from '../utils/tokenUtils'
+} from '../../utils/convertionsUtils'
+import { getToken } from '../../utils/tokenUtils'
 
 /**
  * Custom hook for fetching and managing user wallet.
  */
 const useWallet = () => {
+  /**
+   * Fetches and processes balances with credits details for the user.
+   *
+   * @param userAgent - An instance of HttpAgent used for making authenticated requests.
+   * @param tokens - An array of token objects.
+   * @returns A promise that resolves to an array of TokenDataItem objects containing the user's token balances with credits details.
+   */
+  const getBalancesCredits = async (
+    userAgent: HttpAgent,
+    tokens: TokenMetadata[],
+  ): Promise<TokenDataItem[]> => {
+    try {
+      if (!tokens || tokens.length === 0) return []
+
+      const serviceActor = getActor(userAgent)
+
+      const balancesRaw = await serviceActor.queryCredits()
+
+      const creditsMap = (balancesRaw ?? []).reduce(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (acc, [principal, credits, _sessionNumber]) => {
+          acc[principal.toText()] = credits
+          return acc
+        },
+        {} as Record<string, any>,
+      )
+
+      const balances: TokenDataItem[] = tokens.map((token, index) => {
+        const principal = token.principal || ''
+        const credits = creditsMap[principal] || {
+          available: 0,
+          locked: 0,
+          total: 0,
+        }
+
+        const { volumeInBase: volumeInAvailable } = convertVolumeFromCanister(
+          Number(credits.available),
+          getDecimals(token),
+          0,
+        )
+
+        const { volumeInBase: volumeInLocked } = convertVolumeFromCanister(
+          Number(credits.locked),
+          getDecimals(token),
+          0,
+        )
+
+        const { volumeInBase: volumeInTotal } = convertVolumeFromCanister(
+          Number(credits.total),
+          getDecimals(token),
+          0,
+        )
+
+        return {
+          id: BigInt(index),
+          datetime: '',
+          price: 0,
+          volume: 0,
+          volumeInQuote: 0,
+          volumeInBase: volumeInAvailable,
+          volumeInAvailable,
+          volumeInAvailableNat: String(credits.available),
+          volumeInLocked,
+          volumeInLockedNat: String(credits.locked),
+          volumeInTotal,
+          volumeInTotalNat: String(credits.total),
+          ...token,
+        }
+      })
+
+      const data = addDecimal(balances, 4)
+      data.sort((a, b) => a.symbol.localeCompare(b.symbol))
+
+      return data
+    } catch (error) {
+      console.error('Error fetching balances with credits:', error)
+      return []
+    }
+  }
+
   /**
    * Fetches the balance for a given token and account.
    *
@@ -422,6 +503,7 @@ const useWallet = () => {
   }
 
   return {
+    getBalancesCredits,
     getBalance,
     getTrackedDeposit,
     balanceNotify,

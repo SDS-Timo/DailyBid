@@ -16,9 +16,8 @@ import PaginationTable, {
 } from '../../../../components/paginationTable'
 import useAuctionQuery from '../../../../hooks/useAuctionQuery'
 import useOpenOrders from '../../../../hooks/useOrders'
-import useBalances from '../../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../../store'
-import { setBalances } from '../../../../store/balances'
+import { setIsRefreshBalances } from '../../../../store/balances'
 import {
   setOpenOrders,
   setOrderDetails,
@@ -102,13 +101,6 @@ const OpenOrders: React.FC = () => {
       setLoading(false)
     }
   }
-
-  const fetchBalances = useCallback(async () => {
-    const { getBalancesCredits } = useBalances()
-    const balancesCredits = await getBalancesCredits(userAgent, tokens)
-
-    dispatch(setBalances(balancesCredits))
-  }, [userAgent, tokens, dispatch])
 
   const filterOpenOrders = (openOrders: TokenDataItem[]) => {
     if (showAllMarkets) {
@@ -270,7 +262,7 @@ const OpenOrders: React.FC = () => {
           }
 
           refreshOpenOrders(false)
-          fetchBalances()
+          dispatch(setIsRefreshBalances())
         })
         .catch((error) => {
           const message = error.response ? error.response.data : error.message
@@ -294,7 +286,7 @@ const OpenOrders: React.FC = () => {
           console.error('Cancellation failed:', message)
         })
     },
-    [userAgent, fetchBalances, toast, dispatch],
+    [userAgent, toast, dispatch],
   )
 
   const handleToggleVolume = useCallback(() => {

@@ -19,6 +19,7 @@ export interface HeaderInformation {
   }
   periodVolume: number | string
   priceDigitsLimit: number
+  nextSession: string | undefined | null
 }
 export interface DataItem {
   id?: bigint

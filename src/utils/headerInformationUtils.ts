@@ -7,9 +7,13 @@ import { fixDecimal } from '../utils/calculationsUtils'
  * and the total volume over a specific period.
  *
  * @param prices - An array of DataItem objects containing price and volume information.
+ * @param nextSession - The next session to be displayed in the header information.
  * @returns The calculated HeaderInformation object.
  */
-export function calculateHeaderInformation(prices: DataItem[]) {
+export function calculateHeaderInformation(
+  prices: DataItem[],
+  nextSession: string,
+) {
   let headerInformation: HeaderInformation = {
     lastAuction: '',
     previousChange: {
@@ -18,6 +22,7 @@ export function calculateHeaderInformation(prices: DataItem[]) {
     },
     periodVolume: '',
     priceDigitsLimit: 0,
+    nextSession,
   }
 
   function calculatePrices(
@@ -44,6 +49,7 @@ export function calculateHeaderInformation(prices: DataItem[]) {
         },
         periodVolume: '',
         priceDigitsLimit,
+        nextSession,
       }
     }
     return headerInformation

@@ -1,21 +1,26 @@
 import { Principal } from '@dfinity/principal'
 import { useSelector, useDispatch } from 'react-redux'
 
-import useWallet from '../../../../hooks/useWallet'
-import { RootState, AppDispatch } from '../../../../store'
-import { setBalances } from '../../../../store/balances'
-import { ClaimTokenBalance } from '../../../../types'
-import { getToken } from '../../../../utils/tokenUtils'
+import useAuctionQuery from '../../hooks/useAuctionQuery'
+import useWallet from '../../hooks/useWallet'
+import { RootState, AppDispatch } from '../../store'
+import { setBalances } from '../../store/balances'
+import { ClaimTokenBalance, TokenDataItem } from '../../types'
+import { getToken } from '../../utils/tokenUtils'
 
 export const useHandleAllTrackedDeposits = () => {
   const { userAgent } = useSelector((state: RootState) => state.auth)
   const tokens = useSelector((state: RootState) => state.tokens.tokens)
-  const { getTrackedDeposit, getBalance, balanceNotify, getBalancesCredits } =
-    useWallet()
+  const { getTrackedDeposit, getBalance, balanceNotify } = useWallet()
   const dispatch = useDispatch<AppDispatch>()
 
   const fetchBalances = async () => {
-    const balancesCredits = await getBalancesCredits(userAgent, tokens)
+    const { getQuerys } = useAuctionQuery()
+    const { credits: balancesCredits = [] } = await getQuerys(userAgent, {
+      tokens: tokens,
+      queryTypes: ['credits'],
+    })
+
     dispatch(setBalances(balancesCredits))
     return balancesCredits
   }
@@ -31,7 +36,7 @@ export const useHandleAllTrackedDeposits = () => {
 
     const tokensBalance: ClaimTokenBalance[] = []
     await Promise.all(
-      balances.map(async (token) => {
+      balances.map(async (token: TokenDataItem) => {
         const balanceOf = await getBalance(
           userAgent,
           [token],

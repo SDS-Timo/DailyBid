@@ -21,6 +21,7 @@ const config: JestConfigWithTsJest = {
     }),
     '^.+\\.png$': '<rootDir>/__mocks__/fileMock.ts',
     '^bymax-react-select$': '<rootDir>/__mocks__/bymaxReactSelectMock.tsx',
+    '^react-i18next$': '<rootDir>/__mocks__/react-i18next.ts',
   },
   setupFilesAfterEnv: [
     'jest-localstorage-mock',

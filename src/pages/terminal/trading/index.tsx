@@ -24,8 +24,8 @@ import * as Yup from 'yup'
 import TradeTypeSelector from './tradeTypeSelector'
 import CustomSlider from '../../../components/customSlider'
 import LoginButtonComponent from '../../../components/loginButton'
+import useAuctionQuery from '../../../hooks/useAuctionQuery'
 import useOrders from '../../../hooks/useOrders'
-import useWallet from '../../../hooks/useWallet'
 import { RootState, AppDispatch } from '../../../store'
 import { setUserPoints } from '../../../store/auth'
 import { setBalances } from '../../../store/balances'
@@ -317,7 +317,6 @@ const Trading = () => {
             setSubmitting(false)
             setMessage(null)
             dispatch(setIsRefreshUserData())
-            fetchBalances()
 
             const endTime = Date.now()
             const durationInSeconds = (endTime - startTime) / 1000
@@ -400,7 +399,6 @@ const Trading = () => {
             setSubmitting(false)
             setMessage(null)
             dispatch(setIsRefreshUserData())
-            fetchBalances()
             dispatch(
               setOrderDetails({
                 id: 0n,
@@ -468,25 +466,20 @@ const Trading = () => {
 
   const fetchBalances = useCallback(async () => {
     setLoading(true)
-    const { getBalancesCredits, getUserPoints } = useWallet()
-
-    const [balancesCredits, points] = await Promise.all([
-      getBalancesCredits(userAgent, tokens),
-      getUserPoints(userAgent),
-    ])
+    const { getQuerys } = useAuctionQuery()
+    const { credits: balancesCredits = [], points } = await getQuerys(
+      userAgent,
+      {
+        tokens: tokens,
+        queryTypes: ['credits'],
+      },
+    )
 
     dispatch(setBalances(balancesCredits))
     dispatch(setUserPoints(Number(points)))
 
     setLoading(false)
   }, [userAgent, tokens, dispatch])
-
-  const fetchUserPoints = useCallback(async () => {
-    const { getUserPoints } = useWallet()
-
-    const points = await getUserPoints(userAgent)
-    dispatch(setUserPoints(Number(points)))
-  }, [userAgent, dispatch])
 
   const updateAvailable = useCallback(
     (type: string) => {
@@ -760,12 +753,8 @@ const Trading = () => {
   }, [userAgent, symbol])
 
   useEffect(() => {
-    if (isAuthenticated) fetchUserPoints()
-  }, [isRefreshUserData])
-
-  useEffect(() => {
     if (isAuthenticated) fetchBalances()
-  }, [isRefreshBalances])
+  }, [isRefreshBalances, isRefreshUserData])
 
   useEffect(() => {
     if (tradeType === 'sell') {

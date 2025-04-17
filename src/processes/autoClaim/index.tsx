@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
 import { useHandleAllTrackedDeposits } from './autoClaim'
-import { RootState } from '../../../../store'
+import { RootState } from '../../store'
 
 const AutoClaimTimer = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null)

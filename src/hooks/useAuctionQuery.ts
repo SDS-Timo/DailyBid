@@ -343,14 +343,14 @@ const useAuctionQuery = () => {
    * @param queryOptions.tokens - Array of token objects for multi-token queries.
    * @param queryOptions.queryTypes - Array of query types to include in the request.
    *        Available types:
-   *          - 'price_history' (requires selectedSymbol, selectedQuote) - returns as pricesHistory
-   *          - 'transaction_history' (requires tokens, selectedQuote) - returns as trades
+   *          - 'price_history' (requires selectedSymbol, selectedQuote, priceDigitsLimit) - returns as pricesHistory
+   *          - 'transaction_history' (requires tokens, selectedQuote, priceDigitsLimit) - returns as trades
    *          - 'deposit_history' (requires tokens) - returns as depositHistory
-   *          - 'bids' (requires tokens, selectedQuote) - combined with 'asks' in orders
-   *          - 'asks' (requires tokens, selectedQuote) - combined with 'bids' in orders
+   *          - 'bids' (requires tokens, selectedQuote, priceDigitsLimit) - combined with 'asks' in orders
+   *          - 'asks' (requires tokens, selectedQuote, priceDigitsLimit) - combined with 'bids' in orders
    *          - 'session_numbers' - returns as sessionNumbers
    *          - 'credits' (requires tokens) - returns as credits
-   *          - 'last_prices' (requires tokens, selectedQuote) - returns as lastPrices
+   *          - 'last_prices' (requires tokens, selectedQuote, priceDigitsLimit) - returns as lastPrices
    * @returns A promise that resolves to an object with requested data.
    *          The response object may contain the following properties based on queryTypes:
    *          - pricesHistory: DataItem[] - Price history data

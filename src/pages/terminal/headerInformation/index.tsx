@@ -16,28 +16,19 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
-import AutoClaimTimer from './autoClaim'
 import usePriceHistory from '../../../hooks/usePriceHistory'
-import { RootState, AppDispatch } from '../../../store'
-import { logout } from '../../../store/auth'
-import { setIsRefreshUserData } from '../../../store/orders'
-import { setIsRefreshPrices } from '../../../store/prices'
-import { NextSession } from '../../../types'
-import { checkUserAgentDelegation } from '../../../utils/authUtils'
-import { analytics } from '../../../utils/mixpanelUtils'
+import { RootState } from '../../../store'
+
 const HeaderInformation = () => {
   const bgColor = useColorModeValue('grey.100', 'grey.900')
-  const dispatch = useDispatch<AppDispatch>()
   const { t } = useTranslation()
+
+  const { userAgent } = useSelector((state: RootState) => state.auth)
   const headerInformation = useSelector(
     (state: RootState) => state.prices.headerInformation,
   )
-  const userPrincipal = useSelector(
-    (state: RootState) => state.auth.userPrincipal,
-  )
-  const { userAgent } = useSelector((state: RootState) => state.auth)
   const selectedSymbol = useSelector(
     (state: RootState) => state.tokens.selectedSymbol,
   )
@@ -56,8 +47,6 @@ const HeaderInformation = () => {
     </>
   )
 
-  const [nextSession, setNextSession] = useState<NextSession | null>(null)
-  const [nextSessionTime, setNextSessionTime] = useState<Date | null>(null)
   const [tooltipText, setTooltipText] = useState(tooltipTextStandard)
 
   const isLoading = !headerInformation
@@ -142,82 +131,11 @@ const HeaderInformation = () => {
         )
       }
     }
-  }, [symbol, selectedQuote, usePriceHistory])
-
-  const fetchNextSession = useCallback(async () => {
-    const { getNextSession } = usePriceHistory()
-    const info = await getNextSession(userAgent)
-
-    if (info?.datetime) {
-      const auctionDate = new Date(info.datetime)
-      setNextSessionTime(auctionDate)
-    }
-    setNextSession(info)
-  }, [])
-
-  useEffect(() => {
-    let intervalId: ReturnType<typeof setInterval> | null = null
-    let timeoutId: ReturnType<typeof setInterval> | null = null
-
-    const startPolling = () => {
-      intervalId = setInterval(() => {
-        fetchNextSession()
-      }, 1000)
-    }
-
-    const stopPolling = () => {
-      if (intervalId) {
-        clearInterval(intervalId)
-        intervalId = null
-      }
-    }
-
-    const handleSessionTime = () => {
-      if (!nextSessionTime) return
-
-      const now = new Date()
-      const timeDifference = nextSessionTime.getTime() - now.getTime()
-
-      if (timeDifference > 1000) {
-        const timeToWait = timeDifference - 1000
-
-        if (!checkUserAgentDelegation(userAgent)) {
-          dispatch(logout())
-          // Mixpanel event tracking [User Logged Out]
-          analytics.userLoggedOut(userPrincipal)
-          localStorage.removeItem('identity')
-          localStorage.removeItem('delegationIdentity')
-          localStorage.removeItem('mnemonicPhrase')
-        }
-
-        dispatch(setIsRefreshUserData())
-        dispatch(setIsRefreshPrices())
-
-        timeoutId = setTimeout(() => {
-          startPolling()
-        }, timeToWait)
-      } else {
-        startPolling()
-      }
-    }
-
-    if (nextSessionTime) {
-      handleSessionTime()
-    } else {
-      fetchNextSession()
-    }
-
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
-      stopPolling()
-    }
-  }, [nextSessionTime, fetchNextSession, dispatch])
+  }, [symbol, selectedQuote])
 
   useEffect(() => {
     fetchStatistics()
-  }, [selectedSymbol, selectedQuote, fetchStatistics])
+  }, [selectedSymbol, selectedQuote])
 
   return (
     <Flex direction="row" wrap="wrap" gap={4}>
@@ -337,7 +255,7 @@ const HeaderInformation = () => {
             <Stat size="sm">
               <StatLabel>{t('Next Clearing')}</StatLabel>
               <StatNumber>
-                {nextSession ? nextSession.nextSession : '--'}
+                {headerInformation ? headerInformation?.nextSession : '--'}
               </StatNumber>
             </Stat>
           </MenuButton>
@@ -360,13 +278,12 @@ const HeaderInformation = () => {
             <Stat size="sm" onMouseEnter={() => fetchStatistics()}>
               <StatLabel>{t('Next Clearing')}</StatLabel>
               <StatNumber>
-                {nextSession ? nextSession.nextSession : '--'}
+                {headerInformation ? headerInformation?.nextSession : '--'}
               </StatNumber>
             </Stat>
           </Tooltip>
         </Flex>
       </Box>
-      <AutoClaimTimer />
     </Flex>
   )
 }
