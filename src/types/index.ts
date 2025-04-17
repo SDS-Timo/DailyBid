@@ -19,7 +19,6 @@ export interface HeaderInformation {
   }
   periodVolume: number | string
   priceDigitsLimit: number
-  nextSession: string | undefined | null
 }
 export interface DataItem {
   id?: bigint
@@ -69,6 +68,7 @@ export interface TokensState {
 export interface PricesState {
   isRefreshPrices: boolean
   headerInformation: HeaderInformation | null
+  nextSession: string | null
   pricesHistory: DataItem[] | []
   pricesInfo: TokenApi[] | []
 }

@@ -5,6 +5,7 @@ import { DataItem, PricesState, HeaderInformation, TokenApi } from '../../types'
 const initialState: PricesState = {
   isRefreshPrices: false,
   headerInformation: null,
+  nextSession: null,
   pricesHistory: [],
   pricesInfo: [],
 }
@@ -28,6 +29,9 @@ const priceHistorySlice = createSlice({
     setPricesInfo: (state, action: PayloadAction<TokenApi[] | []>) => {
       state.pricesInfo = action.payload
     },
+    setNextSession: (state, action: PayloadAction<string | null>) => {
+      state.nextSession = action.payload
+    },
   },
 })
 
@@ -36,6 +40,7 @@ export const {
   setHeaderInformation,
   setPricesHistory,
   setPricesInfo,
+  setNextSession,
 } = priceHistorySlice.actions
 
 export default priceHistorySlice.reducer

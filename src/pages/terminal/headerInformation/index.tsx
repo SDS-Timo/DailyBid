@@ -29,6 +29,9 @@ const HeaderInformation = () => {
   const headerInformation = useSelector(
     (state: RootState) => state.prices.headerInformation,
   )
+  const nextSession = useSelector(
+    (state: RootState) => state.prices.nextSession,
+  )
   const selectedSymbol = useSelector(
     (state: RootState) => state.tokens.selectedSymbol,
   )
@@ -254,9 +257,7 @@ const HeaderInformation = () => {
           >
             <Stat size="sm">
               <StatLabel>{t('Next Clearing')}</StatLabel>
-              <StatNumber>
-                {headerInformation ? headerInformation?.nextSession : '--'}
-              </StatNumber>
+              <StatNumber>{nextSession ? nextSession : '--'}</StatNumber>
             </Stat>
           </MenuButton>
           <MenuList bg={bgColor} p={4}>
@@ -277,9 +278,7 @@ const HeaderInformation = () => {
           <Tooltip label={tooltipText} aria-label="Statistics">
             <Stat size="sm" onMouseEnter={() => fetchStatistics()}>
               <StatLabel>{t('Next Clearing')}</StatLabel>
-              <StatNumber>
-                {headerInformation ? headerInformation?.nextSession : '--'}
-              </StatNumber>
+              <StatNumber>{nextSession ? nextSession : '--'}</StatNumber>
             </Stat>
           </Tooltip>
         </Flex>

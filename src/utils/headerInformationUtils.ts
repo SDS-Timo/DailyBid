@@ -10,10 +10,7 @@ import { fixDecimal } from '../utils/calculationsUtils'
  * @param nextSession - The next session to be displayed in the header information.
  * @returns The calculated HeaderInformation object.
  */
-export function calculateHeaderInformation(
-  prices: DataItem[],
-  nextSession: string,
-) {
+export function calculateHeaderInformation(prices: DataItem[]) {
   let headerInformation: HeaderInformation = {
     lastAuction: '',
     previousChange: {
@@ -22,7 +19,6 @@ export function calculateHeaderInformation(
     },
     periodVolume: '',
     priceDigitsLimit: 0,
-    nextSession,
   }
 
   function calculatePrices(
@@ -49,7 +45,6 @@ export function calculateHeaderInformation(
         },
         periodVolume: '',
         priceDigitsLimit,
-        nextSession,
       }
     }
     return headerInformation

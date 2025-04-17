@@ -23,10 +23,6 @@ const ChartPlot = () => {
   const fontColor = useColorModeValue('grey.700', 'grey.25')
   const dispatch = useDispatch<AppDispatch>()
   const { userAgent } = useSelector((state: RootState) => state.auth)
-  const headerInformation = useSelector(
-    (state: RootState) => state.prices.headerInformation,
-  )
-
   const selectedSymbol = useSelector(
     (state: RootState) => state.tokens.selectedSymbol,
   )
@@ -51,34 +47,28 @@ const ChartPlot = () => {
   const [loading, setLoading] = useState(true)
   const [timeframe, setTimeframe] = useState('1W')
 
-  const fetchPrices = useCallback(
-    async (nextSession: string) => {
-      if (symbol && symbol.principal && selectedQuote) {
-        setLoading(true)
-        dispatch(setHeaderInformation(null))
+  const fetchPrices = useCallback(async () => {
+    if (symbol && symbol.principal && selectedQuote) {
+      setLoading(true)
+      dispatch(setHeaderInformation(null))
 
-        const { getQuerys } = useAuctionQuery()
-        const { pricesHistory: prices = [] } = await getQuerys(userAgent, {
-          selectedSymbol: symbol,
-          selectedQuote: selectedQuote,
-          priceDigitsLimit: orderSettings.orderPriceDigitsLimit,
-          queryTypes: ['price_history'],
-        })
+      const { getQuerys } = useAuctionQuery()
+      const { pricesHistory: prices = [] } = await getQuerys(userAgent, {
+        selectedSymbol: symbol,
+        selectedQuote: selectedQuote,
+        priceDigitsLimit: orderSettings.orderPriceDigitsLimit,
+        queryTypes: ['price_history'],
+      })
 
-        const headerInformationCalculated = calculateHeaderInformation(
-          prices,
-          nextSession,
-        )
+      const headerInformationCalculated = calculateHeaderInformation(prices)
 
-        dispatch(setHeaderInformation(headerInformationCalculated))
+      dispatch(setHeaderInformation(headerInformationCalculated))
 
-        dispatch(setPricesHistory(prices))
-        setVolumeAxis('base')
-        setLoading(false)
-      }
-    },
-    [dispatch, symbol, selectedQuote, orderSettings],
-  )
+      dispatch(setPricesHistory(prices))
+      setVolumeAxis('base')
+      setLoading(false)
+    }
+  }, [dispatch, symbol, selectedQuote, orderSettings])
 
   const handleToggleVolumeAxis = () => {
     setVolumeAxis((prevState) => (prevState === 'quote' ? 'base' : 'quote'))
@@ -112,7 +102,7 @@ const ChartPlot = () => {
   }, [priceHistoryData, timeframe, onChangeTimeframe])
 
   useEffect(() => {
-    fetchPrices(headerInformation?.nextSession || '--')
+    fetchPrices()
   }, [selectedSymbol, selectedQuote, isRefreshPrices])
 
   useEffect(() => {

@@ -9,7 +9,11 @@ import { logout } from '../store/auth'
 import { setUserPoints } from '../store/auth'
 import { setBalances } from '../store/balances'
 import { setOpenOrders } from '../store/orders'
-import { setHeaderInformation, setPricesHistory } from '../store/prices'
+import {
+  setHeaderInformation,
+  setPricesHistory,
+  setNextSession,
+} from '../store/prices'
 import { setTrades } from '../store/trades'
 import { checkUserAgentDelegation } from '../utils/authUtils'
 import { calculateHeaderInformation } from '../utils/headerInformationUtils'
@@ -27,9 +31,6 @@ import { analytics } from '../utils/mixpanelUtils'
  */
 const NextClearingComponent: React.FC = () => {
   // State for tracking the next auction session
-  const [nextSession, setNextSession] = useState<string | undefined | null>(
-    null,
-  )
   const [nextSessionTime, setNextSessionTime] = useState<Date | null>(null)
 
   // Redux hooks
@@ -71,7 +72,7 @@ const NextClearingComponent: React.FC = () => {
       const auctionDate = new Date(info.datetime)
       setNextSessionTime(auctionDate)
     }
-    setNextSession(info?.nextSession)
+    dispatch(setNextSession(info?.nextSession || null))
   }, [])
 
   useEffect(() => {
@@ -80,7 +81,7 @@ const NextClearingComponent: React.FC = () => {
     let isActive = true // Flag to control concurrent executions
 
     /**
-     * Starts polling for next session data every second
+     * Starts polling for next session data
      * Ensures any existing polling is stopped before starting new one
      */
     const startPolling = () => {
@@ -91,7 +92,7 @@ const NextClearingComponent: React.FC = () => {
         if (isActive) {
           fetchNextSession()
         }
-      }, 1000)
+      }, 2000)
     }
 
     /**
@@ -164,10 +165,7 @@ const NextClearingComponent: React.FC = () => {
         } = userDataResult
 
         // Update Redux store with fetched data
-        const headerInformation = calculateHeaderInformation(
-          prices,
-          nextSession || '--',
-        )
+        const headerInformation = calculateHeaderInformation(prices)
         dispatch(setHeaderInformation(headerInformation))
         dispatch(setPricesHistory(prices))
         dispatch(setBalances(balancesCredits))
