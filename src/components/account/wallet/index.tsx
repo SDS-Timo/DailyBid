@@ -63,6 +63,7 @@ import {
   getErrorMessageCyclesWithdraw,
   getMemPoolUtxos,
 } from '../../../utils/walletUtils'
+import QrCodeModal from '../../qrCodeModal'
 
 const WalletContent: React.FC = () => {
   const bgColorHover = useColorModeValue('grey.300', 'grey.500')
@@ -77,6 +78,9 @@ const WalletContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const [selectedTab, setSelectedTab] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [isQrModalOpenBtc, setIsQrModalOpenBtc] = useState(false)
+  const [isQrModalOpenIcrc1, setIsQrModalOpenIcrc1] = useState(false)
+  const [isQrModalOpenIcpLegacy, setIsQrModalOpenIcpLegacy] = useState(false)
   const [depositCyclesConfirmation, setDepositCyclesConfirmation] =
     useState(false)
   const [localBalances, setLocalBalances] = useState<TokenDataItem[]>([])
@@ -913,6 +917,18 @@ const WalletContent: React.FC = () => {
     [fetchBalances, toast, userAgent],
   )
 
+  const openModal = (modalType: 'btc' | 'icrc1' | 'icpLegacy') => {
+    if (modalType === 'btc') setIsQrModalOpenBtc(true)
+    else if (modalType === 'icrc1') setIsQrModalOpenIcrc1(true)
+    else if (modalType === 'icpLegacy') setIsQrModalOpenIcpLegacy(true)
+  }
+
+  const closeModal = (modalType: 'btc' | 'icrc1' | 'icpLegacy') => {
+    if (modalType === 'btc') setIsQrModalOpenBtc(false)
+    else if (modalType === 'icrc1') setIsQrModalOpenIcrc1(false)
+    else if (modalType === 'icpLegacy') setIsQrModalOpenIcpLegacy(false)
+  }
+
   useEffect(() => {
     if (isAuthenticated) fetchBalances()
   }, [userAgent, tokens])
@@ -930,7 +946,14 @@ const WalletContent: React.FC = () => {
     <VStack spacing={1} align="stretch">
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
-          <Image src={IcpMonoIcon} alt="ICP" boxSize="16px" mr={2} />
+          <Image
+            src={IcpMonoIcon}
+            alt="ICP"
+            boxSize="16px"
+            mr={2}
+            cursor="pointer"
+            onClick={() => openModal('icrc1')}
+          />
 
           <Tooltip label={userDepositTooltip} aria-label={userDeposit}>
             <Text
@@ -975,7 +998,13 @@ const WalletContent: React.FC = () => {
       </Flex>
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
-          <Icon as={FaBitcoin} boxSize={4} mr={2} />
+          <Icon
+            as={FaBitcoin}
+            boxSize={4}
+            mr={2}
+            cursor="pointer"
+            onClick={() => openModal('btc')}
+          />
           <Tooltip
             label={userBtcDepositAddressTooltip}
             aria-label={userBtcDeposit}
@@ -1018,7 +1047,14 @@ const WalletContent: React.FC = () => {
       </Flex>
       <Flex align="center" justifyContent="space-between">
         <Flex align="center">
-          <Image src={IcpMonoIcon} alt="ICP" boxSize="16px" mr={2} />
+          <Image
+            src={IcpMonoIcon}
+            alt="ICP"
+            boxSize="16px"
+            mr={2}
+            cursor="pointer"
+            onClick={() => openModal('icpLegacy')}
+          />
           <Tooltip
             label={userIcpLegacyAccountAddressTooltip}
             aria-label={userIcpLegacyAccount}
@@ -1113,6 +1149,33 @@ const WalletContent: React.FC = () => {
           </TabPanel>
         </TabPanels>
       </Tabs>
+
+      <QrCodeModal
+        isOpen={isQrModalOpenBtc}
+        onClose={() => closeModal('btc')}
+        value={userBtcDeposit}
+        title={t('Bitcoin Deposit Address')}
+        subtitle={t('Scan the QR code to deposit Bitcoin')}
+        onCopy={copyToClipboardBtcDepositAddress}
+      />
+
+      <QrCodeModal
+        isOpen={isQrModalOpenIcrc1}
+        onClose={() => closeModal('icrc1')}
+        value={userDeposit}
+        title={t('ICRC-1 Tokens Deposit Address')}
+        subtitle={t('Scan the QR code to deposit ICRC-1 Tokens')}
+        onCopy={copyToClipboardDepositAddress}
+      />
+
+      <QrCodeModal
+        isOpen={isQrModalOpenIcpLegacy}
+        onClose={() => closeModal('icpLegacy')}
+        value={userIcpLegacyAccount}
+        title={t('ICP Legacy Deposit Address')}
+        subtitle={t('Scan the QR code to deposit ICP Legacy')}
+        onCopy={copyToClipboardIcpLegacyAccountAddress}
+      />
     </VStack>
   )
 }
