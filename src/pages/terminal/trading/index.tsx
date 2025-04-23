@@ -24,6 +24,7 @@ import * as Yup from 'yup'
 import TradeTypeSelector from './tradeTypeSelector'
 import CustomSlider from '../../../components/customSlider'
 import LoginButtonComponent from '../../../components/loginButton'
+import TypeOrderButton from '../../../components/typeOrderButton'
 import useAuctionQuery from '../../../hooks/useAuctionQuery'
 import useOrders from '../../../hooks/useOrders'
 import { RootState, AppDispatch } from '../../../store'
@@ -65,6 +66,7 @@ const Trading = () => {
   const fontColor = useColorModeValue('grey.800', 'grey.200')
 
   const [tradeType, setTradeType] = useState('buy')
+  const [typeOrder, setTypeOrder] = useState('Auction')
   const [amountType, setAmountType] = useState('base')
   const [loading, setLoading] = useState(true)
   const [baseStepSize, setBaseStepSize] = useState<number | null>(null)
@@ -866,6 +868,11 @@ const Trading = () => {
       <TradeTypeSelector
         tradeType={tradeType}
         handleTradeTypeChange={handleTradeTypeChange}
+      />
+      <TypeOrderButton
+        firstOption="Auction"
+        secondOption="Immediate"
+        onChange={setTypeOrder}
       />
       <Flex direction="column">
         <FormControl variant="floating">
