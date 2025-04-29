@@ -122,6 +122,9 @@ const WalletContent: React.FC = () => {
       {t(`ICRC-1 Tokens. Transfer here or set as allowance spender:`)}
       <br />
       {userDeposit}
+      <br />
+      <br />
+      {t('Click on icon on left to display QR code.')}
     </>
   )
 
@@ -130,6 +133,9 @@ const WalletContent: React.FC = () => {
       {t(`Bitcoin. Transfer here:`)}
       <br />
       {userBtcDeposit}
+      <br />
+      <br />
+      {t('Click on icon on left to display QR code.')}
     </>
   )
 
@@ -138,6 +144,9 @@ const WalletContent: React.FC = () => {
       {t(`ICP Legacy. Transfer here:`)}
       <br />
       {userIcpLegacyAccount}
+      <br />
+      <br />
+      {t('Click on icon on left to display QR code.')}
     </>
   )
 

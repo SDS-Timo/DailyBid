@@ -191,6 +191,9 @@
     "Previous Change": "Previous Change",
     "Next Clearing": "Next Clearing",
     "Select a symbol": "Select a symbol",
-    "No symbols found": "No symbols found"
+    "No symbols found": "No symbols found",
+
+    "Click on icon on left to display QR code.": "Click on icon on left to display QR code.",
+    "Search for a symbol": "Search for a symbol"
   }
 }
