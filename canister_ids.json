@@ -1,5 +1,8 @@
 {
   "frontend": {
     "ic": "i4tvh-qyaaa-aaaap-ahmea-cai"
+  },
+  "ic_siwe_provider": {
+    "ic": "k5lde-biaaa-aaaap-an2ba-cai"
   }
 }

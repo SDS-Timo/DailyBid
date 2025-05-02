@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { useDispatch, useSelector } from 'react-redux'
 
+import EthereumComponent from './auth/ethereum'
 import IdentityComponent from './auth/identity'
 import MnemonicComponent from './auth/mnemonic'
 import NfidComponent from './auth/nfid'
@@ -110,10 +111,17 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                       />
                     </Box>
                     <Box mt={4}>
-                      <SeedComponent
+                      <EthereumComponent
                         onClose={onClose}
                         currentIndex={activeIndex}
                         onAccordionChange={() => handleAccordionChange(2)}
+                      />
+                    </Box>
+                    <Box mt={4}>
+                      <SeedComponent
+                        onClose={onClose}
+                        currentIndex={activeIndex}
+                        onAccordionChange={() => handleAccordionChange(3)}
                       />
                     </Box>
                   </>
@@ -122,7 +130,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                   <MnemonicComponent
                     onClose={onClose}
                     currentIndex={activeIndex}
-                    onAccordionChange={() => handleAccordionChange(3)}
+                    onAccordionChange={() => handleAccordionChange(4)}
                   />
                 </Box>
                 {isTelegram && !isTelegramWeb && (
