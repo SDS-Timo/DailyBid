@@ -25,10 +25,6 @@ export default function TypeOrderButton({
   const fontInactiveColor = useColorModeValue('grey.400', 'grey.300')
   const borderActiveColor = useColorModeValue('grey.900', 'grey.100')
 
-  useEffect(() => {
-    onChange(active === 'first' ? firstOption : secondOption)
-  }, [active, firstOption, secondOption, onChange])
-
   const updateLinePosition = () => {
     const activeRef = active === 'first' ? firstButtonRef : secondButtonRef
     if (activeRef.current) {
@@ -51,6 +47,10 @@ export default function TypeOrderButton({
       window.removeEventListener('resize', updateLinePosition)
     }
   }, [active])
+
+  useEffect(() => {
+    onChange(active === 'first' ? firstOption : secondOption)
+  }, [active, firstOption, secondOption, onChange])
 
   return (
     <Flex position="relative" w="full">
