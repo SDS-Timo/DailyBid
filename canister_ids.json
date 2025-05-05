@@ -4,5 +4,8 @@
   },
   "ic_siwe_provider": {
     "ic": "k5lde-biaaa-aaaap-an2ba-cai"
+  },
+  "ic_siws_provider": {
+    "ic": "kpnu5-nyaaa-aaaap-an2ca-cai"
   }
 }
