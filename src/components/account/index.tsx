@@ -13,6 +13,7 @@ import {
   Link,
   useColorModeValue,
 } from '@chakra-ui/react'
+import { useSiws } from 'ic-siws-js/react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import EthereumComponent from './auth/ethereum'
@@ -20,6 +21,7 @@ import IdentityComponent from './auth/identity'
 import MnemonicComponent from './auth/mnemonic'
 import NfidComponent from './auth/nfid'
 import SeedComponent from './auth/seed'
+import SolanaComponent from './auth/solana'
 import WalletComponent from './wallet'
 import useWindow from '../../hooks/useWindow'
 import { RootState } from '../../store'
@@ -39,6 +41,8 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [showOtherLogins, setShowOtherLogins] = useState<boolean>(false)
 
+  const { clear } = useSiws()
+
   const dispatch = useDispatch()
   const { getIsTelegramApp } = useWindow()
   const { isTelegram, isTelegramWeb } = getIsTelegramApp()
@@ -50,6 +54,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
   )
   const handleLogout = () => {
     dispatch(logout())
+    clear()
     // Mixpanel event tracking [User Logged Out]
     analytics.userLoggedOut(userPrincipal)
     localStorage.removeItem('identity')
@@ -118,10 +123,17 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                       />
                     </Box>
                     <Box mt={4}>
-                      <SeedComponent
+                      <SolanaComponent
                         onClose={onClose}
                         currentIndex={activeIndex}
                         onAccordionChange={() => handleAccordionChange(3)}
+                      />
+                    </Box>
+                    <Box mt={4}>
+                      <SeedComponent
+                        onClose={onClose}
+                        currentIndex={activeIndex}
+                        onAccordionChange={() => handleAccordionChange(4)}
                       />
                     </Box>
                   </>
@@ -130,7 +142,7 @@ const AccountComponent: React.FC<AccountComponentProps> = ({
                   <MnemonicComponent
                     onClose={onClose}
                     currentIndex={activeIndex}
-                    onAccordionChange={() => handleAccordionChange(4)}
+                    onAccordionChange={() => handleAccordionChange(5)}
                   />
                 </Box>
                 {isTelegram && !isTelegramWeb && (

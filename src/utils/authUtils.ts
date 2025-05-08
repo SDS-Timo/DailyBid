@@ -353,3 +353,29 @@ export const siweAuthenticate = async (
     throw err
   }
 }
+/**
+ * Authenticates the user using Sign-In with Solana (SIWS)
+ * @param dispatch - The dispatch function to trigger actions in the Redux store.
+ * @param identity - An identity object returned from the SIWS login process, used to create an authenticated agent.
+ * @returns A promise that resolves when authentication is complete.
+ */
+export const siwsAuthenticate = async (
+  dispatch: AppDispatch,
+  identity: Identity,
+): Promise<void> => {
+  try {
+    if (!identity) {
+      throw new Error(
+        'Failed to generate identity from SIWS. No identity returned from login.',
+      )
+    }
+
+    const myAgent = getAgent(identity)
+
+    await doLogin(myAgent, dispatch, 'Solana')
+  } catch (err) {
+    console.error('Solana Login Error:', err)
+    // Rethrow the error to allow proper handling in the component
+    throw err
+  }
+}

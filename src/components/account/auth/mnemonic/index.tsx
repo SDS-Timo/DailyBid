@@ -112,8 +112,8 @@ const MnemonicComponent: React.FC<MnemonicComponentProps> = ({
   return (
     <Accordion
       allowToggle
-      index={currentIndex === 4 ? [0] : []}
-      onChange={() => onAccordionChange(4)}
+      index={currentIndex === 5 ? [0] : []}
+      onChange={() => onAccordionChange(5)}
     >
       <AccordionItem border="none">
         <Box

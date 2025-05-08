@@ -14,6 +14,8 @@ import { BrowserRouter } from 'react-router-dom'
 import { WagmiProvider } from 'wagmi'
 
 import App from './app'
+import SiwsProvider from './providers/SolanaSignIn/siws-provider'
+import SolanaProviders from './providers/SolanaSignIn/solana-providers'
 import store from './store'
 import theme from './theme'
 import { canisterId } from '../declarations/ic_siwe_provider'
@@ -31,7 +33,11 @@ root.render(
       <ChakraProvider theme={theme}>
         <WagmiProvider config={wagmiConfig}>
           <QueryClientProvider client={queryClient}>
-            <RainbowKitThemeWrapper />
+            <SolanaProviders>
+              <SiwsProvider>
+                <RainbowKitThemeWrapper />
+              </SiwsProvider>
+            </SolanaProviders>
           </QueryClientProvider>
         </WagmiProvider>
       </ChakraProvider>
