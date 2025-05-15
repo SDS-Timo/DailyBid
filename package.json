@@ -12,7 +12,7 @@
     "preview": "vite preview --port 3993 --host",
     "deploy:frontend": "dfx deploy --ic frontend",
     "deploy:siwe": "NETWORK=ic make deploy-siwe",
-    "deploy": "npm run deploy:frontend && npm run deploy:siwe",
+    "deploy": "npm run deploy:frontend",
     "cycles": "dfx canister deposit-cycles 1000 frontend --ic",
     "test": "jest -c ./jest.config.ts",
     "lint": "eslint '**/*.ts' '**/*.tsx'",
