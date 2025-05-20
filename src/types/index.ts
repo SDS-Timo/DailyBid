@@ -49,7 +49,8 @@ export interface TokenMetadata {
   name: string
   decimals: number
   logo: string
-  fee: string
+  fee: number
+  feeNat: string
   quote: string
   base: string
   principal?: string
